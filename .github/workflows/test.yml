@@ -1,0 +1,29 @@
+name: test
+on:
+    push:
+    pull_request:
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Install modules
+              run: npm install
+            - name: Run ESLint
+              run: npx eslint .
+    format:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Install modules
+              run: npm install
+            - name: Run Prettier
+              run: npx prettier --check .
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Install modules
+              run: npm install
+            - name: Run build
+              run: npm run build
