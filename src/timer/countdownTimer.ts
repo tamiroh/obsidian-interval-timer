@@ -6,6 +6,8 @@ export class CountdownTimer {
 
 	private readonly callback: (time: Time) => void;
 
+	private readonly onPause: ((current: Time) => void) | undefined;
+
 	private readonly onComplete: (() => void) | undefined;
 
 	private readonly initialTime: Time;
@@ -13,8 +15,10 @@ export class CountdownTimer {
 	constructor(
 		initialTime: Time,
 		callback: (time: Time) => void,
+		onPause?: (current: Time) => void,
 		onComplete?: () => void
 	) {
+		this.onPause = onPause;
 		this.onComplete = onComplete;
 		this.initialTime = new Time(initialTime.minutes, initialTime.seconds);
 		this.state = { type: "initialized", currentTime: initialTime };
@@ -62,6 +66,12 @@ export class CountdownTimer {
 			type: "paused",
 			currentTime: this.state.currentTime,
 		};
+		this.onPause?.(
+			new Time(
+				this.state.currentTime.minutes,
+				this.state.currentTime.seconds
+			)
+		);
 
 		return { type: "succeeded" };
 	}

@@ -34,6 +34,11 @@ export default class MyPlugin extends Plugin {
 						(time: Time) => {
 							this.statusBarItem.setText(format(time));
 						},
+						(current) => {
+							this.statusBarItem.setText(
+								`(Paused) ${format(current)}`
+							);
+						},
 						() => {
 							new Notice("completed!");
 						}
