@@ -6,9 +6,16 @@ export class CountdownTimer {
 
 	private readonly callback: (time: Time) => void;
 
+	private readonly onComplete: (() => void) | undefined;
+
 	private readonly initialTime: Time;
 
-	constructor(initialTime: Time, callback: (time: Time) => void) {
+	constructor(
+		initialTime: Time,
+		callback: (time: Time) => void,
+		onComplete?: () => void
+	) {
+		this.onComplete = onComplete;
 		this.initialTime = new Time(initialTime.minutes, initialTime.seconds);
 		this.state = { type: "initialized", currentTime: initialTime };
 		this.callback = callback;
@@ -33,6 +40,8 @@ export class CountdownTimer {
 			}
 			if (result.type === "exceeded") {
 				window.clearInterval(intervalId);
+				this.state = { type: "completed" };
+				this.onComplete?.();
 			}
 		}, 1000);
 

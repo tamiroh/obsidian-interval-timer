@@ -29,11 +29,14 @@ export default class MyPlugin extends Plugin {
 			callback: () => {
 				if (this.timer == null) {
 					this.timer = new CountdownTimer(
-						new Time(25, 0),
+						new Time(1, 0),
 						(time: Time) => {
 							this.statusBarItem.setText(
 								`${time.minutes}:${time.seconds}`
 							);
+						},
+						() => {
+							new Notice("completed!");
 						}
 					);
 				}
