@@ -7,20 +7,24 @@ import { Time } from "./time/time";
 import { format } from "./utils/time";
 
 export default class Plugin extends BasePlugin {
-	settings: Setting;
+	public settings: Setting;
 
-	statusBarItem: HTMLElement;
+	private statusBarItem: HTMLElement;
 
-	timer: CountdownTimer;
+	private timer: CountdownTimer;
 
-	override onload = async () => {
+	public override onload = async () => {
 		await this.loadSettings();
 		this.initializeStatusBar();
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
 	};
 
-	initializeStatusBar = () => {
+	public saveSettings = async () => {
+		await this.saveData(this.settings);
+	};
+
+	private initializeStatusBar = () => {
 		this.statusBarItem = this.addStatusBarItem();
 		this.statusBarItem.setText(
 			`(Initialized) ${format(
@@ -29,7 +33,7 @@ export default class Plugin extends BasePlugin {
 		);
 	};
 
-	addCommands = () => {
+	private addCommands = () => {
 		this.addCommand({
 			id: "start-timer",
 			name: "Start timer",
@@ -47,18 +51,14 @@ export default class Plugin extends BasePlugin {
 		});
 	};
 
-	loadSettings = async () => {
+	private loadSettings = async () => {
 		this.settings = {
 			...DEFAULT_SETTINGS,
 			...(await this.loadData()),
 		};
 	};
 
-	saveSettings = async () => {
-		await this.saveData(this.settings);
-	};
-
-	startTimer = () => {
+	private startTimer = () => {
 		if (this.timer == null) {
 			this.timer = new CountdownTimer(
 				new Time(this.settings.focusIntervalDuration, 0),
@@ -86,7 +86,7 @@ export default class Plugin extends BasePlugin {
 		}
 	};
 
-	resetTimer = () => {
+	private resetTimer = () => {
 		const result = this.timer.reset();
 		if (result.type === "succeeded") {
 			this.statusBarItem.setText(
