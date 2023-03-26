@@ -1,12 +1,15 @@
 import { Time } from "../time/time";
-import { PauseResult, StartResult, TimerState } from "./types";
+import { PauseResult, ResetResult, StartResult, TimerState } from "./types";
 
 export class CountdownTimer {
 	private state: TimerState;
 
 	private readonly callback: (time: Time) => void;
 
+	private readonly initialTime: Time;
+
 	constructor(initialTime: Time, callback: (time: Time) => void) {
+		this.initialTime = new Time(initialTime.minutes, initialTime.seconds);
 		this.state = { type: "initialized", currentTime: initialTime };
 		this.callback = callback;
 	}
@@ -52,6 +55,23 @@ export class CountdownTimer {
 		};
 
 		return { type: "succeeded" };
+	}
+
+	public reset(): ResetResult {
+		if (this.state.type === "running") {
+			window.clearInterval(this.state.intervalId);
+		}
+		this.state = {
+			type: "initialized",
+			currentTime: this.initialTime,
+		};
+		return {
+			type: "succeeded",
+			resetTo: new Time(
+				this.initialTime.minutes,
+				this.initialTime.seconds
+			),
+		};
 	}
 
 	public getIntervalId(): number | undefined {

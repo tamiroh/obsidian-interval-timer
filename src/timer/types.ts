@@ -21,3 +21,7 @@ export type TimerState =
 export type PauseResult = { type: "succeeded" } | { type: "failed" };
 
 export type StartResult = { type: "succeeded" } | { type: "failed" };
+
+export type ResetResult =
+	| { type: "succeeded"; resetTo: Time }
+	| { type: "failed" };

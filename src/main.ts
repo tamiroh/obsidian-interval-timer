@@ -51,6 +51,18 @@ export default class MyPlugin extends Plugin {
 				this.timer.pause();
 			},
 		});
+		this.addCommand({
+			id: "reset-timer",
+			name: "Reset timer",
+			callback: () => {
+				const result = this.timer.reset();
+				if (result.type === "succeeded") {
+					this.statusBarItem.setText(
+						`${result.resetTo.minutes}:${result.resetTo.seconds}`
+					);
+				}
+			},
+		});
 	}
 
 	async loadSettings() {
