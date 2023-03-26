@@ -1,53 +1,54 @@
-import { Editor, MarkdownView, Notice, Plugin } from "obsidian";
+import { Notice, Plugin } from "obsidian";
 import { SampleSettingTab } from "./sampleSettingTab";
-import { SampleModal } from "./sampleModal";
 import { Settings } from "./types/Settings";
 import { DEFAULT_SETTINGS } from "./constants";
+import { CountdownTimer } from "./timer/countdownTimer";
+import { Time } from "./time/time";
 
 export default class MyPlugin extends Plugin {
 	settings: Settings;
+
+	statusBarItem: HTMLElement;
+
+	timer: CountdownTimer;
 
 	override async onload() {
 		await this.loadSettings();
 		this.addRibbonIcon("dice", "Sample Plugin", () => {
 			new Notice("This is a notice!");
 		});
-		this.addStatusBarItem().setText("Status Bar Text");
+		this.statusBarItem = this.addStatusBarItem();
 		this.addCommands();
 		this.addSettingTab(new SampleSettingTab(this.app, this));
 	}
 
 	addCommands() {
 		this.addCommand({
-			id: "open-sample-modal-simple",
-			name: "Open sample modal (simple)",
-			callback: () => new SampleModal(this.app).open(),
-		});
-		this.addCommand({
-			id: "sample-editor-command",
-			name: "Sample editor command",
-			editorCallback: (editor: Editor) => {
-				new Notice(editor.getSelection());
-				editor.replaceSelection("Sample Editor Command");
+			id: "start-timer",
+			name: "Start timer",
+			callback: () => {
+				if (this.timer == null) {
+					this.timer = new CountdownTimer(
+						new Time(25, 0),
+						(time: Time) => {
+							this.statusBarItem.setText(
+								`${time.minutes}:${time.seconds}`
+							);
+						}
+					);
+				}
+				this.timer.start();
+				const intervalId = this.timer.getIntervalId();
+				if (intervalId != null) {
+					this.registerInterval(intervalId);
+				}
 			},
 		});
 		this.addCommand({
-			id: "open-sample-modal-complex",
-			name: "Open sample modal (complex)",
-			checkCallback: (checking: boolean): boolean | void => {
-				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
+			id: "pause-timer",
+			name: "Pause timer",
+			callback: () => {
+				this.timer.pause();
 			},
 		});
 	}
