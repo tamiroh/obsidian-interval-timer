@@ -15,9 +15,18 @@ export default class Plugin extends BasePlugin {
 
 	override async onload() {
 		await this.loadSettings();
-		this.statusBarItem = this.addStatusBarItem();
+		this.initializeStatusBar();
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
+	}
+
+	initializeStatusBar() {
+		this.statusBarItem = this.addStatusBarItem();
+		this.statusBarItem.setText(
+			`(Initialized) ${format(
+				new Time(this.settings.focusIntervalDuration, 0)
+			)}`
+		);
 	}
 
 	addCommands() {
@@ -27,7 +36,7 @@ export default class Plugin extends BasePlugin {
 			callback: () => {
 				if (this.timer == null) {
 					this.timer = new CountdownTimer(
-						new Time(1, 0),
+						new Time(this.settings.focusIntervalDuration, 0),
 						(time: Time) => {
 							this.statusBarItem.setText(
 								`(Running) ${format(time)}`

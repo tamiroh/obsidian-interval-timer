@@ -14,18 +14,43 @@ export class SettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "Settings for my awesome plugin." });
+		containerEl.createEl("h1", { text: "Durations" });
 
 		new Setting(containerEl)
-			.setName("Setting #1")
-			.setDesc("It's a secret")
+			.setName("Focus interval duration (minutes)")
 			.addText((text) =>
 				text
-					.setPlaceholder("Enter your secret")
-					.setValue(this.plugin.settings.mySetting)
+					.setPlaceholder("Example: 25")
+					.setValue(
+						String(this.plugin.settings.focusIntervalDuration)
+					)
 					.onChange(async (value) => {
-						console.log(`Secret: ${value}`);
-						this.plugin.settings.mySetting = value;
+						this.plugin.settings.focusIntervalDuration =
+							Number(value);
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Short break duration (minutes)")
+			.addText((text) =>
+				text
+					.setPlaceholder("Example: 5")
+					.setValue(String(this.plugin.settings.shortBreakDuration))
+					.onChange(async (value) => {
+						this.plugin.settings.shortBreakDuration = Number(value);
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Long break duration (minutes)")
+			.addText((text) =>
+				text
+					.setPlaceholder("Example: 15")
+					.setValue(String(this.plugin.settings.longBreakDuration))
+					.onChange(async (value) => {
+						this.plugin.settings.longBreakDuration = Number(value);
 						await this.plugin.saveSettings();
 					})
 			);

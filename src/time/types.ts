@@ -4,7 +4,9 @@ export type TimeState =
 	| { type: "subtracted"; time: Time }
 	| { type: "exceeded" };
 
-export type Minutes =
+export type Minutes = number;
+
+export type Seconds =
 	| 0
 	| 1
 	| 2
@@ -65,5 +67,3 @@ export type Minutes =
 	| 57
 	| 58
 	| 59;
-
-export type Seconds = Minutes;
