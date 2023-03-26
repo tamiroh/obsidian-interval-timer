@@ -6,7 +6,7 @@ import { CountdownTimer } from "./timer/countdownTimer";
 import { Time } from "./time/time";
 import { format } from "./utils/time";
 
-export default class MyPlugin extends Plugin {
+export default class IntervalTimerPlugin extends Plugin {
 	settings: Settings;
 
 	statusBarItem: HTMLElement;
