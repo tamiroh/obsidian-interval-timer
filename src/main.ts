@@ -32,7 +32,9 @@ export default class MyPlugin extends Plugin {
 					this.timer = new CountdownTimer(
 						new Time(1, 0),
 						(time: Time) => {
-							this.statusBarItem.setText(format(time));
+							this.statusBarItem.setText(
+								`(Running) ${format(time)}`
+							);
 						},
 						(current) => {
 							this.statusBarItem.setText(
@@ -41,6 +43,7 @@ export default class MyPlugin extends Plugin {
 						},
 						() => {
 							new Notice("completed!");
+							this.statusBarItem.setText(`(Completed) 00:00`);
 						}
 					);
 				}
@@ -64,7 +67,9 @@ export default class MyPlugin extends Plugin {
 			callback: () => {
 				const result = this.timer.reset();
 				if (result.type === "succeeded") {
-					this.statusBarItem.setText(format(result.resetTo));
+					this.statusBarItem.setText(
+						`(Initialized) ${format(result.resetTo)}`
+					);
 				}
 			},
 		});
