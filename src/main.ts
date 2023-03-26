@@ -1,5 +1,5 @@
 import { Notice, Plugin } from "obsidian";
-import { SampleSettingTab } from "./sampleSettingTab";
+import { SettingTab } from "./settingTab";
 import { Settings } from "./types/Settings";
 import { DEFAULT_SETTINGS } from "./constants";
 import { CountdownTimer } from "./timer/countdownTimer";
@@ -17,7 +17,7 @@ export default class MyPlugin extends Plugin {
 		await this.loadSettings();
 		this.statusBarItem = this.addStatusBarItem();
 		this.addCommands();
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new SettingTab(this.app, this));
 	}
 
 	addCommands() {
