@@ -1,13 +1,13 @@
 import { Notice, Plugin } from "obsidian";
 import { SettingTab } from "./setting/settingTab";
-import { Settings } from "./setting/Settings";
+import { Setting } from "./setting/types";
 import { DEFAULT_SETTINGS } from "./constants";
 import { CountdownTimer } from "./timer/countdownTimer";
 import { Time } from "./time/time";
 import { format } from "./utils/time";
 
 export default class IntervalTimerPlugin extends Plugin {
-	settings: Settings;
+	settings: Setting;
 
 	statusBarItem: HTMLElement;
 
