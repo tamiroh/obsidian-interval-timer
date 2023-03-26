@@ -4,6 +4,7 @@ import { Settings } from "./types/Settings";
 import { DEFAULT_SETTINGS } from "./constants";
 import { CountdownTimer } from "./timer/countdownTimer";
 import { Time } from "./time/time";
+import { format } from "./utils/time";
 
 export default class MyPlugin extends Plugin {
 	settings: Settings;
@@ -31,9 +32,7 @@ export default class MyPlugin extends Plugin {
 					this.timer = new CountdownTimer(
 						new Time(1, 0),
 						(time: Time) => {
-							this.statusBarItem.setText(
-								`${time.minutes}:${time.seconds}`
-							);
+							this.statusBarItem.setText(format(time));
 						},
 						() => {
 							new Notice("completed!");
@@ -60,9 +59,7 @@ export default class MyPlugin extends Plugin {
 			callback: () => {
 				const result = this.timer.reset();
 				if (result.type === "succeeded") {
-					this.statusBarItem.setText(
-						`${result.resetTo.minutes}:${result.resetTo.seconds}`
-					);
+					this.statusBarItem.setText(format(result.resetTo));
 				}
 			},
 		});
