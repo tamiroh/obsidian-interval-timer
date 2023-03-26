@@ -15,7 +15,7 @@ export class Time {
 			if (this.minutes === 0) return { type: "exceeded" };
 			return {
 				type: "subtracted",
-				time: new Time((this.minutes - 1) as Minutes, 59),
+				time: new Time(this.minutes - 1, 59),
 			};
 		}
 		return {
