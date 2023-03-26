@@ -33,56 +33,17 @@ export default class Plugin extends BasePlugin {
 		this.addCommand({
 			id: "start-timer",
 			name: "Start timer",
-			callback: () => {
-				if (this.timer == null) {
-					this.timer = new CountdownTimer(
-						new Time(this.settings.focusIntervalDuration, 0),
-						(time: Time) => {
-							this.statusBarItem.setText(
-								`(Running) ${format(time)}`
-							);
-						},
-						(current) => {
-							this.statusBarItem.setText(
-								`(Paused) ${format(current)}`
-							);
-						},
-						() => {
-							new Notice("completed!");
-							this.statusBarItem.setText(`(Completed) 00:00`);
-						}
-					);
-				}
-				this.statusBarItem.setText(
-					`(Running) ${format(
-						new Time(this.settings.focusIntervalDuration, 0)
-					)}`
-				);
-				this.timer.start();
-				const intervalId = this.timer.getIntervalId();
-				if (intervalId != null) {
-					this.registerInterval(intervalId);
-				}
-			},
+			callback: this.startTimer,
 		});
 		this.addCommand({
 			id: "pause-timer",
 			name: "Pause timer",
-			callback: () => {
-				this.timer.pause();
-			},
+			callback: () => this.timer.pause(),
 		});
 		this.addCommand({
 			id: "reset-timer",
 			name: "Reset timer",
-			callback: () => {
-				const result = this.timer.reset();
-				if (result.type === "succeeded") {
-					this.statusBarItem.setText(
-						`(Initialized) ${format(result.resetTo)}`
-					);
-				}
-			},
+			callback: this.resetTimer,
 		});
 	};
 
@@ -95,5 +56,42 @@ export default class Plugin extends BasePlugin {
 
 	saveSettings = async () => {
 		await this.saveData(this.settings);
+	};
+
+	startTimer = () => {
+		if (this.timer == null) {
+			this.timer = new CountdownTimer(
+				new Time(this.settings.focusIntervalDuration, 0),
+				(time: Time) => {
+					this.statusBarItem.setText(`(Running) ${format(time)}`);
+				},
+				(current) => {
+					this.statusBarItem.setText(`(Paused) ${format(current)}`);
+				},
+				() => {
+					new Notice("completed!");
+					this.statusBarItem.setText(`(Completed) 00:00`);
+				}
+			);
+		}
+		this.statusBarItem.setText(
+			`(Running) ${format(
+				new Time(this.settings.focusIntervalDuration, 0)
+			)}`
+		);
+		this.timer.start();
+		const intervalId = this.timer.getIntervalId();
+		if (intervalId != null) {
+			this.registerInterval(intervalId);
+		}
+	};
+
+	resetTimer = () => {
+		const result = this.timer.reset();
+		if (result.type === "succeeded") {
+			this.statusBarItem.setText(
+				`(Initialized) ${format(result.resetTo)}`
+			);
+		}
 	};
 }
