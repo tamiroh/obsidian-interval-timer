@@ -1,10 +1,10 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
-import IntervalTimerPlugin from "../main";
+import Plugin from "../main";
 
 export class SettingTab extends PluginSettingTab {
-	plugin: IntervalTimerPlugin;
+	plugin: Plugin;
 
-	constructor(app: App, plugin: IntervalTimerPlugin) {
+	constructor(app: App, plugin: Plugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

@@ -1,4 +1,4 @@
-import { Notice, Plugin } from "obsidian";
+import { Notice, Plugin as BasePlugin } from "obsidian";
 import { SettingTab } from "./setting/settingTab";
 import { Setting } from "./setting/types";
 import { DEFAULT_SETTINGS } from "./setting/default";
@@ -6,7 +6,7 @@ import { CountdownTimer } from "./timer/countdownTimer";
 import { Time } from "./time/time";
 import { format } from "./utils/time";
 
-export default class IntervalTimerPlugin extends Plugin {
+export default class Plugin extends BasePlugin {
 	settings: Setting;
 
 	statusBarItem: HTMLElement;
