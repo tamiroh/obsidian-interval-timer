@@ -13,23 +13,23 @@ export default class Plugin extends BasePlugin {
 
 	timer: CountdownTimer;
 
-	override async onload() {
+	override onload = async () => {
 		await this.loadSettings();
 		this.initializeStatusBar();
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
-	}
+	};
 
-	initializeStatusBar() {
+	initializeStatusBar = () => {
 		this.statusBarItem = this.addStatusBarItem();
 		this.statusBarItem.setText(
 			`(Initialized) ${format(
 				new Time(this.settings.focusIntervalDuration, 0)
 			)}`
 		);
-	}
+	};
 
-	addCommands() {
+	addCommands = () => {
 		this.addCommand({
 			id: "start-timer",
 			name: "Start timer",
@@ -84,16 +84,16 @@ export default class Plugin extends BasePlugin {
 				}
 			},
 		});
-	}
+	};
 
-	async loadSettings() {
+	loadSettings = async () => {
 		this.settings = {
 			...DEFAULT_SETTINGS,
 			...(await this.loadData()),
 		};
-	}
+	};
 
-	async saveSettings() {
+	saveSettings = async () => {
 		await this.saveData(this.settings);
-	}
+	};
 }
