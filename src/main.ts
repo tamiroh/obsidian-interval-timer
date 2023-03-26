@@ -15,9 +15,6 @@ export default class MyPlugin extends Plugin {
 
 	override async onload() {
 		await this.loadSettings();
-		this.addRibbonIcon("dice", "Sample Plugin", () => {
-			new Notice("This is a notice!");
-		});
 		this.statusBarItem = this.addStatusBarItem();
 		this.addCommands();
 		this.addSettingTab(new SampleSettingTab(this.app, this));
