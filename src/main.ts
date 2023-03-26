@@ -53,6 +53,11 @@ export default class Plugin extends BasePlugin {
 						}
 					);
 				}
+				this.statusBarItem.setText(
+					`(Running) ${format(
+						new Time(this.settings.focusIntervalDuration, 0)
+					)}`
+				);
 				this.timer.start();
 				const intervalId = this.timer.getIntervalId();
 				if (intervalId != null) {
