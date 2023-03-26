@@ -1,7 +1,7 @@
 import { Notice, Plugin } from "obsidian";
 import { SettingTab } from "./setting/settingTab";
 import { Setting } from "./setting/types";
-import { DEFAULT_SETTINGS } from "./constants";
+import { DEFAULT_SETTINGS } from "./setting/default";
 import { CountdownTimer } from "./timer/countdownTimer";
 import { Time } from "./time/time";
 import { format } from "./utils/time";
