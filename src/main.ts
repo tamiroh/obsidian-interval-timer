@@ -1,6 +1,6 @@
 import { Notice, Plugin } from "obsidian";
-import { SettingTab } from "./settingTab";
-import { Settings } from "./types/Settings";
+import { SettingTab } from "./setting/settingTab";
+import { Settings } from "./setting/Settings";
 import { DEFAULT_SETTINGS } from "./constants";
 import { CountdownTimer } from "./timer/countdownTimer";
 import { Time } from "./time/time";
