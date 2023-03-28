@@ -11,7 +11,10 @@ export default class Plugin extends BasePlugin {
 
 	private statusBarItem: HTMLElement;
 
-	private timerState: { type: "focus" | "break"; timer: CountdownTimer };
+	private intervalTimerState: {
+		type: "focus" | "break";
+		timer: CountdownTimer;
+	};
 
 	public override onload = async () => {
 		await this.loadSettings();
@@ -42,7 +45,7 @@ export default class Plugin extends BasePlugin {
 		this.addCommand({
 			id: "pause-timer",
 			name: "Pause timer",
-			callback: () => this.timerState.timer.pause(),
+			callback: () => this.intervalTimerState.timer.pause(),
 		});
 		this.addCommand({
 			id: "reset-timer",
@@ -59,7 +62,7 @@ export default class Plugin extends BasePlugin {
 	};
 
 	private startTimer = () => {
-		if (this.timerState == null) {
+		if (this.intervalTimerState == null) {
 			const startTime = new Time(this.settings.focusIntervalDuration, 0);
 			const timer = new CountdownTimer(
 				startTime,
@@ -68,15 +71,15 @@ export default class Plugin extends BasePlugin {
 				this.onPause,
 				this.onComplete
 			);
-			this.timerState = { type: "focus", timer };
+			this.intervalTimerState = { type: "focus", timer };
 		}
 		this.statusBarItem.setText(
 			`(Running) ${format(
 				new Time(this.settings.focusIntervalDuration, 0)
 			)}`
 		);
-		this.timerState.timer.start();
-		const intervalId = this.timerState.timer.getIntervalId();
+		this.intervalTimerState.timer.start();
+		const intervalId = this.intervalTimerState.timer.getIntervalId();
 		if (intervalId != null) {
 			this.registerInterval(intervalId);
 		}
@@ -92,7 +95,7 @@ export default class Plugin extends BasePlugin {
 	};
 
 	private resetTimer = () => {
-		const result = this.timerState.timer.reset();
+		const result = this.intervalTimerState.timer.reset();
 		if (result.type === "succeeded") {
 			this.statusBarItem.setText(
 				`(Initialized) ${format(result.resetTo)}`
