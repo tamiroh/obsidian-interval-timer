@@ -2,7 +2,7 @@ import { Plugin as BasePlugin } from "obsidian";
 import { SettingTab } from "./setting/settingTab";
 import { Setting } from "./setting/types";
 import { DEFAULT_SETTINGS } from "./setting/default";
-import { IntervalTimerManager } from "./timerState/intervalTimerManager";
+import { IntervalTimerManager } from "./manager/intervalTimerManager";
 import { format } from "./utils/time";
 
 export default class Plugin extends BasePlugin {
