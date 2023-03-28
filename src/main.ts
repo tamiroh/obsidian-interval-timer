@@ -11,7 +11,7 @@ export default class Plugin extends BasePlugin {
 
 	private statusBarItem: HTMLElement;
 
-	private timer: CountdownTimer;
+	private timerState: { type: "focus" | "break"; timer: CountdownTimer };
 
 	public override onload = async () => {
 		await this.loadSettings();
@@ -42,7 +42,7 @@ export default class Plugin extends BasePlugin {
 		this.addCommand({
 			id: "pause-timer",
 			name: "Pause timer",
-			callback: () => this.timer.pause(),
+			callback: () => this.timerState.timer.pause(),
 		});
 		this.addCommand({
 			id: "reset-timer",
@@ -59,35 +59,40 @@ export default class Plugin extends BasePlugin {
 	};
 
 	private startTimer = () => {
-		if (this.timer == null) {
-			this.timer = new CountdownTimer(
-				new Time(this.settings.focusIntervalDuration, 0),
-				(time: Time) => {
-					this.statusBarItem.setText(`(Running) ${format(time)}`);
-				},
-				(current) => {
-					this.statusBarItem.setText(`(Paused) ${format(current)}`);
-				},
-				() => {
-					new Notice("completed!");
-					this.statusBarItem.setText(`(Completed) 00:00`);
-				}
+		if (this.timerState == null) {
+			const startTime = new Time(this.settings.focusIntervalDuration, 0);
+			const timer = new CountdownTimer(
+				startTime,
+				(time: Time) =>
+					this.statusBarItem.setText(`(Running) ${format(time)}`),
+				this.onPause,
+				this.onComplete
 			);
+			this.timerState = { type: "focus", timer };
 		}
 		this.statusBarItem.setText(
 			`(Running) ${format(
 				new Time(this.settings.focusIntervalDuration, 0)
 			)}`
 		);
-		this.timer.start();
-		const intervalId = this.timer.getIntervalId();
+		this.timerState.timer.start();
+		const intervalId = this.timerState.timer.getIntervalId();
 		if (intervalId != null) {
 			this.registerInterval(intervalId);
 		}
 	};
 
+	private onComplete = () => {
+		new Notice("completed!");
+		this.statusBarItem.setText(`(Completed) 00:00`);
+	};
+
+	private onPause = (current: Time) => {
+		this.statusBarItem.setText(`(Paused) ${format(current)}`);
+	};
+
 	private resetTimer = () => {
-		const result = this.timer.reset();
+		const result = this.timerState.timer.reset();
 		if (result.type === "succeeded") {
 			this.statusBarItem.setText(
 				`(Initialized) ${format(result.resetTo)}`
