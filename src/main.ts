@@ -4,6 +4,7 @@ import { Setting } from "./setting/types";
 import { DEFAULT_SETTINGS } from "./setting/default";
 import { IntervalTimerManager } from "./manager/intervalTimerManager";
 import { format } from "./utils/time";
+import { onChangeStateFunction } from "./manager/types";
 
 export default class Plugin extends BasePlugin {
 	public settings: Setting;
@@ -15,23 +16,34 @@ export default class Plugin extends BasePlugin {
 	public override onload = async () => {
 		await this.loadSettings();
 		this.statusBarItem = this.addStatusBarItem();
-		this.intervalTimerManager = new IntervalTimerManager(
-			(timerState, intervalTimerState, time, total) => {
-				this.statusBarItem.setText(
-					`(${total}) ${timerState} ${intervalTimerState} ${format(
-						time
-					)}`
-				);
-			},
-			this.settings,
-			(intervalId) => this.registerInterval(intervalId)
-		);
+		this.setupIntervalTimerManager();
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
 	};
 
 	public saveSettings = async () => {
 		await this.saveData(this.settings);
+	};
+
+	private setupIntervalTimerManager = () => {
+		const onChangeState: onChangeStateFunction = (
+			timerState,
+			intervalTimerState,
+			time,
+			total
+		) => {
+			this.statusBarItem.setText(
+				`(${total}) ${timerState} ${intervalTimerState} ${format(time)}`
+			);
+		};
+		const onIntervalCreated = (intervalId: number) =>
+			this.registerInterval(intervalId);
+
+		this.intervalTimerManager = new IntervalTimerManager(
+			onChangeState,
+			this.settings,
+			onIntervalCreated
+		);
 	};
 
 	private addCommands = () => {
