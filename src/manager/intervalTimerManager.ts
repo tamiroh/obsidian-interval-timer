@@ -2,8 +2,7 @@ import { Notice } from "obsidian";
 import { CountdownTimer } from "../timer/countdownTimer";
 import { Time } from "../time/time";
 import { Setting } from "../setting/types";
-import { TimerType } from "../timer/types";
-import { IntervalTimerState } from "./types";
+import { IntervalTimerState, onChangeStateFunction } from "./types";
 
 export class IntervalTimerManager {
 	private intervalTimerState: IntervalTimerState;
@@ -16,20 +15,12 @@ export class IntervalTimerManager {
 
 	private setFocusIntervals: number;
 
-	private readonly onChangeState: (
-		timerState: TimerType,
-		intervalTimerState: IntervalTimerState,
-		time: Time
-	) => void;
+	private readonly onChangeState: onChangeStateFunction;
 
 	private readonly settings: Setting;
 
 	constructor(
-		onChangeState: (
-			timerState: TimerType,
-			intervalTimerState: IntervalTimerState,
-			time: Time
-		) => void,
+		onChangeState: onChangeStateFunction,
 		settings: Setting,
 		onIntervalCreated: (intervalId: number) => void
 	) {
