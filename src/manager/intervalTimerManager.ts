@@ -30,7 +30,12 @@ export class IntervalTimerManager {
 		this.timer = new CountdownTimer(
 			new Time(settings.focusIntervalDuration, 0),
 			(time: Time) =>
-				onChangeState("running", this.intervalTimerState, time),
+				onChangeState(
+					"running",
+					this.intervalTimerState,
+					time,
+					this.totalFocusIntervals
+				),
 			this.onPause,
 			this.onComplete
 		);
@@ -48,7 +53,8 @@ export class IntervalTimerManager {
 					this.onChangeState(
 						"running",
 						this.intervalTimerState,
-						time
+						time,
+						this.totalFocusIntervals
 					),
 				this.onPause,
 				this.onComplete
@@ -59,7 +65,8 @@ export class IntervalTimerManager {
 		this.onChangeState(
 			"running",
 			this.intervalTimerState,
-			new Time(this.settings.focusIntervalDuration, 0)
+			new Time(this.settings.focusIntervalDuration, 0),
+			this.totalFocusIntervals
 		);
 		this.timer.start();
 		const intervalId = this.timer.getIntervalId();
@@ -78,21 +85,29 @@ export class IntervalTimerManager {
 			this.onChangeState(
 				"initialized",
 				this.intervalTimerState,
-				result.resetTo
+				result.resetTo,
+				this.totalFocusIntervals
 			);
 		}
 	};
 
 	private onComplete = () => {
 		new Notice("completed!");
+		this.totalFocusIntervals += 1;
 		this.onChangeState(
 			"completed",
 			this.intervalTimerState,
-			new Time(0, 0)
+			new Time(0, 0),
+			this.totalFocusIntervals
 		);
 	};
 
 	private onPause = (current: Time) => {
-		this.onChangeState("paused", this.intervalTimerState, current);
+		this.onChangeState(
+			"paused",
+			this.intervalTimerState,
+			current,
+			this.totalFocusIntervals
+		);
 	};
 }

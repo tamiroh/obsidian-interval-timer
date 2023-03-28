@@ -16,9 +16,11 @@ export default class Plugin extends BasePlugin {
 		await this.loadSettings();
 		this.statusBarItem = this.addStatusBarItem();
 		this.intervalTimerManager = new IntervalTimerManager(
-			(timerState, intervalTimerState, time) => {
+			(timerState, intervalTimerState, time, total) => {
 				this.statusBarItem.setText(
-					`${timerState} ${intervalTimerState} ${format(time)}`
+					`(${total}) ${timerState} ${intervalTimerState} ${format(
+						time
+					)}`
 				);
 			},
 			this.settings,
