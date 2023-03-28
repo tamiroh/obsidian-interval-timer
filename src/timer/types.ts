@@ -1,21 +1,30 @@
 import { Time } from "../time/time";
 
+export const timerTypes = [
+	"initialized",
+	"running",
+	"paused",
+	"completed",
+] as const;
+
+export type TimerType = (typeof timerTypes)[number];
+
 export type TimerState =
 	| {
-			type: "initialized";
+			type: (typeof timerTypes)[0];
 			currentTime: Time;
 	  }
 	| {
-			type: "running";
+			type: (typeof timerTypes)[1];
 			currentTime: Time;
 			intervalId: number;
 	  }
 	| {
-			type: "paused";
+			type: (typeof timerTypes)[2];
 			currentTime: Time;
 	  }
 	| {
-			type: "completed";
+			type: (typeof timerTypes)[3];
 	  };
 
 export type PauseResult = { type: "succeeded" } | { type: "failed" };

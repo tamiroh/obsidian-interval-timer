@@ -3,6 +3,7 @@ import { SettingTab } from "./setting/settingTab";
 import { Setting } from "./setting/types";
 import { DEFAULT_SETTINGS } from "./setting/default";
 import { IntervalTimerManager } from "./timerState/intervalTimerManager";
+import { format } from "./utils/time";
 
 export default class Plugin extends BasePlugin {
 	public settings: Setting;
@@ -15,7 +16,11 @@ export default class Plugin extends BasePlugin {
 		await this.loadSettings();
 		this.statusBarItem = this.addStatusBarItem();
 		this.intervalTimerManager = new IntervalTimerManager(
-			(text) => this.statusBarItem.setText(text),
+			(timerState, intervalTimerState, time) => {
+				this.statusBarItem.setText(
+					`${timerState} ${intervalTimerState} ${format(time)}`
+				);
+			},
 			this.settings,
 			(intervalId) => this.registerInterval(intervalId)
 		);
