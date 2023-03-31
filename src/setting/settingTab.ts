@@ -54,5 +54,17 @@ export class SettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+
+		new Setting(containerEl)
+			.setName("Start long break after (intervals)")
+			.addText((text) =>
+				text
+					.setPlaceholder("Example: 4")
+					.setValue(String(this.plugin.settings.longBreakAfter))
+					.onChange(async (value) => {
+						this.plugin.settings.longBreakAfter = Number(value);
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }

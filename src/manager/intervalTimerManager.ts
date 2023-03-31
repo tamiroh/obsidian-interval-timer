@@ -67,8 +67,7 @@ export class IntervalTimerManager {
 					total: this.focusIntervals.total + 1,
 					set: this.focusIntervals.set + 1,
 				};
-				const setMax = 4; // TODO: get from config
-				if (this.focusIntervals.set === setMax) {
+				if (this.focusIntervals.set === this.settings.longBreakAfter) {
 					this.focusIntervals.set = 0;
 					this.timerState = {
 						timer: this.createTimer(
