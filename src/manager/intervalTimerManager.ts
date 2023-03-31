@@ -36,12 +36,6 @@ export class IntervalTimerManager {
 	}
 
 	public startTimer = () => {
-		this.onChangeState(
-			"running",
-			this.intervalTimerState,
-			new Time(this.settings.focusIntervalDuration, 0),
-			this.totalFocusIntervals
-		);
 		this.timer.start();
 		const intervalId = this.timer.getIntervalId();
 		if (intervalId != null) {
