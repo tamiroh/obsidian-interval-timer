@@ -10,11 +10,11 @@ export class IntervalTimerManager {
 
 	private timer: CountdownTimer;
 
-	private readonly onIntervalCreated: (intervalId: number) => void;
-
 	private totalFocusIntervals: number;
 
 	private setFocusIntervals: number;
+
+	private readonly onIntervalCreated: (intervalId: number) => void;
 
 	private readonly onChangeState: onChangeStateFunction;
 
