@@ -51,7 +51,7 @@ export class IntervalTimerManager {
 				"initialized",
 				this.intervalTimerState,
 				result.resetTo,
-				this.focusIntervals.total
+				this.focusIntervals
 			);
 		}
 	};
@@ -66,7 +66,7 @@ export class IntervalTimerManager {
 			"completed",
 			this.intervalTimerState,
 			new Time(0, 0),
-			this.focusIntervals.total
+			this.focusIntervals
 		);
 	};
 
@@ -75,7 +75,7 @@ export class IntervalTimerManager {
 			"paused",
 			this.intervalTimerState,
 			current,
-			this.focusIntervals.total
+			this.focusIntervals
 		);
 	};
 
@@ -87,7 +87,7 @@ export class IntervalTimerManager {
 					"running",
 					this.intervalTimerState,
 					time,
-					this.focusIntervals.total
+					this.focusIntervals
 				),
 			this.onPause,
 			this.onComplete

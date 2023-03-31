@@ -30,10 +30,12 @@ export default class Plugin extends BasePlugin {
 			timerState,
 			intervalTimerState,
 			time,
-			total
+			intervals
 		) => {
 			this.statusBarItem.setText(
-				`(${total}) ${timerState} ${intervalTimerState} ${format(time)}`
+				`(${intervals.set}/${
+					intervals.total
+				}) ${timerState} ${intervalTimerState} ${format(time)}`
 			);
 		};
 		const onIntervalCreated = (intervalId: number) =>
