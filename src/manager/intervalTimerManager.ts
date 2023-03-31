@@ -6,9 +6,7 @@ import { IntervalTimerState, onChangeStateFunction } from "./types";
 import { Seconds } from "../time/types";
 
 export class IntervalTimerManager {
-	private intervalTimerState: IntervalTimerState;
-
-	private timer: CountdownTimer;
+	private timerState: { timer: CountdownTimer; state: IntervalTimerState };
 
 	private focusIntervals: { total: number; set: number };
 
@@ -26,30 +24,31 @@ export class IntervalTimerManager {
 		this.onChangeState = onChangeState;
 		this.settings = settings;
 		this.onIntervalCreated = onIntervalCreated;
-		this.intervalTimerState = "focus";
 		this.focusIntervals = { total: 0, set: 0 };
-
-		this.timer = this.createTimer(this.settings.focusIntervalDuration, 0);
+		this.timerState = {
+			timer: this.createTimer(this.settings.focusIntervalDuration, 0),
+			state: "focus",
+		};
 	}
 
 	public startTimer = () => {
-		this.timer.start();
-		const intervalId = this.timer.getIntervalId();
+		this.timerState.timer.start();
+		const intervalId = this.timerState.timer.getIntervalId();
 		if (intervalId != null) {
 			this.onIntervalCreated(intervalId);
 		}
 	};
 
 	public pauseTimer = () => {
-		this.timer.pause();
+		this.timerState.timer.pause();
 	};
 
 	public resetTimer = () => {
-		const result = this.timer.reset();
+		const result = this.timerState.timer.reset();
 		if (result.type === "succeeded") {
 			this.onChangeState(
 				"initialized",
-				this.intervalTimerState,
+				this.timerState.state,
 				result.resetTo,
 				this.focusIntervals
 			);
@@ -64,7 +63,7 @@ export class IntervalTimerManager {
 		};
 		this.onChangeState(
 			"completed",
-			this.intervalTimerState,
+			this.timerState.state,
 			new Time(0, 0),
 			this.focusIntervals
 		);
@@ -73,7 +72,7 @@ export class IntervalTimerManager {
 	private onPause = (current: Time) => {
 		this.onChangeState(
 			"paused",
-			this.intervalTimerState,
+			this.timerState.state,
 			current,
 			this.focusIntervals
 		);
@@ -85,7 +84,7 @@ export class IntervalTimerManager {
 			(time: Time) =>
 				this.onChangeState(
 					"running",
-					this.intervalTimerState,
+					this.timerState.state,
 					time,
 					this.focusIntervals
 				),
