@@ -1,4 +1,5 @@
 import { Notice } from "obsidian";
+import { match } from "ts-pattern";
 import { CountdownTimer } from "../timer/countdownTimer";
 import { Time } from "../time/time";
 import { Setting } from "../setting/types";
@@ -60,11 +61,54 @@ export class IntervalTimerManager {
 
 	private onComplete = () => {
 		new Notice("completed!");
-		this.focusIntervals = {
-			total: this.focusIntervals.total + 1,
-			set: this.focusIntervals.set + 1,
-		};
-		this.onChangeState("completed", new Time(0, 0));
+		match(this.timerState.state)
+			.with("focus", () => {
+				this.focusIntervals = {
+					total: this.focusIntervals.total + 1,
+					set: this.focusIntervals.set + 1,
+				};
+				const setMax = 4; // TODO: get from config
+				if (this.focusIntervals.set === setMax) {
+					this.focusIntervals.set = 0;
+					this.timerState = {
+						timer: this.createTimer(
+							this.settings.longBreakDuration,
+							0
+						),
+						state: "longBreak",
+					};
+					this.onChangeState(
+						"initialized",
+						new Time(this.settings.longBreakDuration, 0)
+					);
+				} else {
+					this.timerState = {
+						timer: this.createTimer(
+							this.settings.shortBreakDuration,
+							0
+						),
+						state: "shortBreak",
+					};
+					this.onChangeState(
+						"initialized",
+						new Time(this.settings.shortBreakDuration, 0)
+					);
+				}
+			})
+			.with("shortBreak", "longBreak", () => {
+				this.timerState = {
+					timer: this.createTimer(
+						this.settings.focusIntervalDuration,
+						0
+					),
+					state: "focus",
+				};
+				this.onChangeState(
+					"initialized",
+					new Time(this.settings.focusIntervalDuration, 0)
+				);
+			})
+			.exhaustive();
 	};
 
 	private onPause = (current: Time) => {
