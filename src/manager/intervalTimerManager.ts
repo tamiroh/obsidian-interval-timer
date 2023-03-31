@@ -10,9 +10,7 @@ export class IntervalTimerManager {
 
 	private timer: CountdownTimer;
 
-	private totalFocusIntervals: number;
-
-	private setFocusIntervals: number;
+	private focusIntervals: { total: number; set: number };
 
 	private readonly onIntervalCreated: (intervalId: number) => void;
 
@@ -29,8 +27,7 @@ export class IntervalTimerManager {
 		this.settings = settings;
 		this.onIntervalCreated = onIntervalCreated;
 		this.intervalTimerState = "focus";
-		this.totalFocusIntervals = 0;
-		this.setFocusIntervals = 0;
+		this.focusIntervals = { total: 0, set: 0 };
 
 		this.timer = this.createTimer(this.settings.focusIntervalDuration, 0);
 	}
@@ -54,19 +51,22 @@ export class IntervalTimerManager {
 				"initialized",
 				this.intervalTimerState,
 				result.resetTo,
-				this.totalFocusIntervals
+				this.focusIntervals.total
 			);
 		}
 	};
 
 	private onComplete = () => {
 		new Notice("completed!");
-		this.totalFocusIntervals += 1;
+		this.focusIntervals = {
+			total: this.focusIntervals.total + 1,
+			set: this.focusIntervals.set + 1,
+		};
 		this.onChangeState(
 			"completed",
 			this.intervalTimerState,
 			new Time(0, 0),
-			this.totalFocusIntervals
+			this.focusIntervals.total
 		);
 	};
 
@@ -75,7 +75,7 @@ export class IntervalTimerManager {
 			"paused",
 			this.intervalTimerState,
 			current,
-			this.totalFocusIntervals
+			this.focusIntervals.total
 		);
 	};
 
@@ -87,7 +87,7 @@ export class IntervalTimerManager {
 					"running",
 					this.intervalTimerState,
 					time,
-					this.totalFocusIntervals
+					this.focusIntervals.total
 				),
 			this.onPause,
 			this.onComplete
