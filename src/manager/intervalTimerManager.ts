@@ -3,6 +3,7 @@ import { CountdownTimer } from "../timer/countdownTimer";
 import { Time } from "../time/time";
 import { Setting } from "../setting/types";
 import { IntervalTimerState, onChangeStateFunction } from "./types";
+import { Seconds } from "../time/types";
 
 export class IntervalTimerManager {
 	private intervalTimerState: IntervalTimerState;
@@ -27,37 +28,18 @@ export class IntervalTimerManager {
 		this.onChangeState = onChangeState;
 		this.settings = settings;
 		this.onIntervalCreated = onIntervalCreated;
-		this.timer = new CountdownTimer(
-			new Time(settings.focusIntervalDuration, 0),
-			(time: Time) =>
-				onChangeState(
-					"running",
-					this.intervalTimerState,
-					time,
-					this.totalFocusIntervals
-				),
-			this.onPause,
-			this.onComplete
-		);
 		this.intervalTimerState = "focus";
 		this.totalFocusIntervals = 0;
 		this.setFocusIntervals = 0;
+
+		this.timer = this.createTimer(this.settings.focusIntervalDuration, 0);
 	}
 
 	public startTimer = () => {
 		if (this.timer == null) {
-			const startTime = new Time(this.settings.focusIntervalDuration, 0);
-			const timer = new CountdownTimer(
-				startTime,
-				(time: Time) =>
-					this.onChangeState(
-						"running",
-						this.intervalTimerState,
-						time,
-						this.totalFocusIntervals
-					),
-				this.onPause,
-				this.onComplete
+			const timer = this.createTimer(
+				this.settings.focusIntervalDuration,
+				0
 			);
 			this.intervalTimerState = "focus";
 			this.timer = timer;
@@ -110,4 +92,18 @@ export class IntervalTimerManager {
 			this.totalFocusIntervals
 		);
 	};
+
+	private createTimer = (minutes: number, seconds: Seconds): CountdownTimer =>
+		new CountdownTimer(
+			new Time(minutes, seconds),
+			(time: Time) =>
+				this.onChangeState(
+					"running",
+					this.intervalTimerState,
+					time,
+					this.totalFocusIntervals
+				),
+			this.onPause,
+			this.onComplete
+		);
 }
