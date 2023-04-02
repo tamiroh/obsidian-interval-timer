@@ -73,6 +73,11 @@ export default class Plugin extends BasePlugin {
 			name: "Reset intervals set",
 			callback: this.intervalTimerManager.resetIntervalsSet,
 		});
+		this.addCommand({
+			id: "skip-interval", // TODO: only show this command when the timer type is break
+			name: "Skip interval",
+			callback: this.intervalTimerManager.skipInterval,
+		});
 	};
 
 	private loadSettings = async () => {

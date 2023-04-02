@@ -85,6 +85,11 @@ export class IntervalTimerManager {
 		);
 	};
 
+	public skipInterval = () => {
+		this.timerState.timer.pause();
+		this.onComplete();
+	};
+
 	private onComplete = () => {
 		new Notice("completed!");
 		match(this.timerState.state)
