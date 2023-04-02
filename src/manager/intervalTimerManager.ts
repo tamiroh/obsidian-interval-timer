@@ -38,6 +38,11 @@ export class IntervalTimerManager {
 			timer: this.createTimer(this.settings.focusIntervalDuration, 0),
 			state: "focus",
 		};
+
+		this.onChangeState(
+			"initialized",
+			new Time(this.settings.focusIntervalDuration, 0)
+		);
 	}
 
 	public startTimer = () => {
