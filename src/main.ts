@@ -33,9 +33,15 @@ export default class Plugin extends BasePlugin {
 			intervals
 		) => {
 			this.statusBarItem.setText(
-				`(${intervals.set}/${
-					intervals.total
-				}) ${timerState} ${intervalTimerState} ${format(time)}`
+				`(${intervals.set}/${intervals.total}) ${timerState} ${format(
+					time
+				)}`
+			);
+			this.statusBarItem.setAttribute(
+				"style",
+				intervalTimerState === "focus"
+					? "color: #EE6152"
+					: "color: #4CBD4F"
 			);
 		};
 		const onIntervalCreated = (intervalId: number) =>
