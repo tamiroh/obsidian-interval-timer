@@ -59,6 +59,18 @@ export class IntervalTimerManager {
 		}
 	};
 
+	public resetIntervalsSet = () => {
+		this.focusIntervals.set = 0;
+		this.timerState = {
+			timer: this.createTimer(this.settings.longBreakDuration, 0),
+			state: "longBreak",
+		};
+		this.onChangeState(
+			"initialized",
+			new Time(this.settings.longBreakDuration, 0)
+		);
+	};
+
 	private onComplete = () => {
 		new Notice("completed!");
 		match(this.timerState.state)

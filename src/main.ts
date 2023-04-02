@@ -68,6 +68,11 @@ export default class Plugin extends BasePlugin {
 			name: "Reset timer",
 			callback: this.intervalTimerManager.resetTimer,
 		});
+		this.addCommand({
+			id: "reset-intervals-set",
+			name: "Reset intervals set",
+			callback: this.intervalTimerManager.resetIntervalsSet,
+		});
 	};
 
 	private loadSettings = async () => {
