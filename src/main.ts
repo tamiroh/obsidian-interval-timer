@@ -33,9 +33,7 @@ export default class Plugin extends BasePlugin {
 			intervals
 		) => {
 			this.statusBarItem.setText(
-				`(${intervals.set}/${intervals.total}) ${timerState} ${format(
-					time
-				)}`
+				`${intervals.set}/${intervals.total} ${format(time)}`
 			);
 			this.statusBarItem.setAttribute(
 				"style",
