@@ -7,11 +7,11 @@ import { format } from "./utils/time";
 import { onChangeStateFunction } from "./manager/types";
 
 export default class Plugin extends BasePlugin {
-	public settings: Setting;
+	public settings!: Setting;
 
-	private statusBarItem: HTMLElement;
+	private statusBarItem!: HTMLElement;
 
-	private intervalTimerManager: IntervalTimerManager;
+	private intervalTimerManager!: IntervalTimerManager;
 
 	public override onload = async () => {
 		await this.loadSettings();
