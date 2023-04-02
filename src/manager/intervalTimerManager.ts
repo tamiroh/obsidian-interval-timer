@@ -42,6 +42,15 @@ export class IntervalTimerManager {
 
 	public startTimer = () => {
 		this.timerState.timer.start();
+
+		const name = match(this.timerState.state)
+			.with("focus", () => "⏰  Focus time")
+			.with("shortBreak", () => "☕️  Short break")
+			.with("longBreak", () => "🏖️  Long break")
+			.exhaustive();
+
+		new Notice(`${name} started`);
+
 		const intervalId = this.timerState.timer.getIntervalId();
 		if (intervalId != null) {
 			this.onIntervalCreated(intervalId);
