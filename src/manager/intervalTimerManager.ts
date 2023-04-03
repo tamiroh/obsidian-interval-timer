@@ -74,6 +74,7 @@ export class IntervalTimerManager {
 	};
 
 	public resetIntervalsSet = () => {
+		this.timerState.timer.pause();
 		this.focusIntervals.set = 0;
 		this.timerState = {
 			timer: this.createTimer(this.settings.longBreakDuration, 0),
