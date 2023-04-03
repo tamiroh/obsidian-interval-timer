@@ -18,10 +18,13 @@ export class IntervalTimerManager {
 
 	private readonly settings: Setting;
 
+	private readonly hooks: { onComplete?: () => void };
+
 	constructor(
 		onChangeState: onChangeStateFunction,
 		settings: Setting,
-		onIntervalCreated: (intervalId: number) => void
+		onIntervalCreated: (intervalId: number) => void,
+		hooks?: { onComplete?: () => void }
 	) {
 		this.onChangeState = (timerState, time) => {
 			onChangeState(
@@ -38,6 +41,7 @@ export class IntervalTimerManager {
 			timer: this.createTimer(this.settings.focusIntervalDuration, 0),
 			state: "focus",
 		};
+		this.hooks = hooks ?? {};
 
 		this.onChangeState(
 			"initialized",
@@ -140,6 +144,8 @@ export class IntervalTimerManager {
 				);
 			})
 			.exhaustive();
+
+		this.hooks?.onComplete?.();
 	};
 
 	private onPause = (current: Time) => {

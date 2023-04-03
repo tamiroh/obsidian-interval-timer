@@ -5,6 +5,7 @@ import { DEFAULT_SETTINGS } from "./setting/default";
 import { IntervalTimerManager } from "./manager/intervalTimerManager";
 import { format } from "./utils/time";
 import { onChangeStateFunction } from "./manager/types";
+import { BasicTaskLine } from "./taskLine/basicTaskLine";
 
 export default class Plugin extends BasePlugin {
 	public settings!: Setting;
@@ -12,6 +13,8 @@ export default class Plugin extends BasePlugin {
 	private statusBarItem!: HTMLElement;
 
 	private intervalTimerManager!: IntervalTimerManager;
+
+	private onCompleteHook?: () => void;
 
 	public override onload = async () => {
 		await this.loadSettings();
@@ -48,7 +51,12 @@ export default class Plugin extends BasePlugin {
 		this.intervalTimerManager = new IntervalTimerManager(
 			onChangeState,
 			this.settings,
-			onIntervalCreated
+			onIntervalCreated,
+			{
+				onComplete: () => {
+					this.onCompleteHook?.();
+				},
+			}
 		);
 	};
 
@@ -57,6 +65,21 @@ export default class Plugin extends BasePlugin {
 			id: "start-timer",
 			name: "Start timer",
 			callback: this.intervalTimerManager.startTimer,
+			editorCallback: (editor) => {
+				this.intervalTimerManager.startTimer();
+
+				const { line } = editor.getCursor();
+				const cursorLine = editor.getLine(line);
+				const currentTaskLine = new BasicTaskLine(cursorLine);
+
+				this.onCompleteHook = () => {
+					editor.replaceRange(
+						currentTaskLine.increase().toString(),
+						{ line, ch: 0 },
+						{ line, ch: cursorLine.length }
+					);
+				};
+			},
 		});
 		this.addCommand({
 			id: "pause-timer",
