@@ -1,4 +1,3 @@
-import { Notice } from "obsidian";
 import { match } from "ts-pattern";
 import { CountdownTimer } from "../timer/countdownTimer";
 import { Time } from "../time/time";
@@ -18,10 +17,13 @@ export class IntervalTimerManager {
 
 	private readonly settings: Setting;
 
+	private readonly notifier: (message: string) => void;
+
 	constructor(
 		onChangeState: onChangeStateFunction,
 		settings: Setting,
-		onIntervalCreated: (intervalId: number) => void
+		onIntervalCreated: (intervalId: number) => void,
+		notifier: (message: string) => void
 	) {
 		this.onChangeState = (timerState, time) => {
 			onChangeState(
@@ -38,6 +40,7 @@ export class IntervalTimerManager {
 			timer: this.createTimer(this.settings.focusIntervalDuration, 0),
 			state: "focus",
 		};
+		this.notifier = notifier;
 
 		this.onChangeState(
 			"initialized",
@@ -54,7 +57,7 @@ export class IntervalTimerManager {
 			.with("longBreak", () => "🏖️  Long break")
 			.exhaustive();
 
-		new Notice(`${name} started`);
+		this.notifier(`${name} started`);
 
 		const intervalId = this.timerState.timer.getIntervalId();
 		if (intervalId != null) {
@@ -92,7 +95,7 @@ export class IntervalTimerManager {
 	};
 
 	private onComplete = () => {
-		new Notice("completed!");
+		this.notifier("completed!");
 		match(this.timerState.state)
 			.with("focus", () => {
 				this.focusIntervals = {

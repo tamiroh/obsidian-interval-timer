@@ -1,4 +1,4 @@
-import { Plugin as BasePlugin } from "obsidian";
+import { Notice, Plugin as BasePlugin } from "obsidian";
 import { SettingTab } from "./setting/settingTab";
 import { Setting } from "./setting/types";
 import { DEFAULT_SETTINGS } from "./setting/default";
@@ -44,11 +44,15 @@ export default class Plugin extends BasePlugin {
 		};
 		const onIntervalCreated = (intervalId: number) =>
 			this.registerInterval(intervalId);
+		const notifier = (message: string) => {
+			new Notice(message);
+		};
 
 		this.intervalTimerManager = new IntervalTimerManager(
 			onChangeState,
 			this.settings,
-			onIntervalCreated
+			onIntervalCreated,
+			notifier
 		);
 	};
 
