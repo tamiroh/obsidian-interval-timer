@@ -23,14 +23,14 @@ export class IntervalTimerManager {
 		onChangeState: onChangeStateFunction,
 		settings: Setting,
 		onIntervalCreated: (intervalId: number) => void,
-		notifier: (message: string) => void
+		notifier: (message: string) => void,
 	) {
 		this.onChangeState = (timerState, time) => {
 			onChangeState(
 				timerState,
 				this.timerState.state,
 				time,
-				this.focusIntervals
+				this.focusIntervals,
 			);
 		};
 		this.settings = settings;
@@ -44,7 +44,7 @@ export class IntervalTimerManager {
 
 		this.onChangeState(
 			"initialized",
-			new Time(this.settings.focusIntervalDuration, 0)
+			new Time(this.settings.focusIntervalDuration, 0),
 		);
 	}
 
@@ -85,7 +85,7 @@ export class IntervalTimerManager {
 		};
 		this.onChangeState(
 			"initialized",
-			new Time(this.settings.longBreakDuration, 0)
+			new Time(this.settings.longBreakDuration, 0),
 		);
 	};
 
@@ -107,25 +107,25 @@ export class IntervalTimerManager {
 					this.timerState = {
 						timer: this.createTimer(
 							this.settings.longBreakDuration,
-							0
+							0,
 						),
 						state: "longBreak",
 					};
 					this.onChangeState(
 						"initialized",
-						new Time(this.settings.longBreakDuration, 0)
+						new Time(this.settings.longBreakDuration, 0),
 					);
 				} else {
 					this.timerState = {
 						timer: this.createTimer(
 							this.settings.shortBreakDuration,
-							0
+							0,
 						),
 						state: "shortBreak",
 					};
 					this.onChangeState(
 						"initialized",
-						new Time(this.settings.shortBreakDuration, 0)
+						new Time(this.settings.shortBreakDuration, 0),
 					);
 				}
 			})
@@ -133,13 +133,13 @@ export class IntervalTimerManager {
 				this.timerState = {
 					timer: this.createTimer(
 						this.settings.focusIntervalDuration,
-						0
+						0,
 					),
 					state: "focus",
 				};
 				this.onChangeState(
 					"initialized",
-					new Time(this.settings.focusIntervalDuration, 0)
+					new Time(this.settings.focusIntervalDuration, 0),
 				);
 			})
 			.exhaustive();
@@ -154,6 +154,6 @@ export class IntervalTimerManager {
 			new Time(minutes, seconds),
 			(time: Time) => this.onChangeState("running", time),
 			this.onPause,
-			this.onComplete
+			this.onComplete,
 		);
 }
