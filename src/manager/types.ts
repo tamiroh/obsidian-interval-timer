@@ -7,5 +7,5 @@ export type onChangeStateFunction = (
 	timerState: TimerType,
 	intervalTimerState: IntervalTimerState,
 	time: Time,
-	focusIntervals: { total: number; set: number }
+	focusIntervals: { total: number; set: number },
 ) => void;
