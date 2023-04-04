@@ -16,7 +16,7 @@ export class CountdownTimer {
 		initialTime: Time,
 		callback: (time: Time) => void,
 		onPause?: (current: Time) => void,
-		onComplete?: () => void
+		onComplete?: () => void,
 	) {
 		this.onPause = onPause;
 		this.onComplete = onComplete;
@@ -69,8 +69,8 @@ export class CountdownTimer {
 		this.onPause?.(
 			new Time(
 				this.state.currentTime.minutes,
-				this.state.currentTime.seconds
-			)
+				this.state.currentTime.seconds,
+			),
 		);
 
 		return { type: "succeeded" };
@@ -88,7 +88,7 @@ export class CountdownTimer {
 			type: "succeeded",
 			resetTo: new Time(
 				this.initialTime.minutes,
-				this.initialTime.seconds
+				this.initialTime.seconds,
 			),
 		};
 	}

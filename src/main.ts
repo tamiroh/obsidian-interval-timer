@@ -30,16 +30,16 @@ export default class Plugin extends BasePlugin {
 			timerState,
 			intervalTimerState,
 			time,
-			intervals
+			intervals,
 		) => {
 			this.statusBarItem.setText(
-				`${intervals.set}/${intervals.total} ${format(time)}`
+				`${intervals.set}/${intervals.total} ${format(time)}`,
 			);
 			this.statusBarItem.setAttribute(
 				"style",
 				intervalTimerState === "focus"
 					? "color: #EE6152"
-					: "color: #4CBD4F"
+					: "color: #4CBD4F",
 			);
 		};
 		const onIntervalCreated = (intervalId: number) =>
@@ -48,7 +48,7 @@ export default class Plugin extends BasePlugin {
 		this.intervalTimerManager = new IntervalTimerManager(
 			onChangeState,
 			this.settings,
-			onIntervalCreated
+			onIntervalCreated,
 		);
 	};
 

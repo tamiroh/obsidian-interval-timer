@@ -22,13 +22,13 @@ export class SettingTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Example: 25")
 					.setValue(
-						String(this.plugin.settings.focusIntervalDuration)
+						String(this.plugin.settings.focusIntervalDuration),
 					)
 					.onChange(async (value) => {
 						this.plugin.settings.focusIntervalDuration =
 							Number(value);
 						await this.plugin.saveSettings();
-					})
+					}),
 			);
 
 		new Setting(containerEl)
@@ -40,7 +40,7 @@ export class SettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.shortBreakDuration = Number(value);
 						await this.plugin.saveSettings();
-					})
+					}),
 			);
 
 		new Setting(containerEl)
@@ -52,7 +52,7 @@ export class SettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.longBreakDuration = Number(value);
 						await this.plugin.saveSettings();
-					})
+					}),
 			);
 
 		new Setting(containerEl)
@@ -64,7 +64,7 @@ export class SettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.longBreakAfter = Number(value);
 						await this.plugin.saveSettings();
-					})
+					}),
 			);
 	}
 }
