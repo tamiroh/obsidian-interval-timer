@@ -51,14 +51,6 @@ export class IntervalTimerManager {
 	public startTimer = () => {
 		this.timerState.timer.start();
 
-		const name = match(this.timerState.state)
-			.with("focus", () => "⏰  Focus time")
-			.with("shortBreak", () => "☕️  Short break")
-			.with("longBreak", () => "🏖️  Long break")
-			.exhaustive();
-
-		this.notifier(`${name} started`);
-
 		const intervalId = this.timerState.timer.getIntervalId();
 		if (intervalId != null) {
 			this.onIntervalCreated(intervalId);
@@ -95,7 +87,6 @@ export class IntervalTimerManager {
 	};
 
 	private onComplete = () => {
-		this.notifier("completed!");
 		match(this.timerState.state)
 			.with("focus", () => {
 				this.focusIntervals = {
@@ -143,6 +134,14 @@ export class IntervalTimerManager {
 				);
 			})
 			.exhaustive();
+
+		this.notifier(
+			match(this.timerState.state)
+				.with("focus", () => "⏰  Now it's time to focus")
+				.with("shortBreak", () => "☕️  Time for a short break")
+				.with("longBreak", () => "🏖️  Time for a long break")
+				.exhaustive(),
+		);
 	};
 
 	private onPause = (current: Time) => {
