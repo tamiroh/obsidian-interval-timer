@@ -1,6 +1,5 @@
-import { Time } from "../time/time";
 import { PauseResult, ResetResult, StartResult, TimerState } from "./types";
-import { Seconds, TimeState } from "../time/types";
+import { Seconds, Time, TimeState } from "../types/time";
 
 export class CountdownTimer {
 	private state: TimerState;
