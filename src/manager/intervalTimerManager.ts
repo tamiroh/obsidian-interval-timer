@@ -42,10 +42,10 @@ export class IntervalTimerManager {
 		};
 		this.notifier = notifier;
 
-		this.onChangeState(
-			"initialized",
-			new Time(this.settings.focusIntervalDuration, 0),
-		);
+		this.onChangeState("initialized", {
+			minutes: this.settings.focusIntervalDuration,
+			seconds: 0,
+		});
 	}
 
 	public startTimer = () => {
@@ -75,10 +75,10 @@ export class IntervalTimerManager {
 			timer: this.createTimer(this.settings.longBreakDuration, 0),
 			state: "longBreak",
 		};
-		this.onChangeState(
-			"initialized",
-			new Time(this.settings.longBreakDuration, 0),
-		);
+		this.onChangeState("initialized", {
+			minutes: this.settings.longBreakDuration,
+			seconds: 0,
+		});
 	};
 
 	public skipInterval = () => {
@@ -102,10 +102,10 @@ export class IntervalTimerManager {
 						),
 						state: "longBreak",
 					};
-					this.onChangeState(
-						"initialized",
-						new Time(this.settings.longBreakDuration, 0),
-					);
+					this.onChangeState("initialized", {
+						minutes: this.settings.longBreakDuration,
+						seconds: 0,
+					});
 				} else {
 					this.timerState = {
 						timer: this.createTimer(
@@ -114,10 +114,10 @@ export class IntervalTimerManager {
 						),
 						state: "shortBreak",
 					};
-					this.onChangeState(
-						"initialized",
-						new Time(this.settings.shortBreakDuration, 0),
-					);
+					this.onChangeState("initialized", {
+						minutes: this.settings.shortBreakDuration,
+						seconds: 0,
+					});
 				}
 			})
 			.with("shortBreak", "longBreak", () => {
@@ -128,10 +128,10 @@ export class IntervalTimerManager {
 					),
 					state: "focus",
 				};
-				this.onChangeState(
-					"initialized",
-					new Time(this.settings.focusIntervalDuration, 0),
-				);
+				this.onChangeState("initialized", {
+					minutes: this.settings.focusIntervalDuration,
+					seconds: 0,
+				});
 			})
 			.exhaustive();
 
@@ -150,7 +150,7 @@ export class IntervalTimerManager {
 
 	private createTimer = (minutes: number, seconds: Seconds): CountdownTimer =>
 		new CountdownTimer(
-			new Time(minutes, seconds),
+			{ minutes, seconds },
 			(time: Time) => this.onChangeState("running", time),
 			this.onPause,
 			this.onComplete,
