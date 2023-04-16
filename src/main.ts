@@ -1,7 +1,7 @@
 import { Notice, Plugin as BasePlugin } from "obsidian";
 import * as electron from "electron";
 import { SettingTab } from "./setting/settingTab";
-import { Setting } from "./setting/types";
+import { PluginSetting } from "./setting/types";
 import { DEFAULT_SETTINGS } from "./setting/default";
 import {
 	IntervalTimerManager,
@@ -10,7 +10,7 @@ import {
 import { format } from "./utils/time";
 
 export default class Plugin extends BasePlugin {
-	public settings!: Setting;
+	public settings!: PluginSetting;
 
 	private statusBarItem!: HTMLElement;
 

@@ -1,6 +1,6 @@
-import { Setting } from "./types";
+import { PluginSetting } from "./types";
 
-export const DEFAULT_SETTINGS: Setting = {
+export const DEFAULT_SETTINGS: PluginSetting = {
 	focusIntervalDuration: 25,
 	shortBreakDuration: 5,
 	longBreakDuration: 15,

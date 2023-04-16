@@ -1,4 +1,4 @@
-export type Setting = {
+export type PluginSetting = {
 	focusIntervalDuration: number;
 	shortBreakDuration: number;
 	longBreakDuration: number;
