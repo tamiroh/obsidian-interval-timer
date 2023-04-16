@@ -8,6 +8,13 @@ export type PluginSetting = {
 	longBreakAfter: number;
 };
 
+export const DEFAULT_SETTINGS: PluginSetting = {
+	focusIntervalDuration: 25,
+	shortBreakDuration: 5,
+	longBreakDuration: 15,
+	longBreakAfter: 4,
+};
+
 export class SettingTab extends PluginSettingTab {
 	plugin: Plugin;
 

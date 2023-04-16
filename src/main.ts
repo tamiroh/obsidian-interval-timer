@@ -1,7 +1,10 @@
 import { Notice, Plugin as BasePlugin } from "obsidian";
 import * as electron from "electron";
-import { PluginSetting, SettingTab } from "./setting/settingTab";
-import { DEFAULT_SETTINGS } from "./setting/default";
+import {
+	DEFAULT_SETTINGS,
+	PluginSetting,
+	SettingTab,
+} from "./setting/settingTab";
 import {
 	IntervalTimerManager,
 	onChangeStateFunction,
