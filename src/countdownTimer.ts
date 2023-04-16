@@ -126,7 +126,6 @@ export class CountdownTimer {
 			: undefined;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	private subtractSecond({ minutes, seconds }: Time): TimeState {
 		if (seconds === 0) {
 			if (minutes === 0) return { type: "exceeded" };
