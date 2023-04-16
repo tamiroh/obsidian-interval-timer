@@ -1,14 +1,14 @@
 import { Notice, Plugin as BasePlugin } from "obsidian";
 import * as electron from "electron";
-import { SettingTab } from "./setting/settingTab";
-import { Setting } from "./setting/types";
-import { DEFAULT_SETTINGS } from "./setting/default";
-import { IntervalTimerManager } from "./manager/intervalTimerManager";
-import { format } from "./utils/time";
-import { onChangeStateFunction } from "./manager/types";
+import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./settingTab";
+import {
+	IntervalTimerManager,
+	onChangeStateFunction,
+} from "./intervalTimerManager";
+import { format } from "./utils";
 
 export default class Plugin extends BasePlugin {
-	public settings!: Setting;
+	public settings!: PluginSetting;
 
 	private statusBarItem!: HTMLElement;
 

@@ -1,9 +1,16 @@
 import { match } from "ts-pattern";
-import { CountdownTimer } from "../timer/countdownTimer";
-import { Setting } from "../setting/types";
-import { IntervalTimerState, onChangeStateFunction } from "./types";
-import { Seconds, Time } from "../types/time";
-import { TimerType } from "../timer/types";
+import { CountdownTimer, TimerType } from "./countdownTimer";
+import { Seconds, Time } from "./types/time";
+import { PluginSetting } from "./settingTab";
+
+export type IntervalTimerState = "focus" | "shortBreak" | "longBreak";
+
+export type onChangeStateFunction = (
+	timerState: TimerType,
+	intervalTimerState: IntervalTimerState,
+	time: Time,
+	focusIntervals: { total: number; set: number },
+) => void;
 
 export class IntervalTimerManager {
 	private timerState: { timer: CountdownTimer; state: IntervalTimerState };
@@ -14,13 +21,13 @@ export class IntervalTimerManager {
 
 	private readonly onChangeState: (type: TimerType, time: Time) => void;
 
-	private readonly settings: Setting;
+	private readonly settings: PluginSetting;
 
 	private readonly notifier: (message: string) => void;
 
 	constructor(
 		onChangeState: onChangeStateFunction,
-		settings: Setting,
+		settings: PluginSetting,
 		onIntervalCreated: (intervalId: number) => void,
 		notifier: (message: string) => void,
 	) {

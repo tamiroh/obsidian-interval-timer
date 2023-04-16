@@ -1,5 +1,19 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
-import Plugin from "../main";
+import Plugin from "./main";
+
+export type PluginSetting = {
+	focusIntervalDuration: number;
+	shortBreakDuration: number;
+	longBreakDuration: number;
+	longBreakAfter: number;
+};
+
+export const DEFAULT_SETTINGS: PluginSetting = {
+	focusIntervalDuration: 25,
+	shortBreakDuration: 5,
+	longBreakDuration: 15,
+	longBreakAfter: 4,
+};
 
 export class SettingTab extends PluginSettingTab {
 	plugin: Plugin;
