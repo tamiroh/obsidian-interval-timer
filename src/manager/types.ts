@@ -1,5 +1,5 @@
 import { Time } from "../types/time";
-import { TimerType } from "../timer/countdownTimer";
+import { TimerType } from "../countdownTimer";
 
 export type IntervalTimerState = "focus" | "shortBreak" | "longBreak";
 

@@ -1,4 +1,4 @@
-import { Seconds, Time, TimeState } from "../types/time";
+import { Seconds, Time, TimeState } from "./types/time";
 
 export const timerTypes = [
 	"initialized",

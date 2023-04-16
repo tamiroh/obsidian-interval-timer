@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import { CountdownTimer, TimerType } from "../timer/countdownTimer";
+import { CountdownTimer, TimerType } from "../countdownTimer";
 import { Setting } from "../setting/types";
 import { IntervalTimerState, onChangeStateFunction } from "./types";
 import { Seconds, Time } from "../types/time";
