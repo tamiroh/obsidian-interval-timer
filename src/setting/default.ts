@@ -1,4 +1,4 @@
-import { PluginSetting } from "./types";
+import { PluginSetting } from "./settingTab";
 
 export const DEFAULT_SETTINGS: PluginSetting = {
 	focusIntervalDuration: 25,
