@@ -1,5 +1,5 @@
-import { Time } from "../time/time";
 import { PauseResult, ResetResult, StartResult, TimerState } from "./types";
+import { Seconds, Time, TimeState } from "../types/time";
 
 export class CountdownTimer {
 	private state: TimerState;
@@ -20,7 +20,10 @@ export class CountdownTimer {
 	) {
 		this.onPause = onPause;
 		this.onComplete = onComplete;
-		this.initialTime = new Time(initialTime.minutes, initialTime.seconds);
+		this.initialTime = {
+			minutes: initialTime.minutes,
+			seconds: initialTime.seconds,
+		};
 		this.state = { type: "initialized", currentTime: initialTime };
 		this.callback = callback;
 	}
@@ -36,7 +39,7 @@ export class CountdownTimer {
 				return;
 			}
 
-			const result = this.state.currentTime.subtractSecond();
+			const result = this.subtractSecond(this.state.currentTime);
 
 			if (result.type === "subtracted") {
 				this.state.currentTime = result.time;
@@ -66,12 +69,10 @@ export class CountdownTimer {
 			type: "paused",
 			currentTime: this.state.currentTime,
 		};
-		this.onPause?.(
-			new Time(
-				this.state.currentTime.minutes,
-				this.state.currentTime.seconds,
-			),
-		);
+		this.onPause?.({
+			minutes: this.state.currentTime.minutes,
+			seconds: this.state.currentTime.seconds,
+		});
 
 		return { type: "succeeded" };
 	}
@@ -86,10 +87,10 @@ export class CountdownTimer {
 		};
 		return {
 			type: "succeeded",
-			resetTo: new Time(
-				this.initialTime.minutes,
-				this.initialTime.seconds,
-			),
+			resetTo: {
+				minutes: this.initialTime.minutes,
+				seconds: this.initialTime.seconds,
+			},
 		};
 	}
 
@@ -97,5 +98,20 @@ export class CountdownTimer {
 		return this.state.type === "running"
 			? this.state.intervalId
 			: undefined;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private subtractSecond({ minutes, seconds }: Time): TimeState {
+		if (seconds === 0) {
+			if (minutes === 0) return { type: "exceeded" };
+			return {
+				type: "subtracted",
+				time: { minutes: minutes - 1, seconds: 59 },
+			};
+		}
+		return {
+			type: "subtracted",
+			time: { minutes, seconds: (seconds - 1) as Seconds },
+		};
 	}
 }

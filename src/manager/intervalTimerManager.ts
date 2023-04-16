@@ -1,9 +1,8 @@
 import { match } from "ts-pattern";
 import { CountdownTimer } from "../timer/countdownTimer";
-import { Time } from "../time/time";
 import { Setting } from "../setting/types";
 import { IntervalTimerState, onChangeStateFunction } from "./types";
-import { Seconds } from "../time/types";
+import { Seconds, Time } from "../types/time";
 import { TimerType } from "../timer/types";
 
 export class IntervalTimerManager {
@@ -42,10 +41,10 @@ export class IntervalTimerManager {
 		};
 		this.notifier = notifier;
 
-		this.onChangeState(
-			"initialized",
-			new Time(this.settings.focusIntervalDuration, 0),
-		);
+		this.onChangeState("initialized", {
+			minutes: this.settings.focusIntervalDuration,
+			seconds: 0,
+		});
 	}
 
 	public startTimer = () => {
@@ -75,10 +74,10 @@ export class IntervalTimerManager {
 			timer: this.createTimer(this.settings.longBreakDuration, 0),
 			state: "longBreak",
 		};
-		this.onChangeState(
-			"initialized",
-			new Time(this.settings.longBreakDuration, 0),
-		);
+		this.onChangeState("initialized", {
+			minutes: this.settings.longBreakDuration,
+			seconds: 0,
+		});
 	};
 
 	public skipInterval = () => {
@@ -102,10 +101,10 @@ export class IntervalTimerManager {
 						),
 						state: "longBreak",
 					};
-					this.onChangeState(
-						"initialized",
-						new Time(this.settings.longBreakDuration, 0),
-					);
+					this.onChangeState("initialized", {
+						minutes: this.settings.longBreakDuration,
+						seconds: 0,
+					});
 				} else {
 					this.timerState = {
 						timer: this.createTimer(
@@ -114,10 +113,10 @@ export class IntervalTimerManager {
 						),
 						state: "shortBreak",
 					};
-					this.onChangeState(
-						"initialized",
-						new Time(this.settings.shortBreakDuration, 0),
-					);
+					this.onChangeState("initialized", {
+						minutes: this.settings.shortBreakDuration,
+						seconds: 0,
+					});
 				}
 			})
 			.with("shortBreak", "longBreak", () => {
@@ -128,10 +127,10 @@ export class IntervalTimerManager {
 					),
 					state: "focus",
 				};
-				this.onChangeState(
-					"initialized",
-					new Time(this.settings.focusIntervalDuration, 0),
-				);
+				this.onChangeState("initialized", {
+					minutes: this.settings.focusIntervalDuration,
+					seconds: 0,
+				});
 			})
 			.exhaustive();
 
@@ -150,7 +149,7 @@ export class IntervalTimerManager {
 
 	private createTimer = (minutes: number, seconds: Seconds): CountdownTimer =>
 		new CountdownTimer(
-			new Time(minutes, seconds),
+			{ minutes, seconds },
 			(time: Time) => this.onChangeState("running", time),
 			this.onPause,
 			this.onComplete,

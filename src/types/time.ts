@@ -1,9 +1,3 @@
-import { Time } from "./time";
-
-export type TimeState =
-	| { type: "subtracted"; time: Time }
-	| { type: "exceeded" };
-
 export type Minutes = number;
 
 export type Seconds =
@@ -67,3 +61,9 @@ export type Seconds =
 	| 57
 	| 58
 	| 59;
+
+export type Time = { minutes: Minutes; seconds: Seconds };
+
+export type TimeState =
+	| { type: "subtracted"; time: Time }
+	| { type: "exceeded" };
