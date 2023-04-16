@@ -5,18 +5,18 @@ import {
 	IntervalTimerManager,
 	onChangeStateFunction,
 } from "./intervalTimerManager";
-import { format } from "./utils";
+import { StatusBar } from "./statusBar";
 
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;
 
-	private statusBarItem!: HTMLElement;
+	private statusBar!: StatusBar;
 
 	private intervalTimerManager!: IntervalTimerManager;
 
 	public override onload = async () => {
 		await this.loadSettings();
-		this.statusBarItem = this.addStatusBarItem();
+		this.statusBar = new StatusBar(this.addStatusBarItem());
 		this.setupIntervalTimerManager();
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
@@ -33,15 +33,7 @@ export default class Plugin extends BasePlugin {
 			time,
 			intervals,
 		) => {
-			this.statusBarItem.setText(
-				`${intervals.set}/${intervals.total} ${format(time)}`,
-			);
-			this.statusBarItem.setAttribute(
-				"style",
-				intervalTimerState === "focus"
-					? "color: #EE6152"
-					: "color: #4CBD4F",
-			);
+			this.statusBar.update(intervals, time, intervalTimerState);
 		};
 		const onIntervalCreated = (intervalId: number) =>
 			this.registerInterval(intervalId);
