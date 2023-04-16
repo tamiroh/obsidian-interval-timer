@@ -1,9 +1,8 @@
 import { match } from "ts-pattern";
-import { CountdownTimer } from "../timer/countdownTimer";
+import { CountdownTimer, TimerType } from "../timer/countdownTimer";
 import { Setting } from "../setting/types";
 import { IntervalTimerState, onChangeStateFunction } from "./types";
 import { Seconds, Time } from "../types/time";
-import { TimerType } from "../timer/types";
 
 export class IntervalTimerManager {
 	private timerState: { timer: CountdownTimer; state: IntervalTimerState };
