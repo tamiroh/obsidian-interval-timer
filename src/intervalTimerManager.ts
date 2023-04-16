@@ -1,7 +1,7 @@
 import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "./countdownTimer";
 import { Seconds, Time } from "./types/time";
-import { PluginSetting } from "./setting/settingTab";
+import { PluginSetting } from "./settingTab";
 
 export type IntervalTimerState = "focus" | "shortBreak" | "longBreak";
 
