@@ -6,7 +6,7 @@ import { DEFAULT_SETTINGS } from "./setting/default";
 import {
 	IntervalTimerManager,
 	onChangeStateFunction,
-} from "./manager/intervalTimerManager";
+} from "./intervalTimerManager";
 import { format } from "./utils/time";
 
 export default class Plugin extends BasePlugin {
