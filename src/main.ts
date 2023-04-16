@@ -5,7 +5,7 @@ import {
 	IntervalTimerManager,
 	onChangeStateFunction,
 } from "./intervalTimerManager";
-import { format } from "./utils/time";
+import { format } from "./utils";
 
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;

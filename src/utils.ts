@@ -1,4 +1,4 @@
-import { Time } from "../types/time";
+import { Time } from "./types/time";
 
 export const format = (time: Time): string =>
 	`${String(time.minutes).padStart(2, "0")}:${String(time.seconds).padStart(
