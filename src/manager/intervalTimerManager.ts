@@ -1,8 +1,16 @@
 import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "../countdownTimer";
 import { Setting } from "../setting/types";
-import { IntervalTimerState, onChangeStateFunction } from "./types";
 import { Seconds, Time } from "../types/time";
+
+export type IntervalTimerState = "focus" | "shortBreak" | "longBreak";
+
+export type onChangeStateFunction = (
+	timerState: TimerType,
+	intervalTimerState: IntervalTimerState,
+	time: Time,
+	focusIntervals: { total: number; set: number },
+) => void;
 
 export class IntervalTimerManager {
 	private timerState: { timer: CountdownTimer; state: IntervalTimerState };

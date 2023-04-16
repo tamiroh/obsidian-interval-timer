@@ -3,9 +3,11 @@ import * as electron from "electron";
 import { SettingTab } from "./setting/settingTab";
 import { Setting } from "./setting/types";
 import { DEFAULT_SETTINGS } from "./setting/default";
-import { IntervalTimerManager } from "./manager/intervalTimerManager";
+import {
+	IntervalTimerManager,
+	onChangeStateFunction,
+} from "./manager/intervalTimerManager";
 import { format } from "./utils/time";
-import { onChangeStateFunction } from "./manager/types";
 
 export default class Plugin extends BasePlugin {
 	public settings!: Setting;
