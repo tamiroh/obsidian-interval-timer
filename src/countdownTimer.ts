@@ -26,13 +26,6 @@ export type TimerState =
 	| {
 			type: (typeof timerTypes)[3];
 	  };
-export type PauseResult = { type: "succeeded" } | { type: "failed" };
-
-export type StartResult = { type: "succeeded" } | { type: "failed" };
-
-export type ResetResult =
-	| { type: "succeeded"; resetTo: Time }
-	| { type: "failed" };
 
 export class CountdownTimer {
 	private state: TimerState;
@@ -61,7 +54,7 @@ export class CountdownTimer {
 		this.callback = callback;
 	}
 
-	public start(): StartResult {
+	public start(): { type: "succeeded" } | { type: "failed" } {
 		if (this.state.type === "completed" || this.state.type === "running") {
 			return { type: "failed" };
 		}
@@ -94,7 +87,7 @@ export class CountdownTimer {
 		return { type: "succeeded" };
 	}
 
-	public pause(): PauseResult {
+	public pause(): { type: "succeeded" } | { type: "failed" } {
 		if (this.state.type !== "running") return { type: "failed" };
 
 		window.clearInterval(this.state.intervalId);
@@ -110,7 +103,7 @@ export class CountdownTimer {
 		return { type: "succeeded" };
 	}
 
-	public reset(): ResetResult {
+	public reset(): { type: "succeeded"; resetTo: Time } | { type: "failed" } {
 		if (this.state.type === "running") {
 			window.clearInterval(this.state.intervalId);
 		}
