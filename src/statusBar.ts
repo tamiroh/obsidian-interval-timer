@@ -1,4 +1,3 @@
-import { format } from "./utils";
 import { Time } from "./types/time";
 import { IntervalTimerState } from "./intervalTimerManager";
 
@@ -15,7 +14,7 @@ export class StatusBar {
 		intervalTimerState: IntervalTimerState,
 	) => {
 		this.statusBarItem.setText(
-			`${intervals.set}/${intervals.total} ${format(time)}`,
+			`${intervals.set}/${intervals.total} ${this.format(time)}`,
 		);
 		this.statusBarItem.setAttribute(
 			"style",
@@ -24,4 +23,9 @@ export class StatusBar {
 				: "color: #4CBD4F",
 		);
 	};
+
+	private format = (time: Time): string =>
+		`${String(time.minutes).padStart(2, "0")}:${String(
+			time.seconds,
+		).padStart(2, "0")}`;
 }
