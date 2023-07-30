@@ -30,7 +30,7 @@ export type TimerState =
 export class CountdownTimer {
 	private state: TimerState;
 
-	private readonly callback: (time: Time) => void;
+	private readonly onSubtract: (time: Time) => void;
 
 	private readonly onPause: ((current: Time) => void) | undefined;
 
@@ -40,7 +40,7 @@ export class CountdownTimer {
 
 	constructor(
 		initialTime: Time,
-		callback: (time: Time) => void,
+		onSubtract: (time: Time) => void,
 		onPause?: (current: Time) => void,
 		onComplete?: () => void,
 	) {
@@ -51,7 +51,7 @@ export class CountdownTimer {
 			seconds: initialTime.seconds,
 		};
 		this.state = { type: "initialized", currentTime: initialTime };
-		this.callback = callback;
+		this.onSubtract = onSubtract;
 	}
 
 	public start(): { type: "succeeded" } | { type: "failed" } {
@@ -69,7 +69,7 @@ export class CountdownTimer {
 
 			if (result.type === "subtracted") {
 				this.state.currentTime = result.time;
-				this.callback(this.state.currentTime);
+				this.onSubtract(this.state.currentTime);
 			}
 			if (result.type === "exceeded") {
 				window.clearInterval(intervalId);
