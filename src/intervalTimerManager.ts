@@ -87,6 +87,19 @@ export class IntervalTimerManager {
 		});
 	};
 
+	public resetTotalIntervals = () => {
+		this.timerState.timer.pause();
+		this.focusIntervals = { total: 0, set: 0 };
+		this.timerState = {
+			timer: this.createTimer(this.settings.focusIntervalDuration, 0),
+			state: "focus",
+		};
+		this.onChangeState("initialized", {
+			minutes: this.settings.focusIntervalDuration,
+			seconds: 0,
+		});
+	};
+
 	public skipInterval = () => {
 		this.timerState.timer.pause();
 		this.onComplete();
