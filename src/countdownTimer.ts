@@ -1,4 +1,5 @@
-import { Seconds, Time, TimeState } from "./types/time";
+import moment, { Moment } from "moment";
+import { Seconds, Time } from "./types/time";
 
 export const timerTypes = [
 	"initialized",
@@ -59,19 +60,20 @@ export class CountdownTimer {
 			return { type: "failed" };
 		}
 
+		const startAt = moment();
+
 		const intervalId = window.setInterval(() => {
 			if (this.state.type !== "running") {
 				window.clearInterval(intervalId);
 				return;
 			}
 
-			const result = this.subtractSecond(this.state.currentTime);
+			const result = this.updateCurrentTime(startAt);
 
-			if (result.type === "subtracted") {
-				this.state.currentTime = result.time;
+			if (result === "subtracted") {
 				this.onSubtract(this.state.currentTime);
 			}
-			if (result.type === "exceeded") {
+			if (result === "exceeded") {
 				window.clearInterval(intervalId);
 				this.state = { type: "completed" };
 				this.onComplete?.();
@@ -126,17 +128,23 @@ export class CountdownTimer {
 			: undefined;
 	}
 
-	private subtractSecond({ minutes, seconds }: Time): TimeState {
-		if (seconds === 0) {
-			if (minutes === 0) return { type: "exceeded" };
-			return {
-				type: "subtracted",
-				time: { minutes: minutes - 1, seconds: 59 },
-			};
+	private updateCurrentTime(
+		startAt: Moment,
+	): "unchanged" | "subtracted" | "exceeded" {
+		if (this.state.type !== "running") {
+			return "unchanged";
 		}
-		return {
-			type: "subtracted",
-			time: { minutes, seconds: (seconds - 1) as Seconds },
+
+		const diff = moment().diff(startAt, "seconds");
+		const initialTimeInSeconds =
+			this.initialTime.minutes * 60 + this.initialTime.seconds;
+		const nextCurrentTimeInSeconds = initialTimeInSeconds - diff;
+
+		this.state.currentTime = {
+			minutes: Math.floor(nextCurrentTimeInSeconds / 60),
+			seconds: (nextCurrentTimeInSeconds % 60) as Seconds,
 		};
+
+		return nextCurrentTimeInSeconds >= 0 ? "subtracted" : "exceeded";
 	}
 }
