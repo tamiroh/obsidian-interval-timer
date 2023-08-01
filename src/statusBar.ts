@@ -1,4 +1,4 @@
-import { Time } from "./types/time";
+import { Time } from "./time";
 import { IntervalTimerState } from "./intervalTimerManager";
 
 export class StatusBar {

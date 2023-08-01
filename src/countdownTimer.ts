@@ -1,5 +1,5 @@
 import moment, { Moment } from "moment";
-import { Seconds, Time } from "./types/time";
+import { Seconds, Time } from "./time";
 
 export const timerTypes = [
 	"initialized",
