@@ -19,7 +19,8 @@
 		"lib": ["DOM", "ES5", "ES6", "ES7"],
 		"noFallthroughCasesInSwitch": true,
 		"strictPropertyInitialization": true,
-		"forceConsistentCasingInFileNames": true
+		"forceConsistentCasingInFileNames": true,
+		"allowSyntheticDefaultImports": true
 	},
 	"include": ["**/*.ts"]
 }
