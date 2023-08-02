@@ -6,6 +6,7 @@ import {
 	onChangeStateFunction,
 } from "./intervalTimerManager";
 import { StatusBar } from "./statusBar";
+import { Seconds } from "./time";
 
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;
@@ -27,12 +28,20 @@ export default class Plugin extends BasePlugin {
 	};
 
 	private setupIntervalTimerManager = () => {
+		const prefix = `${this.manifest.id}`;
+
 		const onChangeState: onChangeStateFunction = (
 			timerState,
 			intervalTimerState,
 			time,
 			intervals,
 		) => {
+			localStorage[`${prefix}:timerState`] = intervalTimerState;
+			localStorage[`${prefix}:time-minutes`] = time.minutes;
+			localStorage[`${prefix}:time-seconds`] = time.seconds;
+			localStorage[`${prefix}:intervals-set`] = intervals.set;
+			localStorage[`${prefix}:intervals-total`] = intervals.total;
+
 			this.statusBar.update(intervals, time, intervalTimerState);
 		};
 		const onIntervalCreated = (intervalId: number) =>
@@ -50,6 +59,21 @@ export default class Plugin extends BasePlugin {
 			this.settings,
 			onIntervalCreated,
 			notifier,
+			{
+				minutes: parseInt(localStorage[`${prefix}:time-minutes`], 10),
+				seconds: parseInt(
+					localStorage[`${prefix}:time-seconds`],
+					10,
+				) as Seconds,
+				state: localStorage[`${prefix}:timerState`],
+				focusIntervals: {
+					total: parseInt(
+						localStorage[`${prefix}:intervals-total`],
+						10,
+					),
+					set: parseInt(localStorage[`${prefix}:intervals-set`], 10),
+				},
+			},
 		);
 	};
 
