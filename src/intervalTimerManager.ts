@@ -12,6 +12,13 @@ export type onChangeStateFunction = (
 	focusIntervals: { total: number; set: number },
 ) => void;
 
+export type InitialParams = {
+	minutes?: Minutes;
+	seconds?: Seconds;
+	state?: IntervalTimerState;
+	focusIntervals?: { total?: number; set?: number };
+};
+
 export class IntervalTimerManager {
 	private timerState: { timer: CountdownTimer; state: IntervalTimerState };
 
@@ -30,15 +37,7 @@ export class IntervalTimerManager {
 		settings: PluginSetting,
 		onIntervalCreated: (intervalId: number) => void,
 		notifier: (message: string) => void,
-		initialParams?: {
-			minutes?: Minutes;
-			seconds?: Seconds;
-			state?: IntervalTimerState;
-			focusIntervals?: {
-				total?: number;
-				set?: number;
-			};
-		},
+		initialParams?: InitialParams,
 	) {
 		this.onChangeState = (timerState, time) => {
 			onChangeState(
