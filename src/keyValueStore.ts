@@ -9,9 +9,9 @@ export class KeyValueStore {
 	}
 
 	public set = (key: string, value: string) => {
-		this.localStorage[`${this.uniqueKey}:${key}`] = value;
+		this.localStorage.setItem(`${this.uniqueKey}:${key}`, value);
 	};
 
-	public get = (key: string): string =>
-		this.localStorage[`${this.uniqueKey}:${key}`];
+	public get = (key: string): string | null =>
+		this.localStorage.getItem(`${this.uniqueKey}:${key}`);
 }

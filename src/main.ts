@@ -63,9 +63,12 @@ export default class Plugin extends BasePlugin {
 			onIntervalCreated,
 			notifier,
 			{
-				minutes: parseInt(this.keyValueStore.get("time-minutes"), 10),
+				minutes: parseInt(
+					this.keyValueStore.get("time-minutes") as string,
+					10,
+				),
 				seconds: parseInt(
-					this.keyValueStore.get("time-seconds"),
+					this.keyValueStore.get("time-seconds") as string,
 					10,
 				) as Seconds,
 				state: this.keyValueStore.get(
@@ -73,10 +76,13 @@ export default class Plugin extends BasePlugin {
 				) as IntervalTimerState,
 				focusIntervals: {
 					total: parseInt(
-						this.keyValueStore.get("intervals-total"),
+						this.keyValueStore.get("intervals-total") as string,
 						10,
 					),
-					set: parseInt(this.keyValueStore.get("intervals-set"), 10),
+					set: parseInt(
+						this.keyValueStore.get("intervals-set") as string,
+						10,
+					),
 				},
 			},
 		);
