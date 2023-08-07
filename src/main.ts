@@ -56,35 +56,34 @@ export default class Plugin extends BasePlugin {
 			}).show();
 			new Notice(message);
 		};
+		const initialParams = {
+			minutes: parseInt(
+				this.keyValueStore.get("time-minutes") as string,
+				10,
+			),
+			seconds: parseInt(
+				this.keyValueStore.get("time-seconds") as string,
+				10,
+			) as Seconds,
+			state: this.keyValueStore.get("timerState") as IntervalTimerState,
+			focusIntervals: {
+				total: parseInt(
+					this.keyValueStore.get("intervals-total") as string,
+					10,
+				),
+				set: parseInt(
+					this.keyValueStore.get("intervals-set") as string,
+					10,
+				),
+			},
+		};
 
 		this.intervalTimerManager = new IntervalTimerManager(
 			onChangeState,
 			this.settings,
 			onIntervalCreated,
 			notifier,
-			{
-				minutes: parseInt(
-					this.keyValueStore.get("time-minutes") as string,
-					10,
-				),
-				seconds: parseInt(
-					this.keyValueStore.get("time-seconds") as string,
-					10,
-				) as Seconds,
-				state: this.keyValueStore.get(
-					"timerState",
-				) as IntervalTimerState,
-				focusIntervals: {
-					total: parseInt(
-						this.keyValueStore.get("intervals-total") as string,
-						10,
-					),
-					set: parseInt(
-						this.keyValueStore.get("intervals-set") as string,
-						10,
-					),
-				},
-			},
+			initialParams,
 		);
 	};
 
