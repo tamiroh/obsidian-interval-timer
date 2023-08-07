@@ -3,10 +3,12 @@ import * as electron from "electron";
 import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./settingTab";
 import {
 	IntervalTimerManager,
+	IntervalTimerState,
 	onChangeStateFunction,
 } from "./intervalTimerManager";
 import { StatusBar } from "./statusBar";
 import { Seconds } from "./time";
+import { KeyValueStore } from "./keyValueStore";
 
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;
@@ -15,8 +17,11 @@ export default class Plugin extends BasePlugin {
 
 	private intervalTimerManager!: IntervalTimerManager;
 
+	private keyValueStore!: KeyValueStore;
+
 	public override onload = async () => {
 		await this.loadSettings();
+		this.keyValueStore = new KeyValueStore(this.manifest.id);
 		this.statusBar = new StatusBar(this.addStatusBarItem());
 		this.setupIntervalTimerManager();
 		this.addCommands();
@@ -28,19 +33,17 @@ export default class Plugin extends BasePlugin {
 	};
 
 	private setupIntervalTimerManager = () => {
-		const prefix = `${this.manifest.id}`;
-
 		const onChangeState: onChangeStateFunction = (
 			timerState,
 			intervalTimerState,
 			time,
 			intervals,
 		) => {
-			localStorage[`${prefix}:timerState`] = intervalTimerState;
-			localStorage[`${prefix}:time-minutes`] = time.minutes;
-			localStorage[`${prefix}:time-seconds`] = time.seconds;
-			localStorage[`${prefix}:intervals-set`] = intervals.set;
-			localStorage[`${prefix}:intervals-total`] = intervals.total;
+			this.keyValueStore.set("timerState", intervalTimerState);
+			this.keyValueStore.set("time-minutes", String(time.minutes));
+			this.keyValueStore.set("time-seconds", String(time.seconds));
+			this.keyValueStore.set("intervals-set", String(intervals.set));
+			this.keyValueStore.set("intervals-total", String(intervals.total));
 
 			this.statusBar.update(intervals, time, intervalTimerState);
 		};
@@ -60,18 +63,20 @@ export default class Plugin extends BasePlugin {
 			onIntervalCreated,
 			notifier,
 			{
-				minutes: parseInt(localStorage[`${prefix}:time-minutes`], 10),
+				minutes: parseInt(this.keyValueStore.get("time-minutes"), 10),
 				seconds: parseInt(
-					localStorage[`${prefix}:time-seconds`],
+					this.keyValueStore.get("time-seconds"),
 					10,
 				) as Seconds,
-				state: localStorage[`${prefix}:timerState`],
+				state: this.keyValueStore.get(
+					"timerState",
+				) as IntervalTimerState,
 				focusIntervals: {
 					total: parseInt(
-						localStorage[`${prefix}:intervals-total`],
+						this.keyValueStore.get("intervals-total"),
 						10,
 					),
-					set: parseInt(localStorage[`${prefix}:intervals-set`], 10),
+					set: parseInt(this.keyValueStore.get("intervals-set"), 10),
 				},
 			},
 		);
