@@ -3,9 +3,12 @@ import * as electron from "electron";
 import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./settingTab";
 import {
 	IntervalTimerManager,
+	IntervalTimerState,
 	onChangeStateFunction,
 } from "./intervalTimerManager";
 import { StatusBar } from "./statusBar";
+import { Seconds } from "./time";
+import { KeyValueStore } from "./keyValueStore";
 
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;
@@ -14,8 +17,11 @@ export default class Plugin extends BasePlugin {
 
 	private intervalTimerManager!: IntervalTimerManager;
 
+	private keyValueStore!: KeyValueStore;
+
 	public override onload = async () => {
 		await this.loadSettings();
+		this.keyValueStore = new KeyValueStore(this.manifest.id);
 		this.statusBar = new StatusBar(this.addStatusBarItem());
 		this.setupIntervalTimerManager();
 		this.addCommands();
@@ -33,6 +39,12 @@ export default class Plugin extends BasePlugin {
 			time,
 			intervals,
 		) => {
+			this.keyValueStore.set("timerState", intervalTimerState);
+			this.keyValueStore.set("time-minutes", String(time.minutes));
+			this.keyValueStore.set("time-seconds", String(time.seconds));
+			this.keyValueStore.set("intervals-set", String(intervals.set));
+			this.keyValueStore.set("intervals-total", String(intervals.total));
+
 			this.statusBar.update(intervals, time, intervalTimerState);
 		};
 		const onIntervalCreated = (intervalId: number) =>
@@ -44,12 +56,34 @@ export default class Plugin extends BasePlugin {
 			}).show();
 			new Notice(message);
 		};
+		const initialParams = {
+			minutes: parseInt(
+				this.keyValueStore.get("time-minutes") as string,
+				10,
+			),
+			seconds: parseInt(
+				this.keyValueStore.get("time-seconds") as string,
+				10,
+			) as Seconds,
+			state: this.keyValueStore.get("timerState") as IntervalTimerState,
+			focusIntervals: {
+				total: parseInt(
+					this.keyValueStore.get("intervals-total") as string,
+					10,
+				),
+				set: parseInt(
+					this.keyValueStore.get("intervals-set") as string,
+					10,
+				),
+			},
+		};
 
 		this.intervalTimerManager = new IntervalTimerManager(
 			onChangeState,
 			this.settings,
 			onIntervalCreated,
 			notifier,
+			initialParams,
 		);
 	};
 

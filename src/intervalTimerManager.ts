@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "./countdownTimer";
-import { Seconds, Time } from "./time";
+import { Minutes, Seconds, Time } from "./time";
 import { PluginSetting } from "./settingTab";
 
 export type IntervalTimerState = "focus" | "shortBreak" | "longBreak";
@@ -11,6 +11,13 @@ export type onChangeStateFunction = (
 	time: Time,
 	focusIntervals: { total: number; set: number },
 ) => void;
+
+export type InitialParams = {
+	minutes?: Minutes;
+	seconds?: Seconds;
+	state?: IntervalTimerState;
+	focusIntervals?: { total?: number; set?: number };
+};
 
 export class IntervalTimerManager {
 	private timerState: { timer: CountdownTimer; state: IntervalTimerState };
@@ -30,6 +37,7 @@ export class IntervalTimerManager {
 		settings: PluginSetting,
 		onIntervalCreated: (intervalId: number) => void,
 		notifier: (message: string) => void,
+		initialParams?: InitialParams,
 	) {
 		this.onChangeState = (timerState, time) => {
 			onChangeState(
@@ -41,16 +49,23 @@ export class IntervalTimerManager {
 		};
 		this.settings = settings;
 		this.onIntervalCreated = onIntervalCreated;
-		this.focusIntervals = { total: 0, set: 0 };
+		this.focusIntervals = {
+			total: initialParams?.focusIntervals?.total ?? 0,
+			set: initialParams?.focusIntervals?.set ?? 0,
+		};
 		this.timerState = {
-			timer: this.createTimer(this.settings.focusIntervalDuration, 0),
-			state: "focus",
+			timer: this.createTimer(
+				initialParams?.minutes ?? this.settings.focusIntervalDuration,
+				initialParams?.seconds ?? 0,
+			),
+			state: initialParams?.state ?? "focus",
 		};
 		this.notifier = notifier;
 
 		this.onChangeState("initialized", {
-			minutes: this.settings.focusIntervalDuration,
-			seconds: 0,
+			minutes:
+				initialParams?.minutes ?? this.settings.focusIntervalDuration,
+			seconds: initialParams?.seconds ?? 0,
 		});
 	}
 
