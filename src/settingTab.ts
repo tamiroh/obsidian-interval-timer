@@ -1,11 +1,13 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import Plugin from "./main";
+import { NotificationStyle } from "./notifier";
 
 export type PluginSetting = {
 	focusIntervalDuration: number;
 	shortBreakDuration: number;
 	longBreakDuration: number;
 	longBreakAfter: number;
+	notificationStyle: NotificationStyle;
 };
 
 export const DEFAULT_SETTINGS: PluginSetting = {
@@ -13,6 +15,7 @@ export const DEFAULT_SETTINGS: PluginSetting = {
 	shortBreakDuration: 5,
 	longBreakDuration: 15,
 	longBreakAfter: 4,
+	notificationStyle: "simple",
 };
 
 export class SettingTab extends PluginSettingTab {
@@ -80,5 +83,19 @@ export class SettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
+
+		containerEl.createEl("h1", { text: "Notification" });
+
+		new Setting(containerEl).setName("Style").addDropdown((dropdown) => {
+			dropdown
+				.addOption("system", "System")
+				.addOption("simple", "Simple")
+				.setValue(this.plugin.settings.notificationStyle)
+				.onChange(async (value) => {
+					this.plugin.settings.notificationStyle =
+						value as NotificationStyle;
+					await this.plugin.saveSettings();
+				});
+		});
 	}
 }

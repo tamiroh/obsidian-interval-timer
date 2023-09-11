@@ -1,5 +1,4 @@
-import { Notice, Plugin as BasePlugin } from "obsidian";
-import * as electron from "electron";
+import { Plugin as BasePlugin } from "obsidian";
 import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./settingTab";
 import {
 	IntervalTimerManager,
@@ -9,6 +8,7 @@ import {
 import { StatusBar } from "./statusBar";
 import { Seconds } from "./time";
 import { KeyValueStore } from "./keyValueStore";
+import { notify } from "./notifier";
 
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;
@@ -50,11 +50,7 @@ export default class Plugin extends BasePlugin {
 		const onIntervalCreated = (intervalId: number) =>
 			this.registerInterval(intervalId);
 		const notifier = (message: string) => {
-			new (electron as any).remote.Notification({
-				title: message,
-				body: "Interval Timer",
-			}).show();
-			new Notice(message);
+			notify(this.settings.notificationStyle, message);
 		};
 		const initialParams = {
 			minutes: parseInt(
