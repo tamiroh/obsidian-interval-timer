@@ -1,10 +1,10 @@
 import { Plugin as BasePlugin } from "obsidian";
 import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./settingTab";
 import {
-	IntervalTimerManager,
+	IntervalTimer,
 	IntervalTimerState,
 	onChangeStateFunction,
-} from "./intervalTimerManager";
+} from "./intervalTimer";
 import { StatusBar } from "./statusBar";
 import { Seconds } from "./time";
 import { KeyValueStore } from "./keyValueStore";
@@ -15,7 +15,7 @@ export default class Plugin extends BasePlugin {
 
 	private statusBar!: StatusBar;
 
-	private intervalTimerManager!: IntervalTimerManager;
+	private intervalTimer!: IntervalTimer;
 
 	private keyValueStore!: KeyValueStore;
 
@@ -23,7 +23,7 @@ export default class Plugin extends BasePlugin {
 		await this.loadSettings();
 		this.keyValueStore = new KeyValueStore(this.manifest.id);
 		this.statusBar = new StatusBar(this.addStatusBarItem());
-		this.setupIntervalTimerManager();
+		this.setupIntervalTimer();
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
 	};
@@ -32,7 +32,7 @@ export default class Plugin extends BasePlugin {
 		await this.saveData(this.settings);
 	};
 
-	private setupIntervalTimerManager = () => {
+	private setupIntervalTimer = () => {
 		const onChangeState: onChangeStateFunction = (
 			timerState,
 			intervalTimerState,
@@ -74,7 +74,7 @@ export default class Plugin extends BasePlugin {
 			},
 		};
 
-		this.intervalTimerManager = new IntervalTimerManager(
+		this.intervalTimer = new IntervalTimer(
 			onChangeState,
 			this.settings,
 			onIntervalCreated,
@@ -87,32 +87,32 @@ export default class Plugin extends BasePlugin {
 		this.addCommand({
 			id: "start-timer",
 			name: "Start timer",
-			callback: this.intervalTimerManager.startTimer,
+			callback: this.intervalTimer.start,
 		});
 		this.addCommand({
 			id: "pause-timer",
 			name: "Pause timer",
-			callback: this.intervalTimerManager.pauseTimer,
+			callback: this.intervalTimer.pause,
 		});
 		this.addCommand({
 			id: "reset-timer",
 			name: "Reset timer",
-			callback: this.intervalTimerManager.resetTimer,
+			callback: this.intervalTimer.reset,
 		});
 		this.addCommand({
 			id: "reset-intervals-set",
 			name: "Reset intervals set",
-			callback: this.intervalTimerManager.resetIntervalsSet,
+			callback: this.intervalTimer.resetIntervalsSet,
 		});
 		this.addCommand({
 			id: "reset-total-intervals",
 			name: "Reset total intervals",
-			callback: this.intervalTimerManager.resetTotalIntervals,
+			callback: this.intervalTimer.resetTotalIntervals,
 		});
 		this.addCommand({
 			id: "skip-interval", // TODO: only show this command when the timer type is break
 			name: "Skip interval",
-			callback: this.intervalTimerManager.skipInterval,
+			callback: this.intervalTimer.skipInterval,
 		});
 	};
 

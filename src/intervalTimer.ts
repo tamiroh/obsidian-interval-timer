@@ -1,7 +1,15 @@
 import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "./countdownTimer";
 import { Minutes, Seconds, Time } from "./time";
-import { PluginSetting } from "./settingTab";
+import { NotificationStyle } from "./notifier";
+
+export type IntervalTimerSetting = {
+	focusIntervalDuration: number;
+	shortBreakDuration: number;
+	longBreakDuration: number;
+	longBreakAfter: number;
+	notificationStyle: NotificationStyle;
+};
 
 export type IntervalTimerState = "focus" | "shortBreak" | "longBreak";
 
@@ -19,7 +27,7 @@ export type InitialParams = {
 	focusIntervals?: { total?: number; set?: number };
 };
 
-export class IntervalTimerManager {
+export class IntervalTimer {
 	private timerState: { timer: CountdownTimer; state: IntervalTimerState };
 
 	private focusIntervals: { total: number; set: number };
@@ -28,13 +36,13 @@ export class IntervalTimerManager {
 
 	private readonly onChangeState: (type: TimerType, time: Time) => void;
 
-	private readonly settings: PluginSetting;
+	private readonly settings: IntervalTimerSetting;
 
 	private readonly notifier: (message: string) => void;
 
 	constructor(
 		onChangeState: onChangeStateFunction,
-		settings: PluginSetting,
+		settings: IntervalTimerSetting,
 		onIntervalCreated: (intervalId: number) => void,
 		notifier: (message: string) => void,
 		initialParams?: InitialParams,
@@ -69,7 +77,7 @@ export class IntervalTimerManager {
 		});
 	}
 
-	public startTimer = () => {
+	public start = () => {
 		this.timerState.timer.start();
 
 		const intervalId = this.timerState.timer.getIntervalId();
@@ -78,11 +86,11 @@ export class IntervalTimerManager {
 		}
 	};
 
-	public pauseTimer = () => {
+	public pause = () => {
 		this.timerState.timer.pause();
 	};
 
-	public resetTimer = () => {
+	public reset = () => {
 		const result = this.timerState.timer.reset();
 		if (result.type === "succeeded") {
 			this.onChangeState("initialized", result.resetTo);

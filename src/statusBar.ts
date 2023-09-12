@@ -1,5 +1,5 @@
 import { Time } from "./time";
-import { IntervalTimerState } from "./intervalTimerManager";
+import { IntervalTimerState } from "./intervalTimer";
 
 export class StatusBar {
 	private statusBarItem: HTMLElement;
