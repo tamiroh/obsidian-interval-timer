@@ -97,7 +97,7 @@ export default class Plugin extends BasePlugin {
 		this.addCommand({
 			id: "reset-timer",
 			name: "Reset timer",
-			callback: this.intervalTimerManager.resetTimer,
+			callback: this.intervalTimerManager.reset,
 		});
 		this.addCommand({
 			id: "reset-intervals-set",

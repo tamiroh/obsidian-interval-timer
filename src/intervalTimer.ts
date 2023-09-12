@@ -82,7 +82,7 @@ export class IntervalTimer {
 		this.timerState.timer.pause();
 	};
 
-	public resetTimer = () => {
+	public reset = () => {
 		const result = this.timerState.timer.reset();
 		if (result.type === "succeeded") {
 			this.onChangeState("initialized", result.resetTo);
