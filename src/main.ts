@@ -23,7 +23,7 @@ export default class Plugin extends BasePlugin {
 		await this.loadSettings();
 		this.keyValueStore = new KeyValueStore(this.manifest.id);
 		this.statusBar = new StatusBar(this.addStatusBarItem());
-		this.setupIntervalTimerManager();
+		this.setupIntervalTimer();
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
 	};
@@ -32,7 +32,7 @@ export default class Plugin extends BasePlugin {
 		await this.saveData(this.settings);
 	};
 
-	private setupIntervalTimerManager = () => {
+	private setupIntervalTimer = () => {
 		const onChangeState: onChangeStateFunction = (
 			timerState,
 			intervalTimerState,
