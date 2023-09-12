@@ -1,10 +1,10 @@
 import { Plugin as BasePlugin } from "obsidian";
 import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./settingTab";
 import {
-	IntervalTimerManager,
+	IntervalTimer,
 	IntervalTimerState,
 	onChangeStateFunction,
-} from "./intervalTimerManager";
+} from "./intervalTimer";
 import { StatusBar } from "./statusBar";
 import { Seconds } from "./time";
 import { KeyValueStore } from "./keyValueStore";
@@ -15,7 +15,7 @@ export default class Plugin extends BasePlugin {
 
 	private statusBar!: StatusBar;
 
-	private intervalTimerManager!: IntervalTimerManager;
+	private intervalTimerManager!: IntervalTimer;
 
 	private keyValueStore!: KeyValueStore;
 
@@ -74,7 +74,7 @@ export default class Plugin extends BasePlugin {
 			},
 		};
 
-		this.intervalTimerManager = new IntervalTimerManager(
+		this.intervalTimerManager = new IntervalTimer(
 			onChangeState,
 			this.settings,
 			onIntervalCreated,

@@ -19,7 +19,7 @@ export type InitialParams = {
 	focusIntervals?: { total?: number; set?: number };
 };
 
-export class IntervalTimerManager {
+export class IntervalTimer {
 	private timerState: { timer: CountdownTimer; state: IntervalTimerState };
 
 	private focusIntervals: { total: number; set: number };
