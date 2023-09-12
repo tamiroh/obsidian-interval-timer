@@ -78,7 +78,7 @@ export class IntervalTimer {
 		}
 	};
 
-	public pauseTimer = () => {
+	public pause = () => {
 		this.timerState.timer.pause();
 	};
 

@@ -92,7 +92,7 @@ export default class Plugin extends BasePlugin {
 		this.addCommand({
 			id: "pause-timer",
 			name: "Pause timer",
-			callback: this.intervalTimerManager.pauseTimer,
+			callback: this.intervalTimerManager.pause,
 		});
 		this.addCommand({
 			id: "reset-timer",
