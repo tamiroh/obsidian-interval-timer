@@ -69,7 +69,7 @@ export class IntervalTimer {
 		});
 	}
 
-	public startTimer = () => {
+	public start = () => {
 		this.timerState.timer.start();
 
 		const intervalId = this.timerState.timer.getIntervalId();
