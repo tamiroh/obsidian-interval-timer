@@ -15,7 +15,7 @@ export default class Plugin extends BasePlugin {
 
 	private statusBar!: StatusBar;
 
-	private intervalTimerManager!: IntervalTimer;
+	private intervalTimer!: IntervalTimer;
 
 	private keyValueStore!: KeyValueStore;
 
@@ -74,7 +74,7 @@ export default class Plugin extends BasePlugin {
 			},
 		};
 
-		this.intervalTimerManager = new IntervalTimer(
+		this.intervalTimer = new IntervalTimer(
 			onChangeState,
 			this.settings,
 			onIntervalCreated,
@@ -87,32 +87,32 @@ export default class Plugin extends BasePlugin {
 		this.addCommand({
 			id: "start-timer",
 			name: "Start timer",
-			callback: this.intervalTimerManager.start,
+			callback: this.intervalTimer.start,
 		});
 		this.addCommand({
 			id: "pause-timer",
 			name: "Pause timer",
-			callback: this.intervalTimerManager.pause,
+			callback: this.intervalTimer.pause,
 		});
 		this.addCommand({
 			id: "reset-timer",
 			name: "Reset timer",
-			callback: this.intervalTimerManager.reset,
+			callback: this.intervalTimer.reset,
 		});
 		this.addCommand({
 			id: "reset-intervals-set",
 			name: "Reset intervals set",
-			callback: this.intervalTimerManager.resetIntervalsSet,
+			callback: this.intervalTimer.resetIntervalsSet,
 		});
 		this.addCommand({
 			id: "reset-total-intervals",
 			name: "Reset total intervals",
-			callback: this.intervalTimerManager.resetTotalIntervals,
+			callback: this.intervalTimer.resetTotalIntervals,
 		});
 		this.addCommand({
 			id: "skip-interval", // TODO: only show this command when the timer type is break
 			name: "Skip interval",
-			callback: this.intervalTimerManager.skipInterval,
+			callback: this.intervalTimer.skipInterval,
 		});
 	};
 
