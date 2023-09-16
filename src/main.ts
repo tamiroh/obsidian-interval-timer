@@ -26,6 +26,8 @@ export default class Plugin extends BasePlugin {
 		this.setupIntervalTimer();
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
+
+		this.statusBar.enableClick(this.intervalTimer);
 	};
 
 	public saveSettings = async () => {

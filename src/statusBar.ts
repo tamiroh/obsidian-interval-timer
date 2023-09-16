@@ -1,5 +1,5 @@
 import { Time } from "./time";
-import { IntervalTimerState } from "./intervalTimer";
+import { IntervalTimer, IntervalTimerState } from "./intervalTimer";
 
 export class StatusBar {
 	private statusBarItem: HTMLElement;
@@ -22,6 +22,13 @@ export class StatusBar {
 				? "color: #EE6152"
 				: "color: #4CBD4F",
 		);
+	};
+
+	public enableClick = (intervalTimer: IntervalTimer) => {
+		this.statusBarItem.addClass("mod-clickable");
+		this.statusBarItem.onClickEvent(() => {
+			intervalTimer.skipInterval();
+		});
 	};
 
 	private format = (time: Time): string =>
