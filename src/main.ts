@@ -1,4 +1,4 @@
-import { Plugin as BasePlugin } from "obsidian";
+import { App, Plugin as BasePlugin, PluginManifest } from "obsidian";
 import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./settingTab";
 import {
 	IntervalTimer,
@@ -13,16 +13,21 @@ import { notify } from "./notifier";
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;
 
-	private statusBar!: StatusBar;
+	private statusBar: StatusBar;
 
 	private intervalTimer!: IntervalTimer;
 
-	private keyValueStore!: KeyValueStore;
+	private keyValueStore: KeyValueStore;
+
+	constructor(app: App, manifest: PluginManifest) {
+		super(app, manifest);
+
+		this.keyValueStore = new KeyValueStore(manifest.id);
+		this.statusBar = new StatusBar(this.addStatusBarItem());
+	}
 
 	public override onload = async () => {
 		await this.loadSettings();
-		this.keyValueStore = new KeyValueStore(this.manifest.id);
-		this.statusBar = new StatusBar(this.addStatusBarItem());
 		this.setupIntervalTimer();
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
