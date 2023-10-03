@@ -10,6 +10,9 @@ categories:
           - "fix"
           - "bugfix"
           - "bug"
+    - title: "🤖 Dependency Updates"
+      labels:
+          - "dependencies"
     - title: "🧰 Maintenance"
       label: "chore"
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
