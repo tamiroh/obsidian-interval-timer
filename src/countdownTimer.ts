@@ -78,7 +78,7 @@ export class CountdownTimer {
 				this.state = { type: "completed" };
 				this.onComplete?.();
 			}
-		}, 1000);
+		}, 500);
 
 		this.state = {
 			type: "running",
