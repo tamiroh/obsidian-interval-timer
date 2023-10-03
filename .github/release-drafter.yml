@@ -35,4 +35,4 @@ template: |
 
     ---
 
-    **Full Changelog**: https://github.com/tamiroh/obsidian-interval-timer/compare/$PREVIOUS_TAG...$CURRENT_TAG
+    **Full Changelog**: https://github.com/tamiroh/obsidian-interval-timer/compare/$PREVIOUS_TAG...$RESOLVED_VERSION
