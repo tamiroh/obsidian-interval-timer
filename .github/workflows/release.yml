@@ -12,19 +12,19 @@ jobs:
                   token: ${{ secrets.PAT }}
             - name: Use Node.js
               uses: actions/setup-node@v1
-              id: release-drafter-prepare
               with:
                   node-version: "16.x"
             - name: Update draft
+              id: release-drafter-prepare
               uses: release-drafter/release-drafter@v5
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             - name: Update version
               run: |
-                  node ./bin/version-bump.mjs ${{ steps.release-drafter.outputs.tag_name }}
+                  node ./bin/version-bump.mjs ${{ steps.release-drafter-prepare.outputs.tag_name }}
             - uses: stefanzweifel/git-auto-commit-action@v5
               with:
-                  commit_message: "Update version to ${{ steps.release-drafter.outputs.tag_name }}"
+                  commit_message: "Update version to ${{ steps.release-drafter-prepare.outputs.tag_name }}"
             - name: Publish release
               uses: release-drafter/release-drafter@v5
               env:
