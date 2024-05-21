@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import { CountdownTimer, TimerType } from "./countdownTimer";
+import { CountdownTimer, TimerState } from "./countdownTimer";
 import { Minutes, Seconds, Time } from "./time";
 import { NotificationStyle } from "./notifier";
 
@@ -14,7 +14,7 @@ export type IntervalTimerSetting = {
 export type IntervalTimerState = "focus" | "shortBreak" | "longBreak";
 
 export type onChangeStateFunction = (
-	timerState: TimerType,
+	timerState: TimerState,
 	intervalTimerState: IntervalTimerState,
 	time: Time,
 	focusIntervals: { total: number; set: number },
@@ -34,7 +34,7 @@ export class IntervalTimer {
 
 	private readonly onIntervalCreated: (intervalId: number) => void;
 
-	private readonly onChangeState: (type: TimerType, time: Time) => void;
+	private readonly onChangeState: (type: TimerState, time: Time) => void;
 
 	private readonly settings: IntervalTimerSetting;
 
@@ -121,6 +121,21 @@ export class IntervalTimer {
 			minutes: this.settings.focusIntervalDuration,
 			seconds: 0,
 		});
+	};
+
+	public next = () => {
+		match(this.timerState.timer.getCurrentState())
+			.with('initialized', () => this.start())
+			.with('running', () => {
+				if (this.timerState.state === 'focus') {
+					this.pause();
+				} else {
+					this.skipInterval();
+				}
+			})
+			.with('paused', () => this.start())
+			.with('completed', () => this.start())
+			.exhaustive();
 	};
 
 	public skipInterval = () => {
