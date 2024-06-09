@@ -7,7 +7,8 @@
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"prepare": "husky install",
-		"test": "vitest"
+		"test": "vitest",
+		"coverage": "vitest run --coverage"
 	},
 	"lint-staged": {
 		"*": [
@@ -27,6 +28,7 @@
 		"@types/node": "^20.14.1",
 		"@typescript-eslint/eslint-plugin": "5.62.0",
 		"@typescript-eslint/parser": "5.62.0",
+		"@vitest/coverage-v8": "^1.6.0",
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.21.4",
 		"eslint": "^8.36.0",
@@ -34,6 +36,7 @@
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-import": "^2.27.5",
 		"husky": "^9.0.11",
+		"jsdom": "^24.1.0",
 		"lint-staged": "^15.2.5",
 		"obsidian": "latest",
 		"prettier": "3.3.0",
