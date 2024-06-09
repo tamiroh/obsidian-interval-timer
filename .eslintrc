@@ -24,6 +24,12 @@
 		"import/extensions": "off",
 		"consistent-return": "off",
 		"no-console": "off",
-		"class-methods-use-this": "off"
+		"class-methods-use-this": "off",
+		"import/no-extraneous-dependencies": [
+			"error",
+			{
+				"devDependencies": ["src/**/*.test.ts"]
+			}
+		]
 	}
 }
