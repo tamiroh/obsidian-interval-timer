@@ -45,7 +45,7 @@
 		"vitest": "^1.6.0"
 	},
 	"dependencies": {
-		"electron": "^31.0.1",
+		"electron": "^31.0.2",
 		"moment": "^2.30.1",
 		"ts-pattern": "^5.2.0"
 	}
