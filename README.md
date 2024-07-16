@@ -1,6 +1,6 @@
 # Interval Timer for Obsidian 🕔
 
-Interval timer for [Obsidian](https://obsidian.md/) mostly useful for the [Pomodoro Technique](https://www.pomodorotechnique.com/).
+An interval timer for [Obsidian](https://obsidian.md/) mostly useful for the [Pomodoro Technique](https://www.pomodorotechnique.com/).
 
 ## Features
 
