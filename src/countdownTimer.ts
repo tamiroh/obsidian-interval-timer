@@ -1,35 +1,35 @@
 import moment, { Moment } from "moment";
 import { Seconds, Time } from "./time";
 
-export const timerTypes = [
+export const timerStates = [
 	"initialized",
 	"running",
 	"paused",
 	"completed",
 ] as const;
 
-export type TimerType = (typeof timerTypes)[number];
+export type TimerState = (typeof timerStates)[number];
 
-export type TimerState =
+type InternalState =
 	| {
-			type: (typeof timerTypes)[0];
+			type: (typeof timerStates)[0];
 			currentTime: Time;
 	  }
 	| {
-			type: (typeof timerTypes)[1];
+			type: (typeof timerStates)[1];
 			currentTime: Time;
 			intervalId: number;
 	  }
 	| {
-			type: (typeof timerTypes)[2];
+			type: (typeof timerStates)[2];
 			currentTime: Time;
 	  }
 	| {
-			type: (typeof timerTypes)[3];
+			type: (typeof timerStates)[3];
 	  };
 
 export class CountdownTimer {
-	private state: TimerState;
+	private state: InternalState;
 
 	private readonly onSubtract: (time: Time) => void;
 
@@ -120,6 +120,10 @@ export class CountdownTimer {
 				seconds: this.initialTime.seconds,
 			},
 		};
+	}
+
+	public getCurrentState(): TimerState {
+		return this.state.type;
 	}
 
 	public getIntervalId(): number | undefined {
