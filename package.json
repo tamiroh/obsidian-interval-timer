@@ -31,7 +31,7 @@
 		"@vitest/coverage-v8": "^2.0.5",
 		"builtin-modules": "4.0.0",
 		"esbuild": "0.23.0",
-		"eslint": "^8.36.0",
+		"eslint": "^9.8.0",
 		"eslint-config-airbnb-base": "^15.0.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-import": "^2.29.1",
