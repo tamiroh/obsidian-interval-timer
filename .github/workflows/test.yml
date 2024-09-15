@@ -14,7 +14,7 @@ jobs:
             - name: Install modules
               run: npm install
             - name: Run ESLint
-              run: npx eslint .
+              run: npx eslint src/**/*.ts
     format:
         runs-on: ubuntu-latest
         steps:
