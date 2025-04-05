@@ -1,4 +1,5 @@
 import moment, { Moment } from "moment";
+import { match } from "ts-pattern";
 import { Seconds, Time } from "./time";
 
 export const timerTypes = [
@@ -60,7 +61,20 @@ export class CountdownTimer {
 			return { type: "failed" };
 		}
 
-		const startAt = moment();
+		const startAt = match(this.state)
+			.with({ type: "initialized" }, () => moment())
+			.with({ type: "paused" }, (state) =>
+				moment()
+					.subtract(
+						this.initialTime.minutes - state.currentTime.minutes,
+						"minutes",
+					)
+					.subtract(
+						this.initialTime.seconds - state.currentTime.seconds,
+						"seconds",
+					),
+			)
+			.exhaustive();
 
 		const intervalId = window.setInterval(() => {
 			if (this.state.type !== "running") {
