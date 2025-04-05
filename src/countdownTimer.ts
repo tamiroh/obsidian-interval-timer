@@ -1,6 +1,6 @@
 import moment, { Moment } from "moment";
-import { Seconds, Time } from "./time";
 import { match } from "ts-pattern";
+import { Seconds, Time } from "./time";
 
 export const timerTypes = [
 	"initialized",
