@@ -20,7 +20,8 @@
 		"noFallthroughCasesInSwitch": true,
 		"strictPropertyInitialization": true,
 		"forceConsistentCasingInFileNames": true,
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
+		"skipLibCheck": true
 	},
 	"include": ["**/*.ts"]
 }
