@@ -31,7 +31,7 @@ export class SettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl("h1", { text: "Durations" });
+		new Setting(containerEl).setHeading().setName("Duration");
 
 		new Setting(containerEl)
 			.setName("Focus interval duration (minutes)")
@@ -84,7 +84,7 @@ export class SettingTab extends PluginSettingTab {
 					}),
 			);
 
-		containerEl.createEl("h1", { text: "Notification" });
+		new Setting(containerEl).setHeading().setName("Notification");
 
 		new Setting(containerEl).setName("Style").addDropdown((dropdown) => {
 			dropdown

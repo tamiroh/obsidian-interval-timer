@@ -18,7 +18,7 @@
 			"npx eslint --fix"
 		],
 		"*.ts": [
-			"npx tsc --noEmit"
+			"bash -c 'npx tsc --noEmit'"
 		]
 	},
 	"keywords": [],
