@@ -128,6 +128,24 @@ export class IntervalTimer {
 		this.onComplete();
 	};
 
+	public touch = () => {
+		match(this.timerState.timer.getCurrentTimerType())
+			.with("initialized", "paused", "completed", () => {
+				this.start();
+			})
+			.with("running", () => {
+				match(this.timerState.state)
+					.with("focus", () => {
+						this.reset();
+					})
+					.with("shortBreak", "longBreak", () => {
+						this.skipInterval();
+					})
+					.exhaustive();
+			})
+			.exhaustive();
+	};
+
 	private onComplete = () => {
 		match(this.timerState.state)
 			.with("focus", () => {

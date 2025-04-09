@@ -142,6 +142,10 @@ export class CountdownTimer {
 			: undefined;
 	}
 
+	public getCurrentTimerType(): TimerType {
+		return this.state.type;
+	}
+
 	private updateCurrentTime(
 		startAt: Moment,
 	): "unchanged" | "subtracted" | "exceeded" {
