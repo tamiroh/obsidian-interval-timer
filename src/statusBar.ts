@@ -27,7 +27,7 @@ export class StatusBar {
 	public enableClick = (intervalTimer: IntervalTimer) => {
 		this.statusBarItem.addClass("mod-clickable");
 		this.statusBarItem.onClickEvent(() => {
-			intervalTimer.skipInterval();
+			intervalTimer.touch();
 		});
 	};
 
