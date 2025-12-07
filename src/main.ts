@@ -61,21 +61,21 @@ export default class Plugin extends BasePlugin {
 		};
 		const initialParams = {
 			minutes: parseInt(
-				this.keyValueStore.get("time-minutes") as string,
+				this.keyValueStore.get("time-minutes") ?? "0",
 				10,
 			),
 			seconds: parseInt(
-				this.keyValueStore.get("time-seconds") as string,
+				this.keyValueStore.get("time-seconds") ?? "0",
 				10,
 			) as Seconds,
 			state: this.keyValueStore.get("timerState") as IntervalTimerState,
 			focusIntervals: {
 				total: parseInt(
-					this.keyValueStore.get("intervals-total") as string,
+					this.keyValueStore.get("intervals-total") ?? "0",
 					10,
 				),
 				set: parseInt(
-					this.keyValueStore.get("intervals-set") as string,
+					this.keyValueStore.get("intervals-set") ?? "0",
 					10,
 				),
 			},
