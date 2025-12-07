@@ -4,11 +4,11 @@ An interval timer for [Obsidian](https://obsidian.md/) mostly useful for the [Po
 
 ## Features
 
--   Start, pause, and reset the timer (Of course, it's a timer!)
--   Interval group count available
--   Interval count and interval group count are always visible on your status bar
--   Configurable work and break intervals
--   Notify with system notification when the timer is done
+- Start, pause, and reset the timer (Of course, it's a timer!)
+- Interval group count available
+- Interval count and interval group count are always visible on your status bar
+- Configurable work and break intervals
+- Notify with system notification when the timer is done
 
 ## Installation
 
