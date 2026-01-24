@@ -1,8 +1,8 @@
 import { match } from "ts-pattern";
-import moment from "moment";
 import { CountdownTimer, TimerType } from "./countdownTimer";
 import { Minutes, Seconds, Time } from "./time";
 import { NotificationStyle } from "./notifier";
+import { DailyScheduler } from "./dailyScheduler";
 
 export type IntervalTimerSetting = {
 	focusIntervalDuration: number;
@@ -42,9 +42,7 @@ export class IntervalTimer {
 
 	private readonly notifier: (message: string) => void;
 
-	private lastAutoResetCheckTime: moment.Moment | undefined;
-
-	private autoResetCheckIntervalId: number | undefined;
+	private readonly autoResetScheduler: DailyScheduler;
 
 	constructor(
 		onChangeState: onChangeStateFunction,
@@ -75,7 +73,12 @@ export class IntervalTimer {
 			state: initialParams?.state ?? "focus",
 		};
 		this.notifier = notifier;
-		this.lastAutoResetCheckTime = undefined;
+		this.autoResetScheduler = new DailyScheduler(settings.resetTime, () => {
+			this.resetTotalIntervals();
+			this.notifier(
+				"🔄  Intervals have been reset because the reset time has passed",
+			);
+		});
 
 		this.onChangeState("initialized", {
 			minutes:
@@ -85,27 +88,11 @@ export class IntervalTimer {
 	}
 
 	public enableAutoReset = (): void => {
-		this.disableAutoReset();
-
-		const checkAndReset = () => {
-			if (this.passedResetTime()) {
-				this.resetTotalIntervals();
-				this.notifier(
-					"🔄  Intervals have been reset because the reset time has passed",
-				);
-			}
-			this.lastAutoResetCheckTime = moment();
-		};
-
-		checkAndReset();
-		this.autoResetCheckIntervalId = window.setInterval(checkAndReset, 1000);
+		this.autoResetScheduler.enable();
 	};
 
 	public disableAutoReset = (): void => {
-		if (this.autoResetCheckIntervalId !== undefined) {
-			window.clearInterval(this.autoResetCheckIntervalId);
-			this.autoResetCheckIntervalId = undefined;
-		}
+		this.autoResetScheduler.disable();
 	};
 
 	public start = () => {
@@ -250,22 +237,4 @@ export class IntervalTimer {
 			this.onPause,
 			this.onComplete,
 		);
-
-	private passedResetTime(): boolean {
-		if (this.lastAutoResetCheckTime === undefined) {
-			return false;
-		}
-
-		const nextReset = moment()
-			.hours(this.settings.resetTime.hours)
-			.minutes(this.settings.resetTime.minutes)
-			.seconds(0)
-			.milliseconds(0);
-
-		if (this.lastAutoResetCheckTime.isAfter(nextReset)) {
-			nextReset.add(1, "day");
-		}
-
-		return nextReset.isSameOrBefore(moment());
-	}
 }
