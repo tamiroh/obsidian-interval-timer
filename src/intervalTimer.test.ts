@@ -92,4 +92,37 @@ describe("IntervalTimer", () => {
 
 		intervalTimer.dispose();
 	});
+
+	it("should reset intervals when crossing reset time right after enableAutoReset", () => {
+		vi.setSystemTime(new Date(2024, 0, 1, 23, 59, 59, 999)); // just before reset time
+		const handleChangeState = vi.fn();
+		const intervalTimer = new IntervalTimer(
+			handleChangeState,
+			{
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				notificationStyle: "simple",
+				resetTime: { hours: 0, minutes: 0 },
+			},
+			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+		);
+		intervalTimer.enableAutoReset();
+		handleChangeState.mockClear();
+
+		// Advance 1 second to cross the reset time (now 00:00:00)
+		vi.advanceTimersByTime(1000);
+
+		// Should have reset because we crossed the reset time
+		expect(handleChangeState).toHaveBeenCalledWith(
+			"initialized",
+			"focus",
+			expect.objectContaining({ minutes: 25, seconds: 0 }),
+			expect.objectContaining({ set: 0, total: 0 }),
+		);
+
+		intervalTimer.dispose();
+	});
 });

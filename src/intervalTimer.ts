@@ -86,16 +86,19 @@ export class IntervalTimer {
 
 	public enableAutoReset = (): void => {
 		this.disableAutoReset();
-		this.autoResetCheckIntervalId = window.setInterval(() => {
+
+		const checkAndReset = () => {
 			if (this.passedResetTime()) {
 				this.resetTotalIntervals();
 				this.notifier(
 					"🔄  Intervals have been reset because the reset time has passed",
 				);
 			}
-
 			this.lastAutoResetCheckTime = moment();
-		}, 1000);
+		};
+
+		checkAndReset();
+		this.autoResetCheckIntervalId = window.setInterval(checkAndReset, 1000);
 	};
 
 	public disableAutoReset = (): void => {
