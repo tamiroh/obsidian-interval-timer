@@ -2,13 +2,14 @@ import moment from "moment";
 
 type YearMonthDay = { year: number; month: number; day: number };
 
-const isSameDay = (a: YearMonthDay, b: YearMonthDay): boolean => a.year === b.year && a.month === b.month && a.day === b.day;
+const isSameDay = (a: YearMonthDay, b: YearMonthDay): boolean =>
+	a.year === b.year && a.month === b.month && a.day === b.day;
 
 const toYearMonthDay = (m: moment.Moment): YearMonthDay => ({
-		year: m.year(),
-		month: m.month() + 1,
-		day: m.date(),
-	});
+	year: m.year(),
+	month: m.month() + 1,
+	day: m.date(),
+});
 
 export class DailyScheduler {
 	private lastExecutionDate: YearMonthDay | undefined;
@@ -25,7 +26,6 @@ export class DailyScheduler {
 	) {
 		this.scheduledTime = scheduledTime;
 		this.onScheduledTime = onScheduledTime;
-		this.lastExecutionDate = undefined;
 	}
 
 	public enable(): void {
