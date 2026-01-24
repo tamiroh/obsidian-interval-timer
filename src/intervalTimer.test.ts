@@ -50,6 +50,7 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
+		intervalTimer.enableAutoReset();
 		handleChangeState.mockClear();
 
 		vi.advanceTimersByTime(1000); // Advance to 23:59:01
@@ -81,6 +82,7 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
+		intervalTimer.enableAutoReset();
 		handleChangeState.mockClear();
 
 		vi.advanceTimersByTime(1000); // Advance to 23:59:01

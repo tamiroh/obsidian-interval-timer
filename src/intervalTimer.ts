@@ -82,9 +82,20 @@ export class IntervalTimer {
 				initialParams?.minutes ?? this.settings.focusIntervalDuration,
 			seconds: initialParams?.seconds ?? 0,
 		});
-
-		this.startDateCheck();
 	}
+
+	public enableAutoReset = (): void => {
+		this.dateCheckIntervalId = window.setInterval(() => {
+			if (this.passedResetTime()) {
+				this.resetTotalIntervals();
+				this.notifier(
+					"🔄  Intervals have been reset because the reset time has passed",
+				);
+			}
+
+			this.lastCheckTime = moment();
+		}, 1000);
+	};
 
 	public start = () => {
 		this.timerState.timer.start();
@@ -231,19 +242,6 @@ export class IntervalTimer {
 			this.onPause,
 			this.onComplete,
 		);
-
-	private startDateCheck = (): void => {
-		this.dateCheckIntervalId = window.setInterval(() => {
-			if (this.passedResetTime()) {
-				this.resetTotalIntervals();
-				this.notifier(
-					"🔄  Intervals have been reset because the reset time has passed",
-				);
-			}
-
-			this.lastCheckTime = moment();
-		}, 1000);
-	};
 
 	private passedResetTime(): boolean {
 		if (this.lastCheckTime === undefined) {

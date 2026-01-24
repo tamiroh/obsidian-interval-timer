@@ -92,6 +92,7 @@ export default class Plugin extends BasePlugin {
 			notifier,
 			initialParams,
 		);
+		this.intervalTimer.enableAutoReset();
 	};
 
 	private addCommands = () => {
