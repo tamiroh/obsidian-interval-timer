@@ -97,6 +97,13 @@ export class IntervalTimer {
 		}, 1000);
 	};
 
+	public disableAutoReset = (): void => {
+		if (this.autoResetCheckIntervalId !== undefined) {
+			window.clearInterval(this.autoResetCheckIntervalId);
+			this.autoResetCheckIntervalId = undefined;
+		}
+	};
+
 	public start = () => {
 		this.timerState.timer.start();
 
@@ -167,10 +174,7 @@ export class IntervalTimer {
 	};
 
 	public dispose = (): void => {
-		if (this.autoResetCheckIntervalId !== undefined) {
-			window.clearInterval(this.autoResetCheckIntervalId);
-			this.autoResetCheckIntervalId = undefined;
-		}
+		this.disableAutoReset();
 	};
 
 	private onComplete = () => {
