@@ -1,7 +1,17 @@
 import moment from "moment";
 
+type YearMonthDay = { year: number; month: number; day: number };
+
+const isSameDay = (a: YearMonthDay, b: YearMonthDay): boolean => a.year === b.year && a.month === b.month && a.day === b.day;
+
+const toYearMonthDay = (m: moment.Moment): YearMonthDay => ({
+		year: m.year(),
+		month: m.month() + 1,
+		day: m.date(),
+	});
+
 export class DailyScheduler {
-	private lastExecutionDate: string | undefined;
+	private lastExecutionDate: YearMonthDay | undefined;
 
 	private intervalId: number | undefined;
 
@@ -24,7 +34,7 @@ export class DailyScheduler {
 		const check = () => {
 			if (this.shouldExecute()) {
 				this.onScheduledTime();
-				this.lastExecutionDate = moment().format("YYYY-MM-DD");
+				this.lastExecutionDate = toYearMonthDay(moment());
 			}
 		};
 
@@ -41,10 +51,12 @@ export class DailyScheduler {
 
 	private shouldExecute(): boolean {
 		const now = moment();
-		const today = now.format("YYYY-MM-DD");
 
 		// Don't execute if we already executed today
-		if (this.lastExecutionDate === today) {
+		if (
+			this.lastExecutionDate !== undefined &&
+			isSameDay(this.lastExecutionDate, toYearMonthDay(now))
+		) {
 			return false;
 		}
 
