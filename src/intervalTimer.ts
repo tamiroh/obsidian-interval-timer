@@ -229,6 +229,9 @@ export class IntervalTimer {
 		this.dateCheckIntervalId = window.setInterval(() => {
 			if (this.passedResetTime()) {
 				this.resetTotalIntervals();
+				this.notifier(
+					"🔄  Intervals have been reset because the reset time has passed",
+				);
 			}
 
 			this.lastCheckTime = moment();
