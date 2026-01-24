@@ -56,6 +56,7 @@ describe("IntervalTimer", () => {
 		vi.advanceTimersByTime(1000); // Advance to 23:59:01
 		vi.advanceTimersByTime(60000); // Advance to 00:00:01 (crosses reset time)
 
+		expect(handleChangeState).toHaveBeenCalledTimes(1);
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
 			"focus",
@@ -115,7 +116,8 @@ describe("IntervalTimer", () => {
 		// Advance 1 second to cross the reset time (now 00:00:00)
 		vi.advanceTimersByTime(1000);
 
-		// Should have reset because we crossed the reset time
+		// Should have reset exactly once because we crossed the reset time
+		expect(handleChangeState).toHaveBeenCalledTimes(1);
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
 			"focus",
