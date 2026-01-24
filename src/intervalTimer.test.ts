@@ -11,6 +11,7 @@ describe("IntervalTimer", () => {
 	});
 
 	it("should call handleIntervalCreated when started", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const settings: IntervalTimerSetting = {
 			focusIntervalDuration: 25,
@@ -29,13 +30,17 @@ describe("IntervalTimer", () => {
 			notifier,
 		);
 
+		// Act
 		intervalTimer.start();
+
+		// Assert
 		expect(handleIntervalCreated).toHaveBeenCalledTimes(1);
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should reset intervals when reset time is passed", () => {
-		vi.setSystemTime(new Date(2024, 0, 1, 23, 59, 0, 0)); // 23:59:00
+		// Arrange
+		vi.setSystemTime(new Date(2024, 0, 1, 23, 59, 0, 0));
 		const handleChangeState = vi.fn();
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
@@ -51,21 +56,23 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
 
-		vi.advanceTimersByTime(1000); // Advance to 23:59:01
-		vi.advanceTimersByTime(60000); // Advance to 00:00:01 (crosses reset time)
+		// Act
+		vi.advanceTimersByTime(1000);
+		vi.advanceTimersByTime(60000);
 
+		// Assert
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
 			"focus",
 			expect.objectContaining({ minutes: 25, seconds: 0 }),
 			expect.objectContaining({ set: 0, total: 0 }),
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should not reset before reset time is passed", () => {
-		vi.setSystemTime(new Date(2024, 0, 1, 23, 58, 0, 0)); // 23:58:00
+		// Arrange
+		vi.setSystemTime(new Date(2024, 0, 1, 23, 58, 0, 0));
 		const handleChangeState = vi.fn();
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
@@ -80,20 +87,19 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
-
-		// Clear the initial call
 		handleChangeState.mockClear();
 
-		vi.advanceTimersByTime(1000); // Advance to 23:58:01
-		vi.advanceTimersByTime(60000); // Advance to 23:59:01 (still before reset time)
+		// Act
+		vi.advanceTimersByTime(1000);
+		vi.advanceTimersByTime(60000);
 
-		// Should not trigger reset, so no new calls
+		// Assert
 		expect(handleChangeState).not.toHaveBeenCalled();
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should pause and resume timer correctly", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const settings: IntervalTimerSetting = {
 			focusIntervalDuration: 25,
@@ -109,22 +115,24 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
-
 		intervalTimer.start();
 		vi.advanceTimersByTime(5000);
 
+		// Act
 		intervalTimer.pause();
+
+		// Assert
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"paused",
 			"focus",
 			expect.any(Object),
 			expect.any(Object),
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should reset to initial state", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const settings: IntervalTimerSetting = {
 			focusIntervalDuration: 25,
@@ -140,24 +148,25 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
-
 		intervalTimer.start();
 		vi.advanceTimersByTime(5000);
-
 		handleChangeState.mockClear();
+
+		// Act
 		intervalTimer.reset();
 
+		// Assert
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
 			"focus",
 			{ minutes: 25, seconds: 0 },
 			expect.any(Object),
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should transition from focus to short break", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const notifier = vi.fn();
 		const settings: IntervalTimerSetting = {
@@ -174,17 +183,15 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			notifier,
 		);
-
 		intervalTimer.start();
 
-		// Fast-forward through the focus interval
+		// Act
 		for (let i = 0; i < 60; i += 1) {
 			vi.advanceTimersByTime(1000);
 		}
-
-		// Wait for completion callback
 		vi.advanceTimersByTime(1000);
 
+		// Assert
 		expect(notifier).toHaveBeenCalledWith("☕️  Time for a short break");
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
@@ -192,11 +199,11 @@ describe("IntervalTimer", () => {
 			{ minutes: 5, seconds: 0 },
 			{ set: 1, total: 1 },
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should transition to long break after configured number of focus intervals", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const notifier = vi.fn();
 		const settings: IntervalTimerSetting = {
@@ -214,30 +221,21 @@ describe("IntervalTimer", () => {
 			notifier,
 		);
 
+		// Act
 		intervalTimer.start();
-
-		// Complete first focus interval
+		for (let i = 0; i < 61; i += 1) {
+			vi.advanceTimersByTime(1000);
+		}
+		intervalTimer.start();
+		for (let i = 0; i < 61; i += 1) {
+			vi.advanceTimersByTime(1000);
+		}
+		intervalTimer.start();
 		for (let i = 0; i < 61; i += 1) {
 			vi.advanceTimersByTime(1000);
 		}
 
-		// Start short break
-		intervalTimer.start();
-
-		// Complete short break
-		for (let i = 0; i < 61; i += 1) {
-			vi.advanceTimersByTime(1000);
-		}
-
-		// Start second focus interval
-		intervalTimer.start();
-
-		// Complete second focus interval
-		for (let i = 0; i < 61; i += 1) {
-			vi.advanceTimersByTime(1000);
-		}
-
-		// Should now transition to long break
+		// Assert
 		expect(notifier).toHaveBeenCalledWith("🏖️  Time for a long break");
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
@@ -245,11 +243,11 @@ describe("IntervalTimer", () => {
 			{ minutes: 15, seconds: 0 },
 			{ set: 0, total: 2 },
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should reset intervals set", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const settings: IntervalTimerSetting = {
 			focusIntervalDuration: 25,
@@ -269,19 +267,21 @@ describe("IntervalTimer", () => {
 			},
 		);
 
+		// Act
 		intervalTimer.resetIntervalsSet();
 
+		// Assert
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
 			"longBreak",
 			{ minutes: 15, seconds: 0 },
 			{ set: 0, total: 5 },
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should reset total intervals", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const settings: IntervalTimerSetting = {
 			focusIntervalDuration: 25,
@@ -301,21 +301,23 @@ describe("IntervalTimer", () => {
 				state: "shortBreak",
 			},
 		);
-
 		handleChangeState.mockClear();
+
+		// Act
 		intervalTimer.resetTotalIntervals();
 
+		// Assert
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
 			"focus",
 			{ minutes: 25, seconds: 0 },
 			{ set: 0, total: 0 },
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should skip current interval", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const notifier = vi.fn();
 		const settings: IntervalTimerSetting = {
@@ -332,14 +334,15 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			notifier,
 		);
-
 		intervalTimer.start();
 		vi.advanceTimersByTime(5000);
-
 		handleChangeState.mockClear();
 		notifier.mockClear();
+
+		// Act
 		intervalTimer.skipInterval();
 
+		// Assert
 		expect(notifier).toHaveBeenCalledWith("☕️  Time for a short break");
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
@@ -347,11 +350,11 @@ describe("IntervalTimer", () => {
 			{ minutes: 5, seconds: 0 },
 			{ set: 1, total: 1 },
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should handle touch when timer is initialized", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const handleIntervalCreated = vi.fn();
 		const settings: IntervalTimerSetting = {
@@ -369,14 +372,16 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
 
+		// Act
 		intervalTimer.touch();
 
+		// Assert
 		expect(handleIntervalCreated).toHaveBeenCalledTimes(1);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should handle touch when timer is running in focus state - should reset", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const settings: IntervalTimerSetting = {
 			focusIntervalDuration: 25,
@@ -392,24 +397,25 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
-
 		intervalTimer.start();
 		vi.advanceTimersByTime(5000);
-
 		handleChangeState.mockClear();
+
+		// Act
 		intervalTimer.touch();
 
+		// Assert
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
 			"focus",
 			{ minutes: 25, seconds: 0 },
 			expect.any(Object),
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should handle touch when timer is running in break state - should skip", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const notifier = vi.fn();
 		const settings: IntervalTimerSetting = {
@@ -426,23 +432,19 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			notifier,
 		);
-
 		intervalTimer.start();
-
-		// Complete focus interval to enter short break
 		for (let i = 0; i < 61; i += 1) {
 			vi.advanceTimersByTime(1000);
 		}
-
-		// Start the short break
 		intervalTimer.start();
 		vi.advanceTimersByTime(2000);
-
 		handleChangeState.mockClear();
 		notifier.mockClear();
+
+		// Act
 		intervalTimer.touch();
 
-		// Should skip to next focus interval
+		// Assert
 		expect(notifier).toHaveBeenCalledWith("⏰  Now it's time to focus");
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
@@ -450,11 +452,11 @@ describe("IntervalTimer", () => {
 			{ minutes: 1, seconds: 0 },
 			{ set: 1, total: 1 },
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should initialize with custom parameters", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const settings: IntervalTimerSetting = {
 			focusIntervalDuration: 25,
@@ -464,6 +466,8 @@ describe("IntervalTimer", () => {
 			notificationStyle: "simple",
 			resetTime: { hours: 0, minutes: 0 },
 		};
+
+		// Act
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
 			settings,
@@ -477,18 +481,19 @@ describe("IntervalTimer", () => {
 			},
 		);
 
+		// Assert
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
 			"shortBreak",
 			{ minutes: 10, seconds: 30 },
 			{ set: 2, total: 5 },
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should handle reset time at different hour of the day", () => {
-		vi.setSystemTime(new Date(2024, 0, 1, 17, 59, 0, 0)); // 17:59:00
+		// Arrange
+		vi.setSystemTime(new Date(2024, 0, 1, 17, 59, 0, 0));
 		const handleChangeState = vi.fn();
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
@@ -504,21 +509,23 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
 
-		vi.advanceTimersByTime(1000); // Advance to 17:59:01
-		vi.advanceTimersByTime(60000); // Advance to 18:00:01 (crosses reset time)
+		// Act
+		vi.advanceTimersByTime(1000);
+		vi.advanceTimersByTime(60000);
 
+		// Assert
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
 			"focus",
 			expect.objectContaining({ minutes: 25, seconds: 0 }),
 			expect.objectContaining({ set: 0, total: 0 }),
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should handle reset time with specific minutes", () => {
-		vi.setSystemTime(new Date(2024, 0, 1, 8, 29, 0, 0)); // 08:29:00
+		// Arrange
+		vi.setSystemTime(new Date(2024, 0, 1, 8, 29, 0, 0));
 		const handleChangeState = vi.fn();
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
@@ -534,20 +541,22 @@ describe("IntervalTimer", () => {
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
 
-		vi.advanceTimersByTime(1000); // Advance to 08:29:01
-		vi.advanceTimersByTime(60000); // Advance to 08:30:01 (crosses reset time)
+		// Act
+		vi.advanceTimersByTime(1000);
+		vi.advanceTimersByTime(60000);
 
+		// Assert
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
 			"focus",
 			expect.objectContaining({ minutes: 25, seconds: 0 }),
 			expect.objectContaining({ set: 0, total: 0 }),
 		);
-
 		intervalTimer.stopDateCheck();
 	});
 
 	it("should transition from long break back to focus", () => {
+		// Arrange
 		const handleChangeState = vi.fn();
 		const notifier = vi.fn();
 		const settings: IntervalTimerSetting = {
@@ -570,13 +579,13 @@ describe("IntervalTimer", () => {
 			},
 		);
 
+		// Act
 		intervalTimer.start();
-
-		// Complete the long break
 		for (let i = 0; i < 61; i += 1) {
 			vi.advanceTimersByTime(1000);
 		}
 
+		// Assert
 		expect(notifier).toHaveBeenCalledWith("⏰  Now it's time to focus");
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
