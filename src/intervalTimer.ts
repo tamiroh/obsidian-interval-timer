@@ -1,4 +1,5 @@
 import { match } from "ts-pattern";
+import moment from "moment";
 import { CountdownTimer, TimerType } from "./countdownTimer";
 import { Minutes, Seconds, Time } from "./time";
 import { NotificationStyle } from "./notifier";
@@ -9,6 +10,7 @@ export type IntervalTimerSetting = {
 	longBreakDuration: number;
 	longBreakAfter: number;
 	notificationStyle: NotificationStyle;
+	resetTime: { hours: number; minutes: number };
 };
 
 export type IntervalTimerState = "focus" | "shortBreak" | "longBreak";
@@ -40,6 +42,10 @@ export class IntervalTimer {
 
 	private readonly notifier: (message: string) => void;
 
+	private lastCheckTime: moment.Moment | undefined;
+
+	private dateCheckIntervalId: number | undefined;
+
 	constructor(
 		onChangeState: onChangeStateFunction,
 		settings: IntervalTimerSetting,
@@ -69,12 +75,15 @@ export class IntervalTimer {
 			state: initialParams?.state ?? "focus",
 		};
 		this.notifier = notifier;
+		this.lastCheckTime = undefined;
 
 		this.onChangeState("initialized", {
 			minutes:
 				initialParams?.minutes ?? this.settings.focusIntervalDuration,
 			seconds: initialParams?.seconds ?? 0,
 		});
+
+		this.startDateCheck();
 	}
 
 	public start = () => {
@@ -215,4 +224,39 @@ export class IntervalTimer {
 			this.onPause,
 			this.onComplete,
 		);
+
+	private startDateCheck = (): void => {
+		this.dateCheckIntervalId = window.setInterval(() => {
+			if (this.passedResetTime()) {
+				this.resetTotalIntervals();
+			}
+
+			this.lastCheckTime = moment();
+		}, 1000);
+	};
+
+	private passedResetTime(): boolean {
+		if (this.lastCheckTime === undefined) {
+			return false;
+		}
+
+		const nextReset = moment()
+			.hours(this.settings.resetTime.hours)
+			.minutes(this.settings.resetTime.minutes)
+			.seconds(0)
+			.milliseconds(0);
+
+		if (this.lastCheckTime.isAfter(nextReset)) {
+			nextReset.add(1, "day");
+		}
+
+		return nextReset.isSameOrBefore(moment());
+	}
+
+	public stopDateCheck = (): void => {
+		if (this.dateCheckIntervalId !== undefined) {
+			window.clearInterval(this.dateCheckIntervalId);
+			this.dateCheckIntervalId = undefined;
+		}
+	};
 }

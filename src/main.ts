@@ -35,6 +35,10 @@ export default class Plugin extends BasePlugin {
 		this.statusBar.enableClick(this.intervalTimer);
 	};
 
+	public override onunload = () => {
+		this.intervalTimer.stopDateCheck();
+	};
+
 	public saveSettings = async () => {
 		await this.saveData(this.settings);
 	};
