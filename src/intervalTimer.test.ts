@@ -31,7 +31,7 @@ describe("IntervalTimer", () => {
 
 		intervalTimer.start();
 		expect(handleIntervalCreated).toHaveBeenCalledTimes(1);
-		intervalTimer.stopDateCheck();
+		intervalTimer.dispose();
 	});
 
 	it("should reset intervals when reset time is passed", () => {
@@ -62,7 +62,7 @@ describe("IntervalTimer", () => {
 			expect.objectContaining({ set: 0, total: 0 }),
 		);
 
-		intervalTimer.stopDateCheck();
+		intervalTimer.dispose();
 	});
 
 	it("should not reset intervals if reset time has not been passed", () => {
@@ -88,6 +88,6 @@ describe("IntervalTimer", () => {
 
 		expect(handleChangeState).not.toHaveBeenCalled();
 
-		intervalTimer.stopDateCheck();
+		intervalTimer.dispose();
 	});
 });

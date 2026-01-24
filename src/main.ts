@@ -36,7 +36,7 @@ export default class Plugin extends BasePlugin {
 	};
 
 	public override onunload = () => {
-		this.intervalTimer.stopDateCheck();
+		this.intervalTimer.dispose();
 	};
 
 	public saveSettings = async () => {

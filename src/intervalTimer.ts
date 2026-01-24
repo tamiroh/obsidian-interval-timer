@@ -155,6 +155,13 @@ export class IntervalTimer {
 			.exhaustive();
 	};
 
+	public dispose = (): void => {
+		if (this.dateCheckIntervalId !== undefined) {
+			window.clearInterval(this.dateCheckIntervalId);
+			this.dateCheckIntervalId = undefined;
+		}
+	};
+
 	private onComplete = () => {
 		match(this.timerState.state)
 			.with("focus", () => {
@@ -255,11 +262,4 @@ export class IntervalTimer {
 
 		return nextReset.isSameOrBefore(moment());
 	}
-
-	public stopDateCheck = (): void => {
-		if (this.dateCheckIntervalId !== undefined) {
-			window.clearInterval(this.dateCheckIntervalId);
-			this.dateCheckIntervalId = undefined;
-		}
-	};
 }
