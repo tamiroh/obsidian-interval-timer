@@ -85,6 +85,7 @@ export class IntervalTimer {
 	}
 
 	public enableAutoReset = (): void => {
+		this.disableAutoReset();
 		this.autoResetCheckIntervalId = window.setInterval(() => {
 			if (this.passedResetTime()) {
 				this.resetTotalIntervals();
