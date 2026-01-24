@@ -101,4 +101,208 @@ describe("CountdownTimer", () => {
 		expect(handleComplete).toHaveBeenCalledOnce();
 		expect(result).toStrictEqual({ type: "failed" });
 	});
+
+	it("should reset timer to initial state", () => {
+		vi.useFakeTimers();
+
+		const handleSubtract = vi.fn();
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 5, seconds: 30 },
+			handleSubtract,
+			vi.fn(),
+			vi.fn(),
+		);
+		countdownTimer.start();
+
+		vi.advanceTimersByTime(10000);
+
+		const result = countdownTimer.reset();
+		expect(result).toStrictEqual({
+			type: "succeeded",
+			resetTo: { minutes: 5, seconds: 30 },
+		});
+		expect(countdownTimer.getCurrentTimerType()).toBe("initialized");
+	});
+
+	it("should reset timer from paused state", () => {
+		vi.useFakeTimers();
+
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 10, seconds: 0 },
+			vi.fn(),
+			vi.fn(),
+			vi.fn(),
+		);
+		countdownTimer.start();
+		vi.advanceTimersByTime(5000);
+		countdownTimer.pause();
+
+		const result = countdownTimer.reset();
+		expect(result).toStrictEqual({
+			type: "succeeded",
+			resetTo: { minutes: 10, seconds: 0 },
+		});
+		expect(countdownTimer.getCurrentTimerType()).toBe("initialized");
+	});
+
+	it("should reset timer from completed state", () => {
+		vi.useFakeTimers();
+
+		const handleComplete = vi.fn();
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 0, seconds: 1 },
+			vi.fn(),
+			vi.fn(),
+			handleComplete,
+		);
+		countdownTimer.start();
+
+		vi.advanceTimersByTime(2000);
+		expect(handleComplete).toHaveBeenCalledOnce();
+
+		const result = countdownTimer.reset();
+		expect(result).toStrictEqual({
+			type: "succeeded",
+			resetTo: { minutes: 0, seconds: 1 },
+		});
+		expect(countdownTimer.getCurrentTimerType()).toBe("initialized");
+	});
+
+	it("should resume from paused state correctly", () => {
+		vi.useFakeTimers();
+
+		const handleSubtract = vi.fn();
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 1, seconds: 0 },
+			handleSubtract,
+			vi.fn(),
+			vi.fn(),
+		);
+		countdownTimer.start();
+
+		vi.advanceTimersByTime(10000);
+
+		countdownTimer.pause();
+		const pausedCallCount = handleSubtract.mock.calls.length;
+
+		// Resume the timer
+		countdownTimer.start();
+		vi.advanceTimersByTime(1000);
+
+		// Should continue from where it paused
+		expect(handleSubtract.mock.calls.length).toBeGreaterThan(
+			pausedCallCount,
+		);
+	});
+
+	it("should not pause when timer is not running", () => {
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 1, seconds: 0 },
+			vi.fn(),
+			vi.fn(),
+			vi.fn(),
+		);
+
+		const result = countdownTimer.pause();
+		expect(result).toStrictEqual({ type: "failed" });
+	});
+
+	it("should handle countdown with only seconds", () => {
+		vi.useFakeTimers();
+
+		const handleSubtract = vi.fn();
+		const handleComplete = vi.fn();
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 0, seconds: 5 },
+			handleSubtract,
+			vi.fn(),
+			handleComplete,
+		);
+		countdownTimer.start();
+
+		for (let i = 0; i < 5; i += 1) {
+			vi.advanceTimersByTime(1000);
+			expect(handleSubtract).toHaveBeenCalledWith({
+				minutes: 0,
+				seconds: 4 - i,
+			});
+		}
+		vi.advanceTimersByTime(1000);
+		expect(handleComplete).toHaveBeenCalledOnce();
+	});
+
+	it("should handle countdown with minutes and seconds", () => {
+		vi.useFakeTimers();
+
+		const handleSubtract = vi.fn();
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 1, seconds: 30 },
+			handleSubtract,
+			vi.fn(),
+			vi.fn(),
+		);
+		countdownTimer.start();
+
+		vi.advanceTimersByTime(1000);
+		expect(handleSubtract).toHaveBeenCalledWith({
+			minutes: 1,
+			seconds: 29,
+		});
+
+		vi.advanceTimersByTime(30000);
+		expect(handleSubtract).toHaveBeenCalledWith({
+			minutes: 0,
+			seconds: 59,
+		});
+	});
+
+	it("should return undefined intervalId when not running", () => {
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 1, seconds: 0 },
+			vi.fn(),
+			vi.fn(),
+			vi.fn(),
+		);
+
+		expect(countdownTimer.getIntervalId()).toBeUndefined();
+	});
+
+	it("should return intervalId when running", () => {
+		vi.useFakeTimers();
+
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 1, seconds: 0 },
+			vi.fn(),
+			vi.fn(),
+			vi.fn(),
+		);
+		countdownTimer.start();
+
+		const intervalId = countdownTimer.getIntervalId();
+		expect(intervalId).toBeDefined();
+		expect(intervalId).not.toBeUndefined();
+	});
+
+	it("should have correct timer type during lifecycle", () => {
+		vi.useFakeTimers();
+
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 0, seconds: 1 },
+			vi.fn(),
+			vi.fn(),
+			vi.fn(),
+		);
+
+		expect(countdownTimer.getCurrentTimerType()).toBe("initialized");
+
+		countdownTimer.start();
+		expect(countdownTimer.getCurrentTimerType()).toBe("running");
+
+		countdownTimer.pause();
+		expect(countdownTimer.getCurrentTimerType()).toBe("paused");
+
+		countdownTimer.start();
+		vi.advanceTimersByTime(2000);
+		expect(countdownTimer.getCurrentTimerType()).toBe("completed");
+	});
 });
