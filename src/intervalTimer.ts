@@ -42,9 +42,9 @@ export class IntervalTimer {
 
 	private readonly notifier: (message: string) => void;
 
-	private lastCheckTime: moment.Moment | undefined;
+	private lastAutoResetCheckTime: moment.Moment | undefined;
 
-	private dateCheckIntervalId: number | undefined;
+	private autoResetCheckIntervalId: number | undefined;
 
 	constructor(
 		onChangeState: onChangeStateFunction,
@@ -75,7 +75,7 @@ export class IntervalTimer {
 			state: initialParams?.state ?? "focus",
 		};
 		this.notifier = notifier;
-		this.lastCheckTime = undefined;
+		this.lastAutoResetCheckTime = undefined;
 
 		this.onChangeState("initialized", {
 			minutes:
@@ -85,7 +85,7 @@ export class IntervalTimer {
 	}
 
 	public enableAutoReset = (): void => {
-		this.dateCheckIntervalId = window.setInterval(() => {
+		this.autoResetCheckIntervalId = window.setInterval(() => {
 			if (this.passedResetTime()) {
 				this.resetTotalIntervals();
 				this.notifier(
@@ -93,7 +93,7 @@ export class IntervalTimer {
 				);
 			}
 
-			this.lastCheckTime = moment();
+			this.lastAutoResetCheckTime = moment();
 		}, 1000);
 	};
 
@@ -167,9 +167,9 @@ export class IntervalTimer {
 	};
 
 	public dispose = (): void => {
-		if (this.dateCheckIntervalId !== undefined) {
-			window.clearInterval(this.dateCheckIntervalId);
-			this.dateCheckIntervalId = undefined;
+		if (this.autoResetCheckIntervalId !== undefined) {
+			window.clearInterval(this.autoResetCheckIntervalId);
+			this.autoResetCheckIntervalId = undefined;
 		}
 	};
 
@@ -244,7 +244,7 @@ export class IntervalTimer {
 		);
 
 	private passedResetTime(): boolean {
-		if (this.lastCheckTime === undefined) {
+		if (this.lastAutoResetCheckTime === undefined) {
 			return false;
 		}
 
@@ -254,7 +254,7 @@ export class IntervalTimer {
 			.seconds(0)
 			.milliseconds(0);
 
-		if (this.lastCheckTime.isAfter(nextReset)) {
+		if (this.lastAutoResetCheckTime.isAfter(nextReset)) {
 			nextReset.add(1, "day");
 		}
 
