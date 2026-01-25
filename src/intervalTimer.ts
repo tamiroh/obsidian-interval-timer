@@ -29,6 +29,10 @@ export type InitialParams = {
 	focusIntervals?: { total?: number; set?: number };
 };
 
+export type NotifierContext = {
+	state: IntervalTimerState;
+};
+
 export class IntervalTimer {
 	private timerState: { timer: CountdownTimer; state: IntervalTimerState };
 
@@ -40,7 +44,10 @@ export class IntervalTimer {
 
 	private readonly settings: IntervalTimerSetting;
 
-	private readonly notifier: (message: string) => void;
+	private readonly notifier: (
+		message: string,
+		context: NotifierContext,
+	) => void;
 
 	private readonly autoResetScheduler: DailyScheduler;
 
@@ -48,7 +55,7 @@ export class IntervalTimer {
 		onChangeState: onChangeStateFunction,
 		settings: IntervalTimerSetting,
 		onIntervalCreated: (intervalId: number) => void,
-		notifier: (message: string) => void,
+		notifier: (message: string, context: NotifierContext) => void,
 		initialParams?: InitialParams,
 	) {
 		this.onChangeState = (timerState, time) => {
@@ -77,6 +84,7 @@ export class IntervalTimer {
 			this.resetTotalIntervals();
 			this.notifier(
 				"🔄  Intervals have been reset because the reset time has passed",
+				{ state: this.timerState.state },
 			);
 		});
 
@@ -223,6 +231,7 @@ export class IntervalTimer {
 				.with("shortBreak", () => "☕️  Time for a short break")
 				.with("longBreak", () => "🏖️  Time for a long break")
 				.exhaustive(),
+			{ state: this.timerState.state },
 		);
 	};
 

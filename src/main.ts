@@ -1,14 +1,17 @@
 import { App, Plugin as BasePlugin, PluginManifest } from "obsidian";
+import { match } from "ts-pattern";
 import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./settingTab";
 import {
 	IntervalTimer,
 	IntervalTimerState,
+	NotifierContext,
 	onChangeStateFunction,
 } from "./intervalTimer";
 import { StatusBar } from "./statusBar";
 import { Seconds } from "./time";
 import { KeyValueStore } from "./keyValueStore";
 import { notify } from "./notifier";
+import { FlashOverlay } from "./flashOverlay";
 
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;
@@ -36,6 +39,7 @@ export default class Plugin extends BasePlugin {
 	};
 
 	public override onunload = () => {
+		FlashOverlay.dispose();
 		this.intervalTimer.dispose();
 	};
 
@@ -60,7 +64,17 @@ export default class Plugin extends BasePlugin {
 		};
 		const onIntervalCreated = (intervalId: number) =>
 			this.registerInterval(intervalId);
-		const notifier = (message: string) => {
+		const notifier = (message: string, context: NotifierContext) => {
+			const overlayColor = match(context.state)
+				.with("focus", () => ({ r: 255, g: 100, b: 100 }))
+				.with("shortBreak", "longBreak", () => ({
+					r: 100,
+					g: 255,
+					b: 100,
+				}))
+				.exhaustive();
+
+			FlashOverlay.getInstance().show(overlayColor);
 			notify(this.settings.notificationStyle, message);
 		};
 		const initialParams = {
