@@ -13,9 +13,7 @@ export class StatusBar {
 		time: Time,
 		intervalTimerState: IntervalTimerState,
 	) => {
-		this.statusBarItem.setText(
-			`${intervals.set}/${intervals.total} ${this.format(time)}`,
-		);
+		this.statusBarItem.textContent = `${intervals.set}/${intervals.total} ${this.format(time)}`;
 		this.statusBarItem.setAttribute(
 			"style",
 			intervalTimerState === "focus"
@@ -25,9 +23,16 @@ export class StatusBar {
 	};
 
 	public enableClick = (intervalTimer: IntervalTimer) => {
-		this.statusBarItem.addClass("mod-clickable");
-		this.statusBarItem.onClickEvent(() => {
-			intervalTimer.touch();
+		this.statusBarItem.classList.add("mod-clickable");
+		this.statusBarItem.addEventListener("click", (event) => {
+			if (event.button === 0) {
+				// Left click
+				intervalTimer.touch();
+			}
+		});
+		this.statusBarItem.addEventListener("contextmenu", () => {
+			// Right click
+			intervalTimer.resetIntervalsSet();
 		});
 	};
 
