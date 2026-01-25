@@ -23,8 +23,13 @@ export class DailyScheduler {
 		this.intervalId = window.setInterval(() => {
 			if (this.shouldExecute()) {
 				this.onScheduledTime();
-				while (this.nextExecutionTime!.isSameOrBefore(moment())) {
-					this.nextExecutionTime!.add(1, "day");
+				if (this.nextExecutionTime === undefined) {
+					throw new Error(
+						"Inconsistent state: next execution time is unset",
+					);
+				}
+				while (this.nextExecutionTime.isSameOrBefore(moment())) {
+					this.nextExecutionTime.add(1, "day");
 				}
 			}
 		}, 1000);
