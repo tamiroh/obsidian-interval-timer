@@ -168,4 +168,25 @@ describe("DailyScheduler", () => {
 
 		scheduler.disable();
 	});
+
+	it("should execute only once when system time jumps forward by multiple days", () => {
+		// Arrange
+		vi.setSystemTime(new Date(2024, 0, 1, 9, 0, 0, 0)); // Jan 1, 09:00
+		const callback = vi.fn();
+		const scheduler = new DailyScheduler( // Scheduled at 10:00
+			{ hours: 10, minutes: 0 },
+			callback,
+		);
+		scheduler.enable();
+		callback.mockClear();
+
+		// Act - Simulate system time jump (e.g., laptop sleep, clock adjustment)
+		vi.setSystemTime(new Date(2024, 0, 6, 10, 0, 0, 0)); // Jan 6, 10:00
+		vi.advanceTimersByTime(1000);
+
+		// Assert
+		expect(callback).toHaveBeenCalledTimes(1);
+
+		scheduler.disable();
+	});
 });

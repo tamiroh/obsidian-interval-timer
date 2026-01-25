@@ -23,7 +23,9 @@ export class DailyScheduler {
 		this.intervalId = window.setInterval(() => {
 			if (this.shouldExecute()) {
 				this.onScheduledTime();
-				this.nextExecutionTime!.add(1, "day");
+				while (this.nextExecutionTime!.isSameOrBefore(moment())) {
+					this.nextExecutionTime!.add(1, "day");
+				}
 			}
 		}, 1000);
 	};
