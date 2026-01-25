@@ -50,7 +50,8 @@ export class DailyScheduler {
 		return scheduled;
 	};
 
-	private shouldExecute = (): boolean => this.nextExecutionTime === undefined
+	private shouldExecute = (): boolean =>
+		this.nextExecutionTime === undefined
 			? false
 			: moment().isSameOrAfter(this.nextExecutionTime);
 }
