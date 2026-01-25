@@ -2,6 +2,7 @@ import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "./countdownTimer";
 import { Minutes, Seconds, Time } from "./time";
 import { NotificationStyle } from "./notifier";
+import { DailyScheduler } from "./dailyScheduler";
 
 export type IntervalTimerSetting = {
 	focusIntervalDuration: number;
@@ -9,6 +10,7 @@ export type IntervalTimerSetting = {
 	longBreakDuration: number;
 	longBreakAfter: number;
 	notificationStyle: NotificationStyle;
+	resetTime: { hours: number; minutes: number };
 };
 
 export type IntervalTimerState = "focus" | "shortBreak" | "longBreak";
@@ -40,6 +42,8 @@ export class IntervalTimer {
 
 	private readonly notifier: (message: string) => void;
 
+	private readonly autoResetScheduler: DailyScheduler;
+
 	constructor(
 		onChangeState: onChangeStateFunction,
 		settings: IntervalTimerSetting,
@@ -69,6 +73,12 @@ export class IntervalTimer {
 			state: initialParams?.state ?? "focus",
 		};
 		this.notifier = notifier;
+		this.autoResetScheduler = new DailyScheduler(settings.resetTime, () => {
+			this.resetTotalIntervals();
+			this.notifier(
+				"🔄  Intervals have been reset because the reset time has passed",
+			);
+		});
 
 		this.onChangeState("initialized", {
 			minutes:
@@ -76,6 +86,14 @@ export class IntervalTimer {
 			seconds: initialParams?.seconds ?? 0,
 		});
 	}
+
+	public enableAutoReset = (): void => {
+		this.autoResetScheduler.enable();
+	};
+
+	public disableAutoReset = (): void => {
+		this.autoResetScheduler.disable();
+	};
 
 	public start = () => {
 		this.timerState.timer.start();
@@ -144,6 +162,10 @@ export class IntervalTimer {
 					.exhaustive();
 			})
 			.exhaustive();
+	};
+
+	public dispose = (): void => {
+		this.disableAutoReset();
 	};
 
 	private onComplete = () => {

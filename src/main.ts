@@ -35,6 +35,10 @@ export default class Plugin extends BasePlugin {
 		this.statusBar.enableClick(this.intervalTimer);
 	};
 
+	public override onunload = () => {
+		this.intervalTimer.dispose();
+	};
+
 	public saveSettings = async () => {
 		await this.saveData(this.settings);
 	};
@@ -88,6 +92,7 @@ export default class Plugin extends BasePlugin {
 			notifier,
 			initialParams,
 		);
+		this.intervalTimer.enableAutoReset();
 	};
 
 	private addCommands = () => {
