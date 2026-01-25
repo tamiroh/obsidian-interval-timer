@@ -22,14 +22,11 @@ export default class Plugin extends BasePlugin {
 
 	private keyValueStore: KeyValueStore;
 
-	private flashOverlay: FlashOverlay;
-
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
 
 		this.keyValueStore = new KeyValueStore(manifest.id);
 		this.statusBar = new StatusBar(this.addStatusBarItem());
-		this.flashOverlay = new FlashOverlay();
 	}
 
 	public override onload = async () => {
@@ -42,7 +39,7 @@ export default class Plugin extends BasePlugin {
 	};
 
 	public override onunload = () => {
-		this.flashOverlay.dispose();
+		FlashOverlay.dispose();
 		this.intervalTimer.dispose();
 	};
 
@@ -77,7 +74,7 @@ export default class Plugin extends BasePlugin {
 				}))
 				.exhaustive();
 
-			this.flashOverlay.show(overlayColor);
+			FlashOverlay.getInstance().show(overlayColor);
 			notify(this.settings.notificationStyle, message);
 		};
 		const initialParams = {

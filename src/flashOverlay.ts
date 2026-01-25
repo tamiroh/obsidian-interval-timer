@@ -1,11 +1,35 @@
 export type Color = { r: number; g: number; b: number };
 
 export class FlashOverlay {
+	// eslint-disable-next-line no-use-before-define
+	private static instance: FlashOverlay | undefined;
+
 	private overlay: HTMLDivElement | undefined;
 
 	private styleElement: HTMLStyleElement | undefined;
 
-	public show = (color: Color) => {
+	// eslint-disable-next-line no-useless-constructor, no-empty-function, @typescript-eslint/no-empty-function
+	private constructor() {}
+
+	public static getInstance(): FlashOverlay {
+		if (!FlashOverlay.instance) {
+			FlashOverlay.instance = new FlashOverlay();
+		}
+		return FlashOverlay.instance;
+	}
+
+	public static dispose = (): void => {
+		if (FlashOverlay.instance) {
+			FlashOverlay.instance.hide();
+			if (FlashOverlay.instance.styleElement !== undefined) {
+				FlashOverlay.instance.styleElement.remove();
+				FlashOverlay.instance.styleElement = undefined;
+			}
+			FlashOverlay.instance = undefined;
+		}
+	};
+
+	public show = (color: Color): void => {
 		if (this.overlay !== undefined) {
 			this.overlay.style.backgroundColor = `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`;
 			return;
@@ -28,7 +52,7 @@ export class FlashOverlay {
 		document.body.appendChild(this.overlay);
 	};
 
-	private addKeyframesIfNeeded = () => {
+	private addKeyframesIfNeeded = (): void => {
 		if (this.styleElement !== undefined) return;
 
 		this.styleElement = document.createElement("style");
@@ -42,19 +66,11 @@ export class FlashOverlay {
 		document.head.appendChild(this.styleElement);
 	};
 
-	public hide = () => {
+	public hide = (): void => {
 		if (this.overlay !== undefined) {
 			this.overlay.removeEventListener("click", this.hide);
 			this.overlay.remove();
 			this.overlay = undefined;
-		}
-	};
-
-	public dispose = () => {
-		this.hide();
-		if (this.styleElement !== undefined) {
-			this.styleElement.remove();
-			this.styleElement = undefined;
 		}
 	};
 }
