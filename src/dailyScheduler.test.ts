@@ -30,7 +30,7 @@ describe("DailyScheduler", () => {
 		scheduler.disable();
 	});
 
-	it("should execute immediately if scheduled time has already passed", () => {
+	it("should not execute immediately if scheduled time has already passed", () => {
 		// Arrange
 		vi.setSystemTime(new Date(2024, 0, 1, 10, 30, 0, 0)); // 10:30
 		const callback = vi.fn();
@@ -41,9 +41,10 @@ describe("DailyScheduler", () => {
 
 		// Act
 		scheduler.enable();
+		vi.advanceTimersByTime(1000); // Advance 1 second to 10:30:01
 
-		// Assert - Should execute immediately during enable()
-		expect(callback).toHaveBeenCalledTimes(1);
+		// Assert - Should not execute today, waits until tomorrow
+		expect(callback).not.toHaveBeenCalled();
 
 		scheduler.disable();
 	});
@@ -88,7 +89,7 @@ describe("DailyScheduler", () => {
 		scheduler.disable();
 	});
 
-	it("should execute again on next day after scheduled time", () => {
+	it("should execute on next day when enabled after scheduled time", () => {
 		// Arrange
 		vi.setSystemTime(new Date(2024, 0, 1, 10, 30, 0, 0)); // Day 1, 10:30
 		const callback = vi.fn();
@@ -96,14 +97,13 @@ describe("DailyScheduler", () => {
 			{ hours: 10, minutes: 0 },
 			callback,
 		);
-		scheduler.enable(); // Executes once on Day 1
+		scheduler.enable(); // Does NOT execute on Day 1 (already past 10:00)
 
 		// Act - Move to next day and cross scheduled time
-		vi.setSystemTime(new Date(2024, 0, 2, 10, 0, 0, 0)); // Day 2, 10:00
-		vi.advanceTimersByTime(1000);
+		vi.advanceTimersByTime(23 * 60 * 60 * 1000 + 30 * 60 * 1000); // Advance 23.5 hours to Day 2, 10:00
 
-		// Assert - Should execute twice: once on Day 1, once on Day 2
-		expect(callback).toHaveBeenCalledTimes(2);
+		// Assert - Should execute once on Day 2 only
+		expect(callback).toHaveBeenCalledTimes(1);
 
 		scheduler.disable();
 	});
@@ -147,9 +147,9 @@ describe("DailyScheduler", () => {
 		scheduler.disable();
 	});
 
-	it("should not execute multiple times when enable is called multiple times", () => {
+	it("should execute only once even when enable is called multiple times", () => {
 		// Arrange
-		vi.setSystemTime(new Date(2024, 0, 1, 10, 30, 0, 0)); // 10:30
+		vi.setSystemTime(new Date(2024, 0, 1, 9, 0, 0, 0)); // 09:00
 		const callback = vi.fn();
 		const scheduler = new DailyScheduler( // Scheduled at 10:00
 			{ hours: 10, minutes: 0 },
@@ -161,7 +161,9 @@ describe("DailyScheduler", () => {
 		scheduler.enable();
 		scheduler.enable();
 
-		// Assert - Should only execute once (from the last enable call)
+		vi.advanceTimersByTime(3600 * 1000); // Advance 1 hour to 10:00
+
+		// Assert - Should execute only once, not multiple times
 		expect(callback).toHaveBeenCalledTimes(1);
 
 		scheduler.disable();

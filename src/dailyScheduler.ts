@@ -1,18 +1,7 @@
 import moment from "moment";
 
-type YearMonthDay = { year: number; month: number; day: number };
-
-const isSameDay = (a: YearMonthDay, b: YearMonthDay): boolean =>
-	a.year === b.year && a.month === b.month && a.day === b.day;
-
-const toYearMonthDay = (m: moment.Moment): YearMonthDay => ({
-	year: m.year(),
-	month: m.month() + 1,
-	day: m.date(),
-});
-
 export class DailyScheduler {
-	private lastExecutionDate: YearMonthDay | undefined;
+	private nextExecutionTime: moment.Moment | undefined;
 
 	private intervalId: number | undefined;
 
@@ -28,44 +17,40 @@ export class DailyScheduler {
 		this.onScheduledTime = onScheduledTime;
 	}
 
-	public enable(): void {
+	public enable = (): void => {
 		this.disable();
-
-		const check = () => {
+		this.nextExecutionTime = this.getInitialExecutionTime();
+		this.intervalId = window.setInterval(() => {
 			if (this.shouldExecute()) {
 				this.onScheduledTime();
-				this.lastExecutionDate = toYearMonthDay(moment());
+				this.nextExecutionTime!.add(1, "day");
 			}
-		};
+		}, 1000);
+	};
 
-		check();
-		this.intervalId = window.setInterval(check, 1000);
-	}
-
-	public disable(): void {
+	public disable = (): void => {
 		if (this.intervalId !== undefined) {
 			window.clearInterval(this.intervalId);
 			this.intervalId = undefined;
 		}
-	}
+		this.nextExecutionTime = undefined;
+	};
 
-	private shouldExecute(): boolean {
-		const now = moment();
-
-		// Don't execute if we already executed today
-		if (
-			this.lastExecutionDate !== undefined &&
-			isSameDay(this.lastExecutionDate, toYearMonthDay(now))
-		) {
-			return false;
-		}
-
-		const todayScheduledTime = moment()
+	private getInitialExecutionTime = (): moment.Moment => {
+		const scheduled = moment()
 			.hours(this.scheduledTime.hours)
 			.minutes(this.scheduledTime.minutes)
 			.seconds(0)
 			.milliseconds(0);
 
-		return now.isSameOrAfter(todayScheduledTime);
-	}
+		if (moment().isSameOrAfter(scheduled)) {
+			scheduled.add(1, "day");
+		}
+
+		return scheduled;
+	};
+
+	private shouldExecute = (): boolean => this.nextExecutionTime === undefined
+			? false
+			: moment().isSameOrAfter(this.nextExecutionTime);
 }
