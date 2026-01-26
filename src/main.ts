@@ -1,17 +1,17 @@
 import { App, Plugin as BasePlugin, PluginManifest } from "obsidian";
 import { match } from "ts-pattern";
-import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./settingTab";
+import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./setting-tab";
 import {
 	IntervalTimer,
 	IntervalTimerState,
 	NotifierContext,
 	onChangeStateFunction,
-} from "./intervalTimer";
-import { StatusBar } from "./statusBar";
+} from "./interval-timer";
+import { StatusBar } from "./status-bar";
 import { Seconds } from "./time";
-import { KeyValueStore } from "./keyValueStore";
+import { KeyValueStore } from "./key-value-store";
 import { notify } from "./notifier";
-import { FlashOverlay } from "./flashOverlay";
+import { FlashOverlay } from "./flash-overlay";
 
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;

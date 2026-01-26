@@ -1,5 +1,5 @@
 import { describe, expect, it, afterEach } from "vitest";
-import { FlashOverlay } from "./flashOverlay";
+import { FlashOverlay } from "./flash-overlay";
 
 describe("FlashOverlay", () => {
 	afterEach(() => {

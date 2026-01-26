@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { CountdownTimer } from "./countdownTimer";
+import { CountdownTimer } from "./countdown-timer";
 
 describe("CountdownTimer", () => {
 	it("should call handleSubtract when subtracted", () => {

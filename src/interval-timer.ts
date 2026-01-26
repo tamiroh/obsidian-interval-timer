@@ -1,8 +1,8 @@
 import { match } from "ts-pattern";
-import { CountdownTimer, TimerType } from "./countdownTimer";
+import { CountdownTimer, TimerType } from "./countdown-timer";
 import { Minutes, Seconds, Time } from "./time";
 import { NotificationStyle } from "./notifier";
-import { DailyScheduler } from "./dailyScheduler";
+import { DailyScheduler } from "./daily-scheduler";
 
 export type IntervalTimerSetting = {
 	focusIntervalDuration: number;
