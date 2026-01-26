@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { StatusBar } from "./statusBar";
-import type { IntervalTimer } from "./intervalTimer";
+import { StatusBar } from "./status-bar";
+import type { IntervalTimer } from "./interval-timer";
 
 describe("StatusBar", () => {
 	it("should update status bar text and color for focus state", () => {

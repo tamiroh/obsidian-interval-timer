@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { DailyScheduler } from "./dailyScheduler";
+import { DailyScheduler } from "./daily-scheduler";
 
 describe("DailyScheduler", () => {
 	beforeEach(() => {

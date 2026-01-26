@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { KeyValueStore } from "./keyValueStore";
+import { KeyValueStore } from "./key-value-store";
 
 describe("KeyValueStore", () => {
 	it("should set and get a value", () => {
