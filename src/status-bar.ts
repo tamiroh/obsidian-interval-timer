@@ -27,12 +27,16 @@ export class StatusBar {
 		this.statusBarItem.addEventListener("click", (event) => {
 			if (event.button === 0) {
 				// Left click
-				intervalTimer.touch();
+				intervalTimer.withContext({ "dont-flash": true }, (timer) => {
+					timer.touch();
+				});
 			}
 		});
 		this.statusBarItem.addEventListener("contextmenu", () => {
 			// Right click
-			intervalTimer.resetIntervalsSet();
+			intervalTimer.withContext({ "dont-flash": true }, (timer) => {
+				timer.resetIntervalsSet();
+			});
 		});
 	};
 
