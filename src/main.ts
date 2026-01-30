@@ -65,16 +65,17 @@ export default class Plugin extends BasePlugin {
 		const onIntervalCreated = (intervalId: number) =>
 			this.registerInterval(intervalId);
 		const notifier = (message: string, context: NotifierContext) => {
-			const overlayColor = match(context.state)
-				.with("focus", () => ({ r: 255, g: 100, b: 100 }))
-				.with("shortBreak", "longBreak", () => ({
-					r: 100,
-					g: 255,
-					b: 100,
-				}))
-				.exhaustive();
-
-			FlashOverlay.getInstance().show(overlayColor);
+			if (context.callContext["dont-flash"] !== true) {
+				const overlayColor = match(context.state)
+					.with("focus", () => ({ r: 255, g: 100, b: 100 }))
+					.with("shortBreak", "longBreak", () => ({
+						r: 100,
+						g: 255,
+						b: 100,
+					}))
+					.exhaustive();
+				FlashOverlay.getInstance().show(overlayColor);
+			}
 			notify(this.settings.notificationStyle, message);
 		};
 		const initialParams = {
@@ -138,7 +139,13 @@ export default class Plugin extends BasePlugin {
 		this.addCommand({
 			id: "skip-interval", // TODO: only show this command when the timer type is break
 			name: "Skip interval",
-			callback: this.intervalTimer.skipInterval,
+			callback: () =>
+				this.intervalTimer.withContext(
+					{ "dont-flash": true },
+					(timer) => {
+						timer.skipInterval();
+					},
+				),
 		});
 	};
 
