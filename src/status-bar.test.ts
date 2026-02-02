@@ -41,12 +41,9 @@ describe("StatusBar", () => {
 		// Arrange
 		const element = document.createElement("div");
 		const statusBar = new StatusBar(element);
-		const timerActions = {
+		const intervalTimer = {
 			touch: vi.fn(),
 			resetIntervalsSet: vi.fn(),
-		};
-		const intervalTimer = {
-			withContext: vi.fn((_, action) => action(timerActions)),
 		} as unknown as IntervalTimer;
 
 		// Act
@@ -58,12 +55,7 @@ describe("StatusBar", () => {
 
 		// Assert
 		expect(element.classList.contains("mod-clickable")).toBe(true);
-		expect(intervalTimer.withContext).toHaveBeenCalledTimes(2);
-		expect(intervalTimer.withContext).toHaveBeenCalledWith(
-			{ "dont-flash": true },
-			expect.any(Function),
-		);
-		expect(timerActions.touch).toHaveBeenCalledOnce();
-		expect(timerActions.resetIntervalsSet).toHaveBeenCalledOnce();
+		expect(intervalTimer.touch).toHaveBeenCalledOnce();
+		expect(intervalTimer.resetIntervalsSet).toHaveBeenCalledOnce();
 	});
 });
