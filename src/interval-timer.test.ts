@@ -312,7 +312,6 @@ describe("IntervalTimer", () => {
 		);
 		expect(notifier).toHaveBeenCalledWith("🏖️  Time for a long break", {
 			state: "longBreak",
-			callContext: {},
 		});
 
 		intervalTimer.dispose();
@@ -348,7 +347,6 @@ describe("IntervalTimer", () => {
 		);
 		expect(notifier).toHaveBeenCalledWith("⏰  Now it's time to focus", {
 			state: "focus",
-			callContext: {},
 		});
 
 		intervalTimer.dispose();
@@ -444,84 +442,7 @@ describe("IntervalTimer", () => {
 		);
 		expect(notifier).toHaveBeenCalledWith("⏰  Now it's time to focus", {
 			state: "focus",
-			callContext: {},
 		});
-
-		intervalTimer.dispose();
-	});
-
-	it("should pass callContext to notifier for skipInterval", () => {
-		const handleChangeState = vi.fn();
-		const handleIntervalCreated = vi.fn();
-		const notifier = vi.fn();
-		const settings: IntervalTimerSetting = {
-			focusIntervalDuration: 25,
-			shortBreakDuration: 5,
-			longBreakDuration: 15,
-			longBreakAfter: 4,
-			notificationStyle: "simple",
-			resetTime: { hours: 0, minutes: 0 },
-		};
-		const intervalTimer = new IntervalTimer(
-			handleChangeState,
-			settings,
-			handleIntervalCreated,
-			notifier,
-		);
-
-		intervalTimer.withContext({ "dont-flash": true }, (timer) => {
-			timer.skipInterval();
-		});
-
-		expect(notifier).toHaveBeenCalledTimes(1);
-		expect(notifier).toHaveBeenCalledWith("☕️  Time for a short break", {
-			state: "shortBreak",
-			callContext: { "dont-flash": true },
-		});
-
-		intervalTimer.dispose();
-	});
-
-	it("should clear callContext after withContext completes", () => {
-		const handleChangeState = vi.fn();
-		const notifier = vi.fn();
-		const settings: IntervalTimerSetting = {
-			focusIntervalDuration: 25,
-			shortBreakDuration: 5,
-			longBreakDuration: 15,
-			longBreakAfter: 4,
-			notificationStyle: "simple",
-			resetTime: { hours: 0, minutes: 0 },
-		};
-		const intervalTimer = new IntervalTimer(
-			handleChangeState,
-			settings,
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-			notifier,
-		);
-
-		intervalTimer.withContext({ "dont-flash": true }, (timer) => {
-			timer.skipInterval();
-		});
-		intervalTimer.skipInterval();
-
-		expect(notifier).toHaveBeenCalledTimes(2);
-		expect(notifier).toHaveBeenNthCalledWith(
-			1,
-			"☕️  Time for a short break",
-			{
-				state: "shortBreak",
-				callContext: { "dont-flash": true },
-			},
-		);
-		expect(notifier).toHaveBeenNthCalledWith(
-			2,
-			"⏰  Now it's time to focus",
-			{
-				state: "focus",
-				callContext: {},
-			},
-		);
 
 		intervalTimer.dispose();
 	});

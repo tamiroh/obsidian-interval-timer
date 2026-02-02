@@ -29,19 +29,14 @@ export type InitialParams = {
 	focusIntervals?: { total?: number; set?: number };
 };
 
-export type CallContext = Record<string, unknown>;
-
 export type NotifierContext = {
 	state: IntervalTimerState;
-	callContext: CallContext;
 };
 
 export class IntervalTimer {
 	private timerState: { timer: CountdownTimer; state: IntervalTimerState };
 
 	private focusIntervals: { total: number; set: number };
-
-	private pendingCallContext: CallContext = {};
 
 	private readonly onIntervalCreated: (intervalId: number) => void;
 
@@ -152,7 +147,7 @@ export class IntervalTimer {
 
 	public skipInterval = () => {
 		this.timerState.timer.pause();
-		this.onComplete(this.pendingCallContext);
+		this.onComplete();
 	};
 
 	public touch = () => {
@@ -173,23 +168,11 @@ export class IntervalTimer {
 			.exhaustive();
 	};
 
-	public withContext = <T>(
-		callContext: CallContext,
-		action: (timer: this) => T,
-	): T => {
-		this.pendingCallContext = callContext;
-		try {
-			return action(this);
-		} finally {
-			this.pendingCallContext = {};
-		}
-	};
-
 	public dispose = (): void => {
 		this.disableAutoReset();
 	};
 
-	private onComplete = (callContext: CallContext = {}) => {
+	private onComplete = () => {
 		match(this.timerState.state)
 			.with("focus", () => {
 				this.focusIntervals = {
@@ -244,7 +227,7 @@ export class IntervalTimer {
 				.with("shortBreak", () => "☕️  Time for a short break")
 				.with("longBreak", () => "🏖️  Time for a long break")
 				.exhaustive(),
-			{ state: this.timerState.state, callContext },
+			{ state: this.timerState.state },
 		);
 	};
 
