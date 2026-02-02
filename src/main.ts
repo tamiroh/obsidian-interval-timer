@@ -137,7 +137,7 @@ export default class Plugin extends BasePlugin {
 		this.addCommand({
 			id: "skip-interval", // TODO: only show this command when the timer type is break
 			name: "Skip interval",
-			callback: () => this.intervalTimer.skipInterval,
+			callback: this.intervalTimer.skipInterval,
 		});
 	};
 
