@@ -87,10 +87,6 @@ export class IntervalTimer {
 		this.notifier = notifier;
 		this.autoResetScheduler = new DailyScheduler(settings.resetTime, () => {
 			this.resetTotalIntervals();
-			this.notifier(
-				"🔄  Intervals have been reset because the reset time has passed",
-				{ state: this.timerState.state, callContext: {} },
-			);
 		});
 
 		this.onChangeState("initialized", {
