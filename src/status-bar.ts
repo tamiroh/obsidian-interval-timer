@@ -1,11 +1,16 @@
+import { App, Menu } from "obsidian";
 import { Time } from "./time";
 import { IntervalTimer, IntervalTimerState } from "./interval-timer";
+import { RetimeModal } from "./retime-modal";
 
 export class StatusBar {
 	private statusBarItem: HTMLElement;
 
-	constructor(statusBarElement: HTMLElement) {
+	private app: App;
+
+	constructor(statusBarElement: HTMLElement, app: App) {
 		this.statusBarItem = statusBarElement;
+		this.app = app;
 	}
 
 	public update = (
@@ -30,9 +35,21 @@ export class StatusBar {
 				intervalTimer.touch();
 			}
 		});
-		this.statusBarItem.addEventListener("contextmenu", () => {
+		this.statusBarItem.addEventListener("contextmenu", (event) => {
 			// Right click
-			intervalTimer.resetIntervalsSet();
+			event.preventDefault();
+			new Menu()
+				.addItem((item) => {
+					item.setTitle("Reset intervals set").onClick(() => {
+						intervalTimer.resetIntervalsSet();
+					});
+				})
+				.addItem((item) => {
+					item.setTitle("Retime timer").onClick(() => {
+						new RetimeModal(this.app, intervalTimer).open();
+					});
+				})
+				.showAtMouseEvent(event);
 		});
 	};
 

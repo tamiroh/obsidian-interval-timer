@@ -150,6 +150,20 @@ export class IntervalTimer {
 		this.onComplete();
 	};
 
+	public retime = (minutes: number): boolean => {
+		if (this.timerState.timer.getCurrentTimerType() === "running") {
+			return false;
+		}
+
+		this.timerState = {
+			timer: this.createTimer(minutes, 0),
+			state: this.timerState.state,
+		};
+		this.onChangeState("initialized", { minutes, seconds: 0 });
+
+		return true;
+	};
+
 	public touch = () => {
 		match(this.timerState.timer.getCurrentTimerType())
 			.with("initialized", "paused", "completed", () => {
