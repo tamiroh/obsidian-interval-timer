@@ -26,7 +26,7 @@ export default class Plugin extends BasePlugin {
 		super(app, manifest);
 
 		this.keyValueStore = new KeyValueStore(manifest.id);
-		this.statusBar = new StatusBar(this.addStatusBarItem());
+		this.statusBar = new StatusBar(this.addStatusBarItem(), this.app);
 	}
 
 	public override onload = async () => {

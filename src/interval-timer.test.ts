@@ -282,6 +282,38 @@ describe("IntervalTimer", () => {
 		intervalTimer.dispose();
 	});
 
+	it("should allow updating timer duration only when timer is stopped", () => {
+		const handleChangeState = vi.fn();
+		const settings: IntervalTimerSetting = {
+			focusIntervalDuration: 25,
+			shortBreakDuration: 5,
+			longBreakDuration: 15,
+			longBreakAfter: 4,
+			notificationStyle: "simple",
+			resetTime: { hours: 0, minutes: 0 },
+		};
+		const intervalTimer = new IntervalTimer(
+			handleChangeState,
+			settings,
+			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			{ state: "focus" },
+		);
+		handleChangeState.mockClear();
+
+		const updated = intervalTimer.retime(7);
+
+		expect(updated).toBe(true);
+		expect(handleChangeState).toHaveBeenCalledWith(
+			"initialized",
+			"focus",
+			{ minutes: 7, seconds: 0 },
+			{ set: 0, total: 0 },
+		);
+
+		intervalTimer.dispose();
+	});
+
 	it("should advance to long break when focus intervals reach longBreakAfter", () => {
 		const handleChangeState = vi.fn();
 		const notifier = vi.fn();
