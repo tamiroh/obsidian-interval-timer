@@ -147,7 +147,7 @@ export class IntervalTimer {
 
 	public skipInterval = () => {
 		this.timerState.timer.pause();
-		this.onComplete();
+		this.onComplete({ shouldNotify: false });
 	};
 
 	public retime = (minutes: number): boolean => {
@@ -186,7 +186,9 @@ export class IntervalTimer {
 		this.disableAutoReset();
 	};
 
-	private onComplete = () => {
+	private onComplete = ({
+		shouldNotify = true,
+	}: { shouldNotify?: boolean } = {}) => {
 		match(this.timerState.state)
 			.with("focus", () => {
 				this.focusIntervals = {
@@ -235,14 +237,16 @@ export class IntervalTimer {
 			})
 			.exhaustive();
 
-		this.notifier(
-			match(this.timerState.state)
-				.with("focus", () => "⏰  Now it's time to focus")
-				.with("shortBreak", () => "☕️  Time for a short break")
-				.with("longBreak", () => "🏖️  Time for a long break")
-				.exhaustive(),
-			{ state: this.timerState.state },
-		);
+		if (shouldNotify) {
+			this.notifier(
+				match(this.timerState.state)
+					.with("focus", () => "⏰  Now it's time to focus")
+					.with("shortBreak", () => "☕️  Time for a short break")
+					.with("longBreak", () => "🏖️  Time for a long break")
+					.exhaustive(),
+				{ state: this.timerState.state },
+			);
+		}
 	};
 
 	private onPause = (current: Time) => {
