@@ -400,7 +400,7 @@ describe("IntervalTimer", () => {
 
 		intervalTimer.start();
 		vi.advanceTimersByTime(
-			settings.focusIntervalDuration * 60 * 1000 + 1000,
+			settings.shortBreakDuration * 60 * 1000 + 1000,
 		);
 
 		expect(handleChangeState).toHaveBeenCalledWith(
