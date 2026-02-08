@@ -63,3 +63,6 @@ export type Seconds =
 	| 59;
 
 export type Time = { minutes: Minutes; seconds: Seconds };
+
+export const toSeconds = (time: Time): number =>
+	time.minutes * 60 + time.seconds;
