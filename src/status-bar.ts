@@ -13,11 +13,11 @@ export class StatusBar {
 		this.app = app;
 	}
 
-	public update = (
+	public update(
 		intervals: { total: number; set: number },
 		time: Time,
 		intervalTimerState: IntervalTimerState,
-	) => {
+	): void {
 		this.statusBarItem.textContent = `${intervals.set}/${intervals.total} ${this.format(time)}`;
 		this.statusBarItem.setAttribute(
 			"style",
@@ -25,9 +25,9 @@ export class StatusBar {
 				? "color: #EE6152"
 				: "color: #4CBD4F",
 		);
-	};
+	}
 
-	public enableClick = (intervalTimer: IntervalTimer) => {
+	public enableClick(intervalTimer: IntervalTimer): void {
 		this.statusBarItem.classList.add("mod-clickable");
 		this.statusBarItem.addEventListener("click", (event) => {
 			if (event.button === 0) {
@@ -51,10 +51,11 @@ export class StatusBar {
 				})
 				.showAtMouseEvent(event);
 		});
-	};
+	}
 
-	private format = (time: Time): string =>
-		`${String(time.minutes).padStart(2, "0")}:${String(
+	private format(time: Time): string {
+		return `${String(time.minutes).padStart(2, "0")}:${String(
 			time.seconds,
 		).padStart(2, "0")}`;
+	}
 }

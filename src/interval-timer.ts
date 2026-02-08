@@ -91,35 +91,35 @@ export class IntervalTimer {
 		});
 	}
 
-	public enableAutoReset = (): void => {
+	public enableAutoReset(): void {
 		this.autoResetScheduler.enable();
-	};
+	}
 
-	public disableAutoReset = (): void => {
+	public disableAutoReset(): void {
 		this.autoResetScheduler.disable();
-	};
+	}
 
-	public start = () => {
+	public start(): void {
 		this.timerState.timer.start();
 
 		const intervalId = this.timerState.timer.getIntervalId();
 		if (intervalId != null) {
 			this.onIntervalCreated(intervalId);
 		}
-	};
+	}
 
-	public pause = () => {
+	public pause(): void {
 		this.timerState.timer.pause();
-	};
+	}
 
-	public reset = () => {
+	public reset(): void {
 		const result = this.timerState.timer.reset();
 		if (result.type === "succeeded") {
 			this.onChangeState("initialized", result.resetTo);
 		}
-	};
+	}
 
-	public resetIntervalsSet = () => {
+	public resetIntervalsSet(): void {
 		this.timerState.timer.pause();
 		this.focusIntervals.set = 0;
 		this.timerState = {
@@ -130,9 +130,9 @@ export class IntervalTimer {
 			minutes: this.settings.longBreakDuration,
 			seconds: 0,
 		});
-	};
+	}
 
-	public resetTotalIntervals = () => {
+	public resetTotalIntervals(): void {
 		this.timerState.timer.pause();
 		this.focusIntervals = { total: 0, set: 0 };
 		this.timerState = {
@@ -143,14 +143,14 @@ export class IntervalTimer {
 			minutes: this.settings.focusIntervalDuration,
 			seconds: 0,
 		});
-	};
+	}
 
-	public skipInterval = () => {
+	public skipInterval(): void {
 		this.timerState.timer.pause();
 		this.onComplete({ shouldNotify: false });
-	};
+	}
 
-	public retime = (minutes: number): boolean => {
+	public retime(minutes: number): boolean {
 		if (this.timerState.timer.getCurrentTimerType() === "running") {
 			return false;
 		}
@@ -162,9 +162,9 @@ export class IntervalTimer {
 		this.onChangeState("initialized", { minutes, seconds: 0 });
 
 		return true;
-	};
+	}
 
-	public touch = () => {
+	public touch(): void {
 		match(this.timerState.timer.getCurrentTimerType())
 			.with("initialized", "paused", "completed", () => {
 				this.start();
@@ -180,15 +180,15 @@ export class IntervalTimer {
 					.exhaustive();
 			})
 			.exhaustive();
-	};
+	}
 
-	public dispose = (): void => {
+	public dispose(): void {
 		this.disableAutoReset();
-	};
+	}
 
-	private onComplete = ({
+	private onComplete({
 		shouldNotify = true,
-	}: { shouldNotify?: boolean } = {}) => {
+	}: { shouldNotify?: boolean } = {}): void {
 		match(this.timerState.state)
 			.with("focus", () => {
 				this.focusIntervals = {
@@ -247,17 +247,18 @@ export class IntervalTimer {
 				{ state: this.timerState.state },
 			);
 		}
-	};
+	}
 
-	private onPause = (current: Time) => {
+	private onPause(current: Time): void {
 		this.onChangeState("paused", current);
-	};
+	}
 
-	private createTimer = (minutes: number, seconds: Seconds): CountdownTimer =>
-		new CountdownTimer(
+	private createTimer(minutes: number, seconds: Seconds): CountdownTimer {
+		return new CountdownTimer(
 			{ minutes, seconds },
 			(time: Time) => this.onChangeState("running", time),
-			this.onPause,
-			this.onComplete,
+			this.onPause.bind(this),
+			this.onComplete.bind(this),
 		);
+	}
 }

@@ -15,7 +15,7 @@ export class DailyScheduler {
 		this.onScheduledTime = onScheduledTime;
 	}
 
-	public enable = (): void => {
+	public enable(): void {
 		this.disable();
 		this.nextExecutionTime = this.getInitialExecutionTime();
 		this.intervalId = window.setInterval(() => {
@@ -34,17 +34,17 @@ export class DailyScheduler {
 				}
 			}
 		}, 1000);
-	};
+	}
 
-	public disable = (): void => {
+	public disable(): void {
 		if (this.intervalId !== undefined) {
 			window.clearInterval(this.intervalId);
 			this.intervalId = undefined;
 		}
 		this.nextExecutionTime = undefined;
-	};
+	}
 
-	private getInitialExecutionTime = (): Date => {
+	private getInitialExecutionTime(): Date {
 		const now = new Date();
 		const scheduled = new Date(now);
 		scheduled.setHours(this.scheduledTime.hours);
@@ -55,12 +55,13 @@ export class DailyScheduler {
 		return now.getTime() >= scheduled.getTime()
 			? this.addDays(scheduled, 1)
 			: scheduled;
-	};
+	}
 
-	private shouldExecute = (): boolean =>
-		this.nextExecutionTime === undefined
+	private shouldExecute(): boolean {
+		return this.nextExecutionTime === undefined
 			? false
 			: Date.now() >= this.nextExecutionTime.getTime();
+	}
 
 	private addDays(date: Date, days: number): Date {
 		const next = new Date(date);
