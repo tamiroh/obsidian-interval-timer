@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import { Seconds, Time, toSeconds } from "./time";
+import { Seconds, Time, toMilliseconds, toSeconds } from "./time";
 
 export const timerTypes = [
 	"initialized",
@@ -63,9 +63,10 @@ export class CountdownTimer {
 		const startAt = match(this.state)
 			.with({ type: "initialized" }, () => new Date())
 			.with({ type: "paused" }, (state) => {
-				const elapsedSeconds =
-					toSeconds(this.initialTime) - toSeconds(state.currentTime);
-				return new Date(Date.now() - elapsedSeconds * 1000);
+				const elapsedMs =
+					toMilliseconds(this.initialTime) -
+					toMilliseconds(state.currentTime);
+				return new Date(Date.now() - elapsedMs);
 			})
 			.exhaustive();
 
