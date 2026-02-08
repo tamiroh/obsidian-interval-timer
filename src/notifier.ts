@@ -1,13 +1,14 @@
 import { match } from "ts-pattern";
-import electron from "electron";
 import { Notice } from "obsidian";
+
+const electron = window.require?.("electron");
 
 export type NotificationStyle = "system" | "simple";
 
 export const notify = (style: NotificationStyle, message: string) =>
 	match(style)
 		.with("system", () => {
-			new (electron as any).remote.Notification({
+			new electron.remote.Notification({
 				title: message,
 				body: "Interval Timer",
 			}).show();

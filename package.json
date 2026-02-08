@@ -48,7 +48,6 @@
 		"vitest": "^2.1.9"
 	},
 	"dependencies": {
-		"electron": "^39.0.0",
 		"ts-pattern": "^5.9.0"
 	}
 }
