@@ -1,7 +1,5 @@
-import moment from "moment";
-
 export class DailyScheduler {
-	private nextExecutionTime: moment.Moment | undefined;
+	private nextExecutionTime: Date | undefined;
 
 	private intervalId: number | undefined;
 
@@ -28,8 +26,11 @@ export class DailyScheduler {
 						"Inconsistent state: next execution time is unset",
 					);
 				}
-				while (this.nextExecutionTime.isSameOrBefore(moment())) {
-					this.nextExecutionTime.add(1, "day");
+				while (this.nextExecutionTime.getTime() <= Date.now()) {
+					this.nextExecutionTime = this.addDays(
+						this.nextExecutionTime,
+						1,
+					);
 				}
 			}
 		}, 1000);
@@ -43,22 +44,27 @@ export class DailyScheduler {
 		this.nextExecutionTime = undefined;
 	};
 
-	private getInitialExecutionTime = (): moment.Moment => {
-		const scheduled = moment()
-			.hours(this.scheduledTime.hours)
-			.minutes(this.scheduledTime.minutes)
-			.seconds(0)
-			.milliseconds(0);
+	private getInitialExecutionTime = (): Date => {
+		const now = new Date();
+		const scheduled = new Date(now);
+		scheduled.setHours(this.scheduledTime.hours);
+		scheduled.setMinutes(this.scheduledTime.minutes);
+		scheduled.setSeconds(0);
+		scheduled.setMilliseconds(0);
 
-		if (moment().isSameOrAfter(scheduled)) {
-			scheduled.add(1, "day");
-		}
-
-		return scheduled;
+		return now.getTime() >= scheduled.getTime()
+			? this.addDays(scheduled, 1)
+			: scheduled;
 	};
 
 	private shouldExecute = (): boolean =>
 		this.nextExecutionTime === undefined
 			? false
-			: moment().isSameOrAfter(this.nextExecutionTime);
+			: Date.now() >= this.nextExecutionTime.getTime();
+
+	private addDays(date: Date, days: number): Date {
+		const next = new Date(date);
+		next.setDate(next.getDate() + days);
+		return next;
+	}
 }

@@ -1,6 +1,5 @@
-import moment, { Moment } from "moment";
 import { match } from "ts-pattern";
-import { Seconds, Time } from "./time";
+import { Seconds, Time, toMilliseconds, toSeconds } from "./time";
 
 export const timerTypes = [
 	"initialized",
@@ -62,18 +61,13 @@ export class CountdownTimer {
 		}
 
 		const startAt = match(this.state)
-			.with({ type: "initialized" }, () => moment())
-			.with({ type: "paused" }, (state) =>
-				moment()
-					.subtract(
-						this.initialTime.minutes - state.currentTime.minutes,
-						"minutes",
-					)
-					.subtract(
-						this.initialTime.seconds - state.currentTime.seconds,
-						"seconds",
-					),
-			)
+			.with({ type: "initialized" }, () => new Date())
+			.with({ type: "paused" }, (state) => {
+				const elapsedMs =
+					toMilliseconds(this.initialTime) -
+					toMilliseconds(state.currentTime);
+				return new Date(Date.now() - elapsedMs);
+			})
 			.exhaustive();
 
 		const intervalId = window.setInterval(() => {
@@ -147,15 +141,14 @@ export class CountdownTimer {
 	}
 
 	private updateCurrentTime(
-		startAt: Moment,
+		startAt: Date,
 	): "unchanged" | "subtracted" | "exceeded" {
 		if (this.state.type !== "running") {
 			return "unchanged";
 		}
 
-		const diff = moment().diff(startAt, "seconds");
-		const initialTimeInSeconds =
-			this.initialTime.minutes * 60 + this.initialTime.seconds;
+		const diff = Math.floor((Date.now() - startAt.getTime()) / 1000);
+		const initialTimeInSeconds = toSeconds(this.initialTime);
 		const nextCurrentTimeInSeconds = initialTimeInSeconds - diff;
 
 		this.state.currentTime = {
