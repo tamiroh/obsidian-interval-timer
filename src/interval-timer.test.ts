@@ -340,6 +340,37 @@ describe("IntervalTimer", () => {
 		intervalTimer.dispose();
 	});
 
+	it("should not update timer duration while running", () => {
+		// Arrange
+		const handleChangeState = vi.fn();
+		const settings: IntervalTimerSetting = {
+			focusIntervalDuration: 1,
+			shortBreakDuration: 1,
+			longBreakDuration: 1,
+			longBreakAfter: 4,
+			notificationStyle: "simple",
+			resetTime: { hours: 0, minutes: 0 },
+		};
+		const intervalTimer = new IntervalTimer(
+			handleChangeState,
+			settings,
+			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			{ state: "focus" },
+		);
+		handleChangeState.mockClear();
+
+		// Act
+		intervalTimer.start();
+		const updated = intervalTimer.retime(7);
+
+		// Assert
+		expect(updated).toBe(false);
+		expect(handleChangeState).not.toHaveBeenCalled();
+
+		intervalTimer.dispose();
+	});
+
 	it("should advance to long break when focus intervals reach longBreakAfter", () => {
 		const handleChangeState = vi.fn();
 		const notifier = vi.fn();
@@ -411,6 +442,47 @@ describe("IntervalTimer", () => {
 		);
 		expect(notifier).toHaveBeenCalledWith("⏰  Now it's time to focus", {
 			state: "focus",
+		});
+
+		intervalTimer.dispose();
+	});
+
+	it("should advance to short break after focus completion", () => {
+		// Arrange
+		const handleChangeState = vi.fn();
+		const notifier = vi.fn();
+		const settings: IntervalTimerSetting = {
+			focusIntervalDuration: 1,
+			shortBreakDuration: 5,
+			longBreakDuration: 15,
+			longBreakAfter: 4,
+			notificationStyle: "simple",
+			resetTime: { hours: 0, minutes: 0 },
+		};
+		const intervalTimer = new IntervalTimer(
+			handleChangeState,
+			settings,
+			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			notifier,
+			{ state: "focus" },
+		);
+		handleChangeState.mockClear();
+
+		// Act
+		intervalTimer.start();
+		vi.advanceTimersByTime(
+			settings.focusIntervalDuration * 60 * 1000 + 1000,
+		);
+
+		// Assert
+		expect(handleChangeState).toHaveBeenCalledWith(
+			"initialized",
+			"shortBreak",
+			{ minutes: 5, seconds: 0 },
+			{ set: 1, total: 1 },
+		);
+		expect(notifier).toHaveBeenCalledWith("☕️  Time for a short break", {
+			state: "shortBreak",
 		});
 
 		intervalTimer.dispose();
@@ -502,6 +574,40 @@ describe("IntervalTimer", () => {
 			{ minutes: 1, seconds: 0 },
 			{ set: 0, total: 0 },
 		);
+
+		intervalTimer.dispose();
+	});
+
+	it("should start when touch is called from paused state", () => {
+		// Arrange
+		const handleChangeState = vi.fn();
+		const handleIntervalCreated = vi.fn();
+		const settings: IntervalTimerSetting = {
+			focusIntervalDuration: 1,
+			shortBreakDuration: 1,
+			longBreakDuration: 1,
+			longBreakAfter: 4,
+			notificationStyle: "simple",
+			resetTime: { hours: 0, minutes: 0 },
+		};
+		const intervalTimer = new IntervalTimer(
+			handleChangeState,
+			settings,
+			handleIntervalCreated,
+			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+		);
+		handleIntervalCreated.mockClear();
+
+		// Act
+		intervalTimer.start();
+		vi.advanceTimersByTime(1000);
+		intervalTimer.pause();
+		handleIntervalCreated.mockClear();
+
+		intervalTimer.touch();
+
+		// Assert
+		expect(handleIntervalCreated).toHaveBeenCalledTimes(1);
 
 		intervalTimer.dispose();
 	});

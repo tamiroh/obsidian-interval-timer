@@ -169,6 +169,28 @@ describe("DailyScheduler", () => {
 		scheduler.disable();
 	});
 
+	it("should execute after re-enabling following disable", () => {
+		// Arrange
+		vi.setSystemTime(new Date(2024, 0, 1, 9, 30, 0, 0)); // 09:30
+		const callback = vi.fn();
+		const scheduler = new DailyScheduler(
+			{ hours: 10, minutes: 0 },
+			callback,
+		);
+		scheduler.enable();
+		callback.mockClear();
+
+		// Act
+		scheduler.disable();
+		scheduler.enable();
+		vi.advanceTimersByTime(30 * 60 * 1000); // Advance to 10:00
+
+		// Assert
+		expect(callback).toHaveBeenCalledTimes(1);
+
+		scheduler.disable();
+	});
+
 	it("should execute only once when system time jumps forward by multiple days", () => {
 		// Arrange
 		vi.setSystemTime(new Date(2024, 0, 1, 9, 0, 0, 0)); // Jan 1, 09:00
