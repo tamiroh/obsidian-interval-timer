@@ -1,7 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { KeyValueStore } from "./key-value-store";
 
 describe("KeyValueStore", () => {
+	beforeEach(() => {
+		window.localStorage.clear();
+	});
+
 	it("should set and get a value", () => {
 		const kvs = new KeyValueStore("unique-key");
 
