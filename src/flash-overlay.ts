@@ -18,7 +18,7 @@ export class FlashOverlay {
 		return FlashOverlay.instance;
 	}
 
-	public static dispose = (): void => {
+	public static dispose(): void {
 		if (FlashOverlay.instance) {
 			FlashOverlay.instance.hide();
 			if (FlashOverlay.instance.styleElement !== undefined) {
@@ -27,9 +27,9 @@ export class FlashOverlay {
 			}
 			FlashOverlay.instance = undefined;
 		}
-	};
+	}
 
-	public show = (color: Color): void => {
+	public show(color: Color): void {
 		if (this.overlay !== undefined) {
 			this.overlay.style.backgroundColor = `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`;
 			return;
@@ -45,14 +45,14 @@ export class FlashOverlay {
 		this.overlay.style.zIndex = "9999";
 		this.overlay.style.cursor = "pointer";
 		this.overlay.style.animation = "flash-fade 1s linear infinite";
-		this.overlay.addEventListener("click", this.hide);
+		this.overlay.addEventListener("click", () => this.hide());
 
 		this.addKeyframesIfNeeded();
 
 		document.body.appendChild(this.overlay);
-	};
+	}
 
-	private addKeyframesIfNeeded = (): void => {
+	private addKeyframesIfNeeded(): void {
 		if (this.styleElement !== undefined) return;
 
 		this.styleElement = document.createElement("style");
@@ -64,13 +64,12 @@ export class FlashOverlay {
 		`;
 
 		document.head.appendChild(this.styleElement);
-	};
+	}
 
-	public hide = (): void => {
+	public hide(): void {
 		if (this.overlay !== undefined) {
-			this.overlay.removeEventListener("click", this.hide);
 			this.overlay.remove();
 			this.overlay = undefined;
 		}
-	};
+	}
 }

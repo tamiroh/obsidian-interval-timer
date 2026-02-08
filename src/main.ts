@@ -29,25 +29,25 @@ export default class Plugin extends BasePlugin {
 		this.statusBar = new StatusBar(this.addStatusBarItem(), this.app);
 	}
 
-	public override onload = async () => {
+	public override async onload(): Promise<void> {
 		await this.loadSettings();
 		this.setupIntervalTimer();
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
 
 		this.statusBar.enableClick(this.intervalTimer);
-	};
+	}
 
-	public override onunload = () => {
+	public override onunload(): void {
 		FlashOverlay.dispose();
 		this.intervalTimer.dispose();
-	};
+	}
 
-	public saveSettings = async () => {
+	public async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
-	};
+	}
 
-	private setupIntervalTimer = () => {
+	private setupIntervalTimer(): void {
 		const onChangeState: onChangeStateFunction = (
 			timerState,
 			intervalTimerState,
@@ -106,45 +106,45 @@ export default class Plugin extends BasePlugin {
 			initialParams,
 		);
 		this.intervalTimer.enableAutoReset();
-	};
+	}
 
-	private addCommands = () => {
+	private addCommands(): void {
 		this.addCommand({
 			id: "start-timer",
 			name: "Start timer",
-			callback: this.intervalTimer.start,
+			callback: () => this.intervalTimer.start(),
 		});
 		this.addCommand({
 			id: "pause-timer",
 			name: "Pause timer",
-			callback: this.intervalTimer.pause,
+			callback: () => this.intervalTimer.pause(),
 		});
 		this.addCommand({
 			id: "reset-timer",
 			name: "Reset timer",
-			callback: this.intervalTimer.reset,
+			callback: () => this.intervalTimer.reset(),
 		});
 		this.addCommand({
 			id: "reset-intervals-set",
 			name: "Reset intervals set",
-			callback: this.intervalTimer.resetIntervalsSet,
+			callback: () => this.intervalTimer.resetIntervalsSet(),
 		});
 		this.addCommand({
 			id: "reset-total-intervals",
 			name: "Reset total intervals",
-			callback: this.intervalTimer.resetTotalIntervals,
+			callback: () => this.intervalTimer.resetTotalIntervals(),
 		});
 		this.addCommand({
 			id: "skip-interval", // TODO: only show this command when the timer type is break
 			name: "Skip interval",
-			callback: this.intervalTimer.skipInterval,
+			callback: () => this.intervalTimer.skipInterval(),
 		});
-	};
+	}
 
-	private loadSettings = async () => {
+	private async loadSettings(): Promise<void> {
 		this.settings = {
 			...DEFAULT_SETTINGS,
 			...(await this.loadData()),
 		};
-	};
+	}
 }

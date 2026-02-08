@@ -8,10 +8,11 @@ export class KeyValueStore {
 		this.localStorage = window.localStorage;
 	}
 
-	public set = (key: string, value: string) => {
+	public set(key: string, value: string): void {
 		this.localStorage.setItem(`${this.uniqueKey}:${key}`, value);
-	};
+	}
 
-	public get = (key: string): string | null =>
-		this.localStorage.getItem(`${this.uniqueKey}:${key}`);
+	public get(key: string): string | null {
+		return this.localStorage.getItem(`${this.uniqueKey}:${key}`);
+	}
 }
