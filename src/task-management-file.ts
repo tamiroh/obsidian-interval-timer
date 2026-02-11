@@ -8,18 +8,8 @@ export class TaskManagementFile {
 	}
 
 	public toIncremented(taskName: string): TaskManagementFile | null {
-		const lineIndex = this.findIndex(taskName);
-		if (lineIndex == null) {
-			return null;
-		}
-
-		const lineText = this.lines[lineIndex];
-		if (lineText == null) {
-			return null;
-		}
-
-		const lineTask = TaskLine.from(lineText);
-		if (!lineTask) {
+		const target = this.find(taskName);
+		if (target == null) {
 			return null;
 		}
 
@@ -27,8 +17,8 @@ export class TaskManagementFile {
 			this.lines
 				.slice()
 				.map((line, index) =>
-					index === lineIndex
-						? lineTask.toIncremented().toString()
+					index === target.index
+						? target.taskLine.toIncremented().toString()
 						: line,
 				)
 				.join("\n"),
@@ -39,13 +29,15 @@ export class TaskManagementFile {
 		return this.lines.join("\n");
 	}
 
-	private findIndex(taskName: string): number | null {
+	private find(
+		taskName: string,
+	): { index: number; taskLine: TaskLine } | null {
 		for (let i = 0; i < this.lines.length; i += 1) {
 			const candidateLine = this.lines[i];
 			const candidateTask =
 				candidateLine == null ? null : TaskLine.from(candidateLine);
 			if (candidateTask?.taskName === taskName) {
-				return i;
+				return { index: i, taskLine: candidateTask };
 			}
 		}
 

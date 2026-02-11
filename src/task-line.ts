@@ -40,27 +40,12 @@ export class TaskLine {
 			return null;
 		}
 
-		const prefix = match[1];
-		const name = match[2];
-		const currentText = match[3];
-		const totalText = match[4];
-		if (
-			prefix == null ||
-			name == null ||
-			currentText == null ||
-			totalText == null
-		) {
-			return null;
-		}
-
+		const prefix = match[1] ?? "";
+		const name = match[2] ?? "";
+		const currentText = match[3] ?? "";
+		const totalText = match[4] ?? "";
 		const completedIntervals = Number(currentText);
 		const estimatedIntervals = Number(totalText);
-		if (
-			!Number.isFinite(completedIntervals) ||
-			!Number.isFinite(estimatedIntervals)
-		) {
-			return null;
-		}
 
 		return new TaskLine(
 			prefix,
