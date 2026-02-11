@@ -6,14 +6,6 @@ export default defineConfig({
 		coverage: {
 			reporter: ["json"],
 			include: ["src/**/*.ts"],
-			exclude: [
-				"src/main.ts",
-				"src/notifier.ts",
-				"src/retime-modal.ts",
-				"src/setting-tab.ts",
-				"src/status-bar.ts",
-				"src/task-tracker.ts",
-			],
 		},
 	},
 });
