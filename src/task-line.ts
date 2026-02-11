@@ -1,11 +1,11 @@
 export class TaskLine {
-	private readonly prefix: string;
+	public readonly prefix: string;
 
-	private readonly taskNameValue: string;
+	public readonly taskName: string;
 
-	private readonly completedIntervals: number;
+	public readonly completedIntervals: number;
 
-	private readonly estimatedIntervals: number;
+	public readonly estimatedIntervals: number;
 
 	private constructor(
 		prefix: string,
@@ -14,26 +14,22 @@ export class TaskLine {
 		estimatedIntervals: number,
 	) {
 		this.prefix = prefix;
-		this.taskNameValue = taskName;
+		this.taskName = taskName;
 		this.completedIntervals = completedIntervals;
 		this.estimatedIntervals = estimatedIntervals;
-	}
-
-	public get taskName(): string {
-		return this.taskNameValue;
 	}
 
 	public toIncremented(): TaskLine {
 		return new TaskLine(
 			this.prefix,
-			this.taskNameValue,
+			this.taskName,
 			this.completedIntervals + 1,
 			this.estimatedIntervals,
 		);
 	}
 
 	public toString(): string {
-		return `${this.prefix}${this.taskNameValue} ${this.completedIntervals}/${this.estimatedIntervals}`;
+		return `${this.prefix}${this.taskName} ${this.completedIntervals}/${this.estimatedIntervals}`;
 	}
 
 	public static from(line: string): TaskLine | null {
