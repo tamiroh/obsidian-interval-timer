@@ -87,7 +87,8 @@ export class CountdownTimer {
 			if (result === "subtracted") {
 				this.onSubtract(this.state.currentTime);
 			}
-			if (result === "exceeded") {
+			if (result === "completed") {
+				this.onSubtract(this.state.currentTime);
 				window.clearInterval(intervalId);
 				this.state = { type: "completed" };
 				this.onComplete?.();
@@ -148,7 +149,7 @@ export class CountdownTimer {
 
 	private updateCurrentTime(
 		startAt: Date,
-	): "unchanged" | "subtracted" | "exceeded" {
+	): "unchanged" | "subtracted" | "completed" {
 		if (this.state.type !== "running") {
 			return "unchanged";
 		}
@@ -160,11 +161,12 @@ export class CountdownTimer {
 		const remainingSeconds = initialTimeAsSeconds - elapsedSeconds;
 		const previousRemainingSeconds = toSeconds(this.state.currentTime);
 
-		if (remainingSeconds < 0) {
-			return "exceeded";
-		}
 		if (remainingSeconds === previousRemainingSeconds) {
 			return "unchanged";
+		}
+		if (remainingSeconds <= 0) {
+			this.state.currentTime = { minutes: 0, seconds: 0 };
+			return "completed";
 		}
 
 		this.state.currentTime = {

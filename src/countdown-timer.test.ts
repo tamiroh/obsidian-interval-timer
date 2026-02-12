@@ -98,6 +98,26 @@ describe("CountdownTimer", () => {
 		expect(handleComplete).toHaveBeenCalledOnce();
 	});
 
+	it("should complete immediately when remaining time reaches zero", () => {
+		// Arrange
+		const handleComplete = vi.fn();
+		new CountdownTimer(
+			{ minutes: 0, seconds: 1 },
+			vi.fn(),
+			vi.fn(),
+			handleComplete,
+		).start();
+
+		// Act
+		vi.advanceTimersByTime(999);
+		const calledBeforeLastMillisecond = handleComplete.mock.calls.length;
+		vi.advanceTimersByTime(1);
+
+		// Assert
+		expect(calledBeforeLastMillisecond).toBe(0);
+		expect(handleComplete).toHaveBeenCalledOnce();
+	});
+
 	it("should pause when pause is called", () => {
 		// Arrange
 		const handleSubtract = vi.fn();
