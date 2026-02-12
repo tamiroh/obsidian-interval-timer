@@ -169,7 +169,6 @@ export class CountdownTimer {
 			minutes: Math.floor(remainingSeconds / 60),
 			seconds: (remainingSeconds % 60) as Seconds,
 		};
-
 		return "subtracted";
 	}
 
