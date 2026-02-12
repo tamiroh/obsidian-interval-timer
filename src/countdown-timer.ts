@@ -126,7 +126,10 @@ export class CountdownTimer {
 		}
 		this.state = {
 			type: "initialized",
-			currentTime: this.initialTime,
+			currentTime: {
+				minutes: this.initialTime.minutes,
+				seconds: this.initialTime.seconds,
+			},
 		};
 		return {
 			type: "succeeded",
