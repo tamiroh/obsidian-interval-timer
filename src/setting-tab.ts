@@ -1,5 +1,5 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
-import Plugin from "./main";
+import Plugin from "./plugin";
 import { NotificationStyle } from "./notifier";
 
 export type PluginSetting = {
