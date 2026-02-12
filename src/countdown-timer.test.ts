@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CountdownTimer } from "./countdown-timer";
+import { Seconds } from "./time";
 
 describe("CountdownTimer", () => {
 	beforeEach(() => {
@@ -333,5 +334,26 @@ describe("CountdownTimer", () => {
 		expect(initialIntervalId).toBeUndefined();
 		expect(runningIntervalId).not.toBeUndefined();
 		expect(pausedIntervalId).toBeUndefined();
+	});
+
+	it("should not be affected by external mutation of initialTime", () => {
+		// Arrange
+		const handlePause = vi.fn();
+		const initialTime = { minutes: 1, seconds: 0 as Seconds };
+		const countdownTimer = new CountdownTimer(
+			initialTime,
+			vi.fn(),
+			handlePause,
+			vi.fn(),
+		);
+
+		// Act
+		initialTime.minutes = 9;
+		initialTime.seconds = 59;
+		countdownTimer.start();
+		countdownTimer.pause();
+
+		// Assert
+		expect(handlePause).toHaveBeenCalledWith({ minutes: 1, seconds: 0 });
 	});
 });

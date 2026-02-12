@@ -51,7 +51,13 @@ export class CountdownTimer {
 			minutes: initialTime.minutes,
 			seconds: initialTime.seconds,
 		};
-		this.state = { type: "initialized", currentTime: initialTime };
+		this.state = {
+			type: "initialized",
+			currentTime: {
+				minutes: initialTime.minutes,
+				seconds: initialTime.seconds,
+			},
+		};
 		this.onSubtract = onSubtract;
 	}
 
