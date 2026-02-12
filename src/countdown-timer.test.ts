@@ -25,7 +25,7 @@ describe("CountdownTimer", () => {
 
 		// Act
 		const result = countdownTimer.start();
-		vi.advanceTimersToNextTimer();
+		vi.advanceTimersByTime(1000);
 
 		// Assert
 		expect(result).toStrictEqual({ type: "succeeded" });
@@ -49,7 +49,7 @@ describe("CountdownTimer", () => {
 		vi.advanceTimersByTime(1000);
 
 		// Assert
-		expect(handleSubtract).toHaveBeenCalledTimes(2); // BUG: should be 1
+		expect(handleSubtract).toHaveBeenCalledTimes(1);
 		expect(handleSubtract).toHaveBeenLastCalledWith({
 			minutes: 0,
 			seconds: 59,
@@ -72,7 +72,7 @@ describe("CountdownTimer", () => {
 		vi.advanceTimersByTime(60000);
 
 		// Assert
-		expect(handleSubtract).toHaveBeenCalledTimes(120); // BUG: should be 60
+		expect(handleSubtract).toHaveBeenCalledTimes(60);
 		expect(handleSubtract).toHaveBeenLastCalledWith({
 			minutes: 0,
 			seconds: 0,
@@ -307,7 +307,7 @@ describe("CountdownTimer", () => {
 		vi.advanceTimersByTime(1000);
 
 		// Assert
-		expect(handleSubtract).toHaveBeenCalledTimes(countAfterPause + 2); // BUG: should be countAfterPause + 1
+		expect(handleSubtract).toHaveBeenCalledTimes(countAfterPause + 1);
 		expect(handleSubtract).toHaveBeenLastCalledWith({
 			minutes: 0,
 			seconds: 1,

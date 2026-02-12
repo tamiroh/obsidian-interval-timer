@@ -153,15 +153,25 @@ export class CountdownTimer {
 			return "unchanged";
 		}
 
-		const diff = Math.floor((Date.now() - startAt.getTime()) / 1000);
-		const initialTimeInSeconds = toSeconds(this.initialTime);
-		const nextCurrentTimeInSeconds = initialTimeInSeconds - diff;
+		const elapsedSeconds = Math.floor(
+			(Date.now() - startAt.getTime()) / 1000,
+		);
+		const initialTimeAsSeconds = toSeconds(this.initialTime);
+		const remainingSeconds = initialTimeAsSeconds - elapsedSeconds;
+		const previousRemainingSeconds = toSeconds(this.state.currentTime);
+
+		if (remainingSeconds < 0) {
+			return "exceeded";
+		}
+		if (remainingSeconds === previousRemainingSeconds) {
+			return "unchanged";
+		}
 
 		this.state.currentTime = {
-			minutes: Math.floor(nextCurrentTimeInSeconds / 60),
-			seconds: (nextCurrentTimeInSeconds % 60) as Seconds,
+			minutes: Math.floor(remainingSeconds / 60),
+			seconds: (remainingSeconds % 60) as Seconds,
 		};
 
-		return nextCurrentTimeInSeconds >= 0 ? "subtracted" : "exceeded";
+		return "subtracted";
 	}
 }
