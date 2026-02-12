@@ -154,11 +154,7 @@ export class CountdownTimer {
 			return "unchanged";
 		}
 
-		const elapsedSeconds = Math.floor(
-			(Date.now() - startAt.getTime()) / 1000,
-		);
-		const initialTimeAsSeconds = toSeconds(this.initialTime);
-		const remainingSeconds = initialTimeAsSeconds - elapsedSeconds;
+		const remainingSeconds = this.computeRemainingSeconds(startAt);
 		const previousRemainingSeconds = toSeconds(this.state.currentTime);
 
 		if (remainingSeconds === previousRemainingSeconds) {
@@ -175,5 +171,13 @@ export class CountdownTimer {
 		};
 
 		return "subtracted";
+	}
+
+	private computeRemainingSeconds(startAt: Date): number {
+		const elapsedSeconds = Math.floor(
+			(Date.now() - startAt.getTime()) / 1000,
+		);
+		const initialSeconds = toSeconds(this.initialTime);
+		return initialSeconds - elapsedSeconds;
 	}
 }
