@@ -98,6 +98,23 @@ describe("CountdownTimer", () => {
 		expect(handleComplete).toHaveBeenCalledOnce();
 	});
 
+	it("should call handleComplete only once even when time is advanced far past completion", () => {
+		// Arrange
+		const handleComplete = vi.fn();
+		new CountdownTimer(
+			{ minutes: 0, seconds: 1 },
+			vi.fn(),
+			vi.fn(),
+			handleComplete,
+		).start();
+
+		// Act
+		vi.advanceTimersByTime(5000);
+
+		// Assert
+		expect(handleComplete).toHaveBeenCalledOnce();
+	});
+
 	it("should complete immediately when remaining time reaches zero", () => {
 		// Arrange
 		const handleComplete = vi.fn();
@@ -116,6 +133,26 @@ describe("CountdownTimer", () => {
 		// Assert
 		expect(calledBeforeLastMillisecond).toBe(0);
 		expect(handleComplete).toHaveBeenCalledOnce();
+	});
+
+	it("should call handleSubtract with 00:00 only once", () => {
+		// Arrange
+		const handleSubtract = vi.fn();
+		new CountdownTimer(
+			{ minutes: 0, seconds: 1 },
+			handleSubtract,
+			vi.fn(),
+			vi.fn(),
+		).start();
+
+		// Act
+		vi.advanceTimersByTime(5000);
+		const zeroCalls = handleSubtract.mock.calls.filter(
+			([time]) => time.minutes === 0 && time.seconds === 0,
+		);
+
+		// Assert
+		expect(zeroCalls).toHaveLength(1);
 	});
 
 	it("should pause when pause is called", () => {
@@ -197,6 +234,24 @@ describe("CountdownTimer", () => {
 		// Assert
 		expect(result).toStrictEqual({ type: "failed" });
 		expect(handlePause).not.toHaveBeenCalled();
+	});
+
+	it("should fail to pause when completed", () => {
+		// Arrange
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 0, seconds: 1 },
+			vi.fn(),
+			vi.fn(),
+			vi.fn(),
+		);
+		countdownTimer.start();
+		vi.advanceTimersByTime(2000);
+
+		// Act
+		const result = countdownTimer.pause();
+
+		// Assert
+		expect(result).toStrictEqual({ type: "failed" });
 	});
 
 	it("should report initialized timer type when created", () => {
@@ -285,6 +340,26 @@ describe("CountdownTimer", () => {
 		});
 		expect(countdownTimer.getCurrentTimerType()).toBe("initialized");
 		expect(countdownTimer.getIntervalId()).toBeUndefined();
+	});
+
+	it("should start again after reset from completed state", () => {
+		// Arrange
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 0, seconds: 1 },
+			vi.fn(),
+			vi.fn(),
+			vi.fn(),
+		);
+		countdownTimer.start();
+		vi.advanceTimersByTime(2000);
+		countdownTimer.reset();
+
+		// Act
+		const result = countdownTimer.start();
+
+		// Assert
+		expect(result).toStrictEqual({ type: "succeeded" });
+		expect(countdownTimer.getCurrentTimerType()).toBe("running");
 	});
 
 	it("should not subtract while paused", () => {
