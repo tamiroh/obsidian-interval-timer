@@ -58,6 +58,12 @@ export class IntervalTimer {
 		notifier: (message: string, context: NotifierContext) => void,
 		initialParams?: InitialParams,
 	) {
+		// Initialize properties
+
+		this.currentInterval = {
+			timer: this.createTimer(0, 0), // dummy timer, will be replaced immediately
+			state: "focus",
+		};
 		this.onChangeState = (timerState, time) => {
 			onChangeState(
 				timerState,
@@ -71,19 +77,14 @@ export class IntervalTimer {
 			total: initialParams?.focusIntervals?.total ?? 0,
 			set: initialParams?.focusIntervals?.set ?? 0,
 		};
-		this.currentInterval = {
-			timer: this.createTimer(
-				initialParams?.minutes ?? this.settings.focusIntervalDuration,
-				initialParams?.seconds ?? 0,
-			),
-			state: initialParams?.state ?? "focus",
-		};
 		this.notifier = notifier;
 		this.autoResetScheduler = new DailyScheduler(settings.resetTime, () => {
 			this.resetTotalIntervals();
 		});
 
-		this.onChangeState("initialized", {
+		// Enter the initial interval
+
+		this.enterInterval(initialParams?.state ?? "focus", {
 			minutes:
 				initialParams?.minutes ?? this.settings.focusIntervalDuration,
 			seconds: initialParams?.seconds ?? 0,
