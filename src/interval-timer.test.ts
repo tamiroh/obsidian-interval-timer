@@ -274,6 +274,38 @@ describe("IntervalTimer", () => {
 		intervalTimer.dispose();
 	});
 
+	it("should restart set counting from 1 after resetIntervalsSet", () => {
+		const handleChangeState = vi.fn();
+		const settings: IntervalTimerSetting = {
+			focusIntervalDuration: 25,
+			shortBreakDuration: 5,
+			longBreakDuration: 15,
+			longBreakAfter: 4,
+			notificationStyle: "simple",
+			resetTime: { hours: 0, minutes: 0 },
+		};
+		const intervalTimer = new IntervalTimer(
+			handleChangeState,
+			settings,
+			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			{ focusIntervals: { total: 3, set: 2 }, state: "focus" },
+		);
+		handleChangeState.mockClear();
+
+		intervalTimer.resetIntervalsSet();
+		intervalTimer.skipInterval(); // skips long break
+		intervalTimer.skipInterval(); // skips focus and should increment set to 1
+
+		expect(handleChangeState).toHaveBeenLastCalledWith(
+			"initialized",
+			"shortBreak",
+			{ minutes: 5, seconds: 0 },
+			{ set: 1, total: 4 },
+		);
+
+		intervalTimer.dispose();
+	});
+
 	it("should reset total intervals and move to focus", () => {
 		const handleChangeState = vi.fn();
 		const settings: IntervalTimerSetting = {
@@ -402,6 +434,61 @@ describe("IntervalTimer", () => {
 		intervalTimer.dispose();
 	});
 
+	it("should keep counting correctly across multiple long break cycles", () => {
+		const handleChangeState = vi.fn();
+		const settings: IntervalTimerSetting = {
+			focusIntervalDuration: 25,
+			shortBreakDuration: 5,
+			longBreakDuration: 15,
+			longBreakAfter: 2,
+			notificationStyle: "simple",
+			resetTime: { hours: 0, minutes: 0 },
+		};
+		const intervalTimer = new IntervalTimer(
+			handleChangeState,
+			settings,
+			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			{ state: "focus" },
+		);
+		handleChangeState.mockClear();
+
+		intervalTimer.skipInterval();
+		intervalTimer.skipInterval();
+		intervalTimer.skipInterval();
+		intervalTimer.skipInterval();
+
+		expect(handleChangeState).toHaveBeenNthCalledWith(
+			1,
+			"initialized",
+			"shortBreak",
+			{ minutes: 5, seconds: 0 },
+			{ set: 1, total: 1 },
+		);
+		expect(handleChangeState).toHaveBeenNthCalledWith(
+			2,
+			"initialized",
+			"focus",
+			{ minutes: 25, seconds: 0 },
+			{ set: 1, total: 1 },
+		);
+		expect(handleChangeState).toHaveBeenNthCalledWith(
+			3,
+			"initialized",
+			"longBreak",
+			{ minutes: 15, seconds: 0 },
+			{ set: 0, total: 2 },
+		);
+		expect(handleChangeState).toHaveBeenNthCalledWith(
+			4,
+			"initialized",
+			"focus",
+			{ minutes: 25, seconds: 0 },
+			{ set: 0, total: 2 },
+		);
+
+		intervalTimer.dispose();
+	});
+
 	it("should advance to focus after a short break", () => {
 		const handleChangeState = vi.fn();
 		const notifier = vi.fn();
@@ -435,6 +522,41 @@ describe("IntervalTimer", () => {
 		expect(notifier).toHaveBeenCalledWith("⏰  Now it's time to focus", {
 			state: "focus",
 		});
+
+		intervalTimer.dispose();
+	});
+
+	it("should not increment focus intervals when short break completes", () => {
+		const handleChangeState = vi.fn();
+		const settings: IntervalTimerSetting = {
+			focusIntervalDuration: 25,
+			shortBreakDuration: 1,
+			longBreakDuration: 15,
+			longBreakAfter: 4,
+			notificationStyle: "simple",
+			resetTime: { hours: 0, minutes: 0 },
+		};
+		const intervalTimer = new IntervalTimer(
+			handleChangeState,
+			settings,
+			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			{
+				state: "shortBreak",
+				minutes: settings.shortBreakDuration,
+				focusIntervals: { total: 7, set: 3 },
+			},
+		);
+		handleChangeState.mockClear();
+
+		intervalTimer.start();
+		vi.advanceTimersByTime(settings.shortBreakDuration * 60 * 1000 + 1000);
+
+		expect(handleChangeState).toHaveBeenCalledWith(
+			"initialized",
+			"focus",
+			{ minutes: 25, seconds: 0 },
+			{ set: 3, total: 7 },
+		);
 
 		intervalTimer.dispose();
 	});
@@ -507,6 +629,36 @@ describe("IntervalTimer", () => {
 			{ set: 1, total: 1 },
 		);
 		expect(notifier).not.toHaveBeenCalled();
+
+		intervalTimer.dispose();
+	});
+
+	it("should not increment focus intervals when short break is skipped", () => {
+		const handleChangeState = vi.fn();
+		const settings: IntervalTimerSetting = {
+			focusIntervalDuration: 25,
+			shortBreakDuration: 5,
+			longBreakDuration: 15,
+			longBreakAfter: 4,
+			notificationStyle: "simple",
+			resetTime: { hours: 0, minutes: 0 },
+		};
+		const intervalTimer = new IntervalTimer(
+			handleChangeState,
+			settings,
+			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			{ state: "shortBreak", focusIntervals: { total: 2, set: 1 } },
+		);
+		handleChangeState.mockClear();
+
+		intervalTimer.skipInterval();
+
+		expect(handleChangeState).toHaveBeenCalledWith(
+			"initialized",
+			"focus",
+			{ minutes: 25, seconds: 0 },
+			{ set: 1, total: 2 },
+		);
 
 		intervalTimer.dispose();
 	});
