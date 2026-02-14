@@ -114,26 +114,16 @@ export class IntervalTimer {
 	}
 
 	public resetIntervalsSet(): void {
-		this.currentInterval.timer.pause();
 		this.focusIntervals.set = 0;
-		this.currentInterval = {
-			timer: this.createTimer(this.settings.longBreakDuration, 0),
-			state: "longBreak",
-		};
-		this.onChangeState("initialized", {
+		this.enterToInterval("longBreak", {
 			minutes: this.settings.longBreakDuration,
 			seconds: 0,
 		});
 	}
 
 	public resetTotalIntervals(): void {
-		this.currentInterval.timer.pause();
 		this.focusIntervals = { total: 0, set: 0 };
-		this.currentInterval = {
-			timer: this.createTimer(this.settings.focusIntervalDuration, 0),
-			state: "focus",
-		};
-		this.onChangeState("initialized", {
+		this.enterToInterval("focus", {
 			minutes: this.settings.focusIntervalDuration,
 			seconds: 0,
 		});
@@ -148,13 +138,10 @@ export class IntervalTimer {
 		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
 			return false;
 		}
-
-		this.currentInterval = {
-			timer: this.createTimer(minutes, 0),
-			state: this.currentInterval.state,
-		};
-		this.onChangeState("initialized", { minutes, seconds: 0 });
-
+		this.enterToInterval(this.currentInterval.state, {
+			minutes,
+			seconds: 0,
+		});
 		return true;
 	}
 
@@ -192,40 +179,19 @@ export class IntervalTimer {
 				};
 				if (this.focusIntervals.set === this.settings.longBreakAfter) {
 					this.focusIntervals.set = 0;
-					this.currentInterval = {
-						timer: this.createTimer(
-							this.settings.longBreakDuration,
-							0,
-						),
-						state: "longBreak",
-					};
-					this.onChangeState("initialized", {
+					this.enterToInterval("longBreak", {
 						minutes: this.settings.longBreakDuration,
 						seconds: 0,
 					});
 				} else {
-					this.currentInterval = {
-						timer: this.createTimer(
-							this.settings.shortBreakDuration,
-							0,
-						),
-						state: "shortBreak",
-					};
-					this.onChangeState("initialized", {
+					this.enterToInterval("shortBreak", {
 						minutes: this.settings.shortBreakDuration,
 						seconds: 0,
 					});
 				}
 			})
 			.with("shortBreak", "longBreak", () => {
-				this.currentInterval = {
-					timer: this.createTimer(
-						this.settings.focusIntervalDuration,
-						0,
-					),
-					state: "focus",
-				};
-				this.onChangeState("initialized", {
+				this.enterToInterval("focus", {
 					minutes: this.settings.focusIntervalDuration,
 					seconds: 0,
 				});
@@ -255,5 +221,14 @@ export class IntervalTimer {
 			this.onPause.bind(this),
 			this.onComplete.bind(this),
 		);
+	}
+
+	private enterToInterval(state: IntervalTimerState, time: Time): void {
+		this.currentInterval.timer.dispose();
+		this.currentInterval = {
+			timer: this.createTimer(time.minutes, time.seconds),
+			state,
+		};
+		this.onChangeState("initialized", time);
 	}
 }
