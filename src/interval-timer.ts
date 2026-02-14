@@ -38,8 +38,6 @@ export class IntervalTimer {
 
 	private focusIntervals: { total: number; set: number };
 
-	private readonly onIntervalCreated: (intervalId: number) => void;
-
 	private readonly onChangeState: (type: TimerType, time: Time) => void;
 
 	private readonly settings: IntervalTimerSetting;
@@ -54,7 +52,6 @@ export class IntervalTimer {
 	constructor(
 		onChangeState: onChangeStateFunction,
 		settings: IntervalTimerSetting,
-		onIntervalCreated: (intervalId: number) => void,
 		notifier: (message: string, context: NotifierContext) => void,
 		initialParams?: InitialParams,
 	) {
@@ -67,7 +64,6 @@ export class IntervalTimer {
 			);
 		};
 		this.settings = settings;
-		this.onIntervalCreated = onIntervalCreated;
 		this.focusIntervals = {
 			total: initialParams?.focusIntervals?.total ?? 0,
 			set: initialParams?.focusIntervals?.set ?? 0,
@@ -101,11 +97,6 @@ export class IntervalTimer {
 
 	public start(): void {
 		this.timerState.timer.start();
-
-		const intervalId = this.timerState.timer.getIntervalId();
-		if (intervalId != null) {
-			this.onIntervalCreated(intervalId);
-		}
 	}
 
 	public pause(): void {
@@ -183,6 +174,7 @@ export class IntervalTimer {
 	}
 
 	public dispose(): void {
+		this.timerState.timer.dispose();
 		this.disableAutoReset();
 	}
 

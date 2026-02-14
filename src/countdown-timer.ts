@@ -31,7 +31,7 @@ export type TimerState =
 export class CountdownTimer {
 	private state: TimerState;
 
-	private readonly onSubtract: (time: Time) => void;
+	private readonly onSubtract: ((time: Time) => void) | undefined;
 
 	private readonly onPause: ((current: Time) => void) | undefined;
 
@@ -41,7 +41,7 @@ export class CountdownTimer {
 
 	constructor(
 		initialTime: Time,
-		onSubtract: (time: Time) => void,
+		onSubtract?: (time: Time) => void,
 		onPause?: (current: Time) => void,
 		onComplete?: () => void,
 	) {
@@ -51,7 +51,13 @@ export class CountdownTimer {
 			minutes: initialTime.minutes,
 			seconds: initialTime.seconds,
 		};
-		this.state = { type: "initialized", currentTime: initialTime };
+		this.state = {
+			type: "initialized",
+			currentTime: {
+				minutes: initialTime.minutes,
+				seconds: initialTime.seconds,
+			},
+		};
 		this.onSubtract = onSubtract;
 	}
 
@@ -79,9 +85,10 @@ export class CountdownTimer {
 			const result = this.updateCurrentTime(startAt);
 
 			if (result === "subtracted") {
-				this.onSubtract(this.state.currentTime);
+				this.onSubtract?.(this.state.currentTime);
 			}
-			if (result === "exceeded") {
+			if (result === "completed") {
+				this.onSubtract?.(this.state.currentTime);
 				window.clearInterval(intervalId);
 				this.state = { type: "completed" };
 				this.onComplete?.();
@@ -119,7 +126,10 @@ export class CountdownTimer {
 		}
 		this.state = {
 			type: "initialized",
-			currentTime: this.initialTime,
+			currentTime: {
+				minutes: this.initialTime.minutes,
+				seconds: this.initialTime.seconds,
+			},
 		};
 		return {
 			type: "succeeded",
@@ -130,10 +140,16 @@ export class CountdownTimer {
 		};
 	}
 
-	public getIntervalId(): number | undefined {
-		return this.state.type === "running"
-			? this.state.intervalId
-			: undefined;
+	public dispose(): void {
+		if (this.state.type !== "running") {
+			return;
+		}
+
+		window.clearInterval(this.state.intervalId);
+		this.state = {
+			type: "paused",
+			currentTime: this.state.currentTime,
+		};
 	}
 
 	public getCurrentTimerType(): TimerType {
@@ -142,20 +158,34 @@ export class CountdownTimer {
 
 	private updateCurrentTime(
 		startAt: Date,
-	): "unchanged" | "subtracted" | "exceeded" {
+	): "unchanged" | "subtracted" | "completed" {
 		if (this.state.type !== "running") {
 			return "unchanged";
 		}
 
-		const diff = Math.floor((Date.now() - startAt.getTime()) / 1000);
-		const initialTimeInSeconds = toSeconds(this.initialTime);
-		const nextCurrentTimeInSeconds = initialTimeInSeconds - diff;
+		const remainingSeconds = this.computeRemainingSeconds(startAt);
+		const previousRemainingSeconds = toSeconds(this.state.currentTime);
+
+		if (remainingSeconds === previousRemainingSeconds) {
+			return "unchanged";
+		}
+		if (remainingSeconds <= 0) {
+			this.state.currentTime = { minutes: 0, seconds: 0 };
+			return "completed";
+		}
 
 		this.state.currentTime = {
-			minutes: Math.floor(nextCurrentTimeInSeconds / 60),
-			seconds: (nextCurrentTimeInSeconds % 60) as Seconds,
+			minutes: Math.floor(remainingSeconds / 60),
+			seconds: (remainingSeconds % 60) as Seconds,
 		};
+		return "subtracted";
+	}
 
-		return nextCurrentTimeInSeconds >= 0 ? "subtracted" : "exceeded";
+	private computeRemainingSeconds(startAt: Date): number {
+		const elapsedSeconds = Math.floor(
+			(Date.now() - startAt.getTime()) / 1000,
+		);
+		const initialSeconds = toSeconds(this.initialTime);
+		return initialSeconds - elapsedSeconds;
 	}
 }

@@ -24,7 +24,6 @@ describe("IntervalTimer", () => {
 				resetTime: { hours: 0, minutes: 0 },
 			},
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
 		intervalTimer.enableAutoReset();
 		handleChangeState.mockClear();
@@ -57,7 +56,6 @@ describe("IntervalTimer", () => {
 				resetTime: { hours: 0, minutes: 0 },
 			},
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
 		intervalTimer.enableAutoReset();
 		handleChangeState.mockClear();
@@ -83,7 +81,6 @@ describe("IntervalTimer", () => {
 				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			},
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
 		intervalTimer.enableAutoReset();
@@ -118,7 +115,6 @@ describe("IntervalTimer", () => {
 				resetTime: { hours: 0, minutes: 0 },
 			},
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
 		intervalTimer.enableAutoReset();
 		intervalTimer.disableAutoReset();
@@ -146,7 +142,6 @@ describe("IntervalTimer", () => {
 				resetTime: { hours: 0, minutes: 0 },
 			},
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
 		intervalTimer.enableAutoReset();
 		intervalTimer.dispose();
@@ -158,7 +153,7 @@ describe("IntervalTimer", () => {
 		expect(handleChangeState).not.toHaveBeenCalled();
 	});
 
-	it("should call handleIntervalCreated when started", () => {
+	it("should enter running state when started", () => {
 		const handleChangeState = vi.fn();
 		const settings: IntervalTimerSetting = {
 			focusIntervalDuration: 25,
@@ -168,17 +163,22 @@ describe("IntervalTimer", () => {
 			notificationStyle: "simple",
 			resetTime: { hours: 0, minutes: 0 },
 		};
-		const handleIntervalCreated = vi.fn();
 		const notifier = vi.fn();
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
 			settings,
-			handleIntervalCreated,
 			notifier,
 		);
+		handleChangeState.mockClear();
 
 		intervalTimer.start();
-		expect(handleIntervalCreated).toHaveBeenCalledTimes(1);
+		vi.advanceTimersByTime(1000);
+		expect(handleChangeState).toHaveBeenCalledWith(
+			"running",
+			"focus",
+			{ minutes: 24, seconds: 59 },
+			{ set: 0, total: 0 },
+		);
 		intervalTimer.dispose();
 	});
 
@@ -195,7 +195,6 @@ describe("IntervalTimer", () => {
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
 			settings,
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
 		handleChangeState.mockClear();
@@ -228,7 +227,6 @@ describe("IntervalTimer", () => {
 			handleChangeState,
 			settings,
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
 		handleChangeState.mockClear();
 
@@ -260,7 +258,6 @@ describe("IntervalTimer", () => {
 			handleChangeState,
 			settings,
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			{ focusIntervals: { total: 3, set: 2 } },
 		);
 		handleChangeState.mockClear();
@@ -291,7 +288,6 @@ describe("IntervalTimer", () => {
 			handleChangeState,
 			settings,
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			{ focusIntervals: { total: 2, set: 1 } },
 		);
 		handleChangeState.mockClear();
@@ -321,7 +317,6 @@ describe("IntervalTimer", () => {
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
 			settings,
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			{ state: "focus" },
 		);
@@ -355,7 +350,6 @@ describe("IntervalTimer", () => {
 			handleChangeState,
 			settings,
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			{ state: "focus" },
 		);
 		handleChangeState.mockClear();
@@ -385,7 +379,6 @@ describe("IntervalTimer", () => {
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
 			settings,
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			notifier,
 			{ focusIntervals: { total: 1, set: 1 }, state: "focus" },
 		);
@@ -423,7 +416,6 @@ describe("IntervalTimer", () => {
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
 			settings,
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			notifier,
 			{ state: "shortBreak" },
 		);
@@ -462,7 +454,6 @@ describe("IntervalTimer", () => {
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
 			settings,
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			notifier,
 			{ state: "focus" },
 		);
@@ -502,7 +493,6 @@ describe("IntervalTimer", () => {
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
 			settings,
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			notifier,
 			{ state: "focus" },
 		);
@@ -523,7 +513,6 @@ describe("IntervalTimer", () => {
 
 	it("should start when touch is called from initialized state", () => {
 		const handleChangeState = vi.fn();
-		const handleIntervalCreated = vi.fn();
 		const settings: IntervalTimerSetting = {
 			focusIntervalDuration: 1,
 			shortBreakDuration: 1,
@@ -535,13 +524,19 @@ describe("IntervalTimer", () => {
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
 			settings,
-			handleIntervalCreated,
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
+		handleChangeState.mockClear();
 
 		intervalTimer.touch();
+		vi.advanceTimersByTime(1000);
 
-		expect(handleIntervalCreated).toHaveBeenCalledTimes(1);
+		expect(handleChangeState).toHaveBeenCalledWith(
+			"running",
+			"focus",
+			{ minutes: 0, seconds: 59 },
+			{ set: 0, total: 0 },
+		);
 
 		intervalTimer.dispose();
 	});
@@ -559,7 +554,6 @@ describe("IntervalTimer", () => {
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
 			settings,
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
 		handleChangeState.mockClear();
@@ -581,7 +575,6 @@ describe("IntervalTimer", () => {
 	it("should start when touch is called from paused state", () => {
 		// Arrange
 		const handleChangeState = vi.fn();
-		const handleIntervalCreated = vi.fn();
 		const settings: IntervalTimerSetting = {
 			focusIntervalDuration: 1,
 			shortBreakDuration: 1,
@@ -593,21 +586,25 @@ describe("IntervalTimer", () => {
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
 			settings,
-			handleIntervalCreated,
 			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 		);
-		handleIntervalCreated.mockClear();
 
 		// Act
 		intervalTimer.start();
 		vi.advanceTimersByTime(1000);
 		intervalTimer.pause();
-		handleIntervalCreated.mockClear();
+		handleChangeState.mockClear();
 
 		intervalTimer.touch();
+		vi.advanceTimersByTime(1000);
 
 		// Assert
-		expect(handleIntervalCreated).toHaveBeenCalledTimes(1);
+		expect(handleChangeState).toHaveBeenCalledWith(
+			"running",
+			"focus",
+			{ minutes: 0, seconds: 58 },
+			{ set: 0, total: 0 },
+		);
 
 		intervalTimer.dispose();
 	});
@@ -626,7 +623,6 @@ describe("IntervalTimer", () => {
 		const intervalTimer = new IntervalTimer(
 			handleChangeState,
 			settings,
-			() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
 			notifier,
 			{ state: "shortBreak" },
 		);

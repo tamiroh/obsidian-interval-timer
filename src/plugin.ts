@@ -62,8 +62,6 @@ export default class Plugin extends BasePlugin {
 
 			this.statusBar.update(intervals, time, intervalTimerState);
 		};
-		const onIntervalCreated = (intervalId: number) =>
-			this.registerInterval(intervalId);
 		const notifier = (message: string, context: NotifierContext) => {
 			const overlayColor = match(context.state)
 				.with("focus", () => ({ r: 255, g: 100, b: 100 }))
@@ -101,7 +99,6 @@ export default class Plugin extends BasePlugin {
 		this.intervalTimer = new IntervalTimer(
 			onChangeState,
 			this.settings,
-			onIntervalCreated,
 			notifier,
 			initialParams,
 		);
