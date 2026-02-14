@@ -824,4 +824,69 @@ describe("IntervalTimer", () => {
 			intervalTimer.dispose();
 		});
 	});
+
+	describe("Snapshot", () => {
+		it("should apply snapshot values to state, time, and intervals", () => {
+			const handleChangeState = vi.fn();
+			const settings: IntervalTimerSetting = {
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				notificationStyle: "simple",
+				resetTime: { hours: 0, minutes: 0 },
+			};
+			const intervalTimer = new IntervalTimer(
+				handleChangeState,
+				settings,
+				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			);
+			handleChangeState.mockClear();
+
+			intervalTimer.applySnapshot({
+				state: "shortBreak",
+				minutes: 3,
+				seconds: 20,
+				focusIntervals: { total: 7, set: 2 },
+			});
+
+			expect(handleChangeState).toHaveBeenCalledWith(
+				"initialized",
+				"shortBreak",
+				{ minutes: 3, seconds: 20 },
+				{ set: 2, total: 7 },
+			);
+
+			intervalTimer.dispose();
+		});
+
+		it("should fill missing snapshot fields with defaults", () => {
+			const handleChangeState = vi.fn();
+			const settings: IntervalTimerSetting = {
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				notificationStyle: "simple",
+				resetTime: { hours: 0, minutes: 0 },
+			};
+			const intervalTimer = new IntervalTimer(
+				handleChangeState,
+				settings,
+				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			);
+			handleChangeState.mockClear();
+
+			intervalTimer.applySnapshot({});
+
+			expect(handleChangeState).toHaveBeenCalledWith(
+				"initialized",
+				"focus",
+				{ minutes: 25, seconds: 0 },
+				{ set: 0, total: 0 },
+			);
+
+			intervalTimer.dispose();
+		});
+	});
 });

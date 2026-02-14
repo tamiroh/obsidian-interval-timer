@@ -89,6 +89,7 @@ export class IntervalTimer {
 		});
 	}
 
+	// TODO: snapshot should have all properties, not partial
 	public applySnapshot(snapshot: Snapshot): void {
 		this.focusIntervals = {
 			total: snapshot.focusIntervals?.total ?? 0,
