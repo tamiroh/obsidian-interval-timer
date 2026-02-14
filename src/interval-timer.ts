@@ -131,7 +131,7 @@ export class IntervalTimer {
 
 	public skipInterval(): void {
 		this.currentInterval.timer.pause();
-		this.onComplete({ shouldNotify: false });
+		this.enterNextInterval({ shouldNotify: false });
 	}
 
 	public retime(minutes: number): boolean {
@@ -168,7 +168,7 @@ export class IntervalTimer {
 		this.disableAutoReset();
 	}
 
-	private onComplete({
+	private enterNextInterval({
 		shouldNotify = true,
 	}: { shouldNotify?: boolean } = {}): void {
 		match(this.currentInterval.state)
@@ -210,16 +210,16 @@ export class IntervalTimer {
 		}
 	}
 
-	private onPause(current: Time): void {
-		this.onChangeState("paused", current);
-	}
-
 	private createTimer(minutes: number, seconds: Seconds): CountdownTimer {
+		const handlePause = (current: Time): void => {
+			this.onChangeState("paused", current);
+		};
+
 		return new CountdownTimer(
 			{ minutes, seconds },
 			(time: Time) => this.onChangeState("running", time),
-			this.onPause.bind(this),
-			this.onComplete.bind(this),
+			handlePause,
+			this.enterNextInterval.bind(this),
 		);
 	}
 
