@@ -34,11 +34,12 @@ export type NotifierContext = {
 };
 
 export class IntervalTimer {
-	private timerState: { timer: CountdownTimer; state: IntervalTimerState };
+	private currentInterval: {
+		timer: CountdownTimer;
+		state: IntervalTimerState;
+	};
 
 	private focusIntervals: { total: number; set: number };
-
-	private readonly onIntervalCreated: (intervalId: number) => void;
 
 	private readonly onChangeState: (type: TimerType, time: Time) => void;
 
@@ -58,7 +59,6 @@ export class IntervalTimer {
 	constructor(
 		onChangeState: onChangeStateFunction,
 		settings: IntervalTimerSetting,
-		onIntervalCreated: (intervalId: number) => void,
 		notifier: (message: string, context: NotifierContext) => void,
 		initialParams?: InitialParams,
 		onStart?: (state: IntervalTimerState) => void,
@@ -67,18 +67,17 @@ export class IntervalTimer {
 		this.onChangeState = (timerState, time) => {
 			onChangeState(
 				timerState,
-				this.timerState.state,
+				this.currentInterval.state,
 				time,
 				this.focusIntervals,
 			);
 		};
 		this.settings = settings;
-		this.onIntervalCreated = onIntervalCreated;
 		this.focusIntervals = {
 			total: initialParams?.focusIntervals?.total ?? 0,
 			set: initialParams?.focusIntervals?.set ?? 0,
 		};
-		this.timerState = {
+		this.currentInterval = {
 			timer: this.createTimer(
 				initialParams?.minutes ?? this.settings.focusIntervalDuration,
 				initialParams?.seconds ?? 0,
@@ -109,77 +108,59 @@ export class IntervalTimer {
 
 	public start(): void {
 		this.onStart?.(this.timerState.state);
-		this.timerState.timer.start();
-
-		const intervalId = this.timerState.timer.getIntervalId();
-		if (intervalId != null) {
-			this.onIntervalCreated(intervalId);
-		}
+		this.currentInterval.timer.start();
 	}
 
 	public pause(): void {
-		this.timerState.timer.pause();
+		this.currentInterval.timer.pause();
 	}
 
 	public reset(): void {
-		const result = this.timerState.timer.reset();
+		const result = this.currentInterval.timer.reset();
 		if (result.type === "succeeded") {
 			this.onChangeState("initialized", result.resetTo);
 		}
 	}
 
 	public resetIntervalsSet(): void {
-		this.timerState.timer.pause();
 		this.focusIntervals.set = 0;
-		this.timerState = {
-			timer: this.createTimer(this.settings.longBreakDuration, 0),
-			state: "longBreak",
-		};
-		this.onChangeState("initialized", {
+		this.enterInterval("longBreak", {
 			minutes: this.settings.longBreakDuration,
 			seconds: 0,
 		});
 	}
 
 	public resetTotalIntervals(): void {
-		this.timerState.timer.pause();
 		this.focusIntervals = { total: 0, set: 0 };
-		this.timerState = {
-			timer: this.createTimer(this.settings.focusIntervalDuration, 0),
-			state: "focus",
-		};
-		this.onChangeState("initialized", {
+		this.enterInterval("focus", {
 			minutes: this.settings.focusIntervalDuration,
 			seconds: 0,
 		});
 	}
 
 	public skipInterval(): void {
-		this.timerState.timer.pause();
+		this.currentInterval.timer.pause();
 		this.onComplete({ shouldNotify: false });
 	}
 
 	public retime(minutes: number): boolean {
-		if (this.timerState.timer.getCurrentTimerType() === "running") {
+		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
 			return false;
 		}
-
-		this.timerState = {
-			timer: this.createTimer(minutes, 0),
-			state: this.timerState.state,
-		};
-		this.onChangeState("initialized", { minutes, seconds: 0 });
-
+		this.enterInterval(this.currentInterval.state, {
+			minutes,
+			seconds: 0,
+		});
 		return true;
 	}
 
 	public touch(): void {
-		match(this.timerState.timer.getCurrentTimerType())
+		match(this.currentInterval.timer.getCurrentTimerType())
 			.with("initialized", "paused", "completed", () => {
 				this.start();
 			})
 			.with("running", () => {
-				match(this.timerState.state)
+				match(this.currentInterval.state)
 					.with("focus", () => {
 						this.reset();
 					})
@@ -192,13 +173,14 @@ export class IntervalTimer {
 	}
 
 	public dispose(): void {
+		this.currentInterval.timer.dispose();
 		this.disableAutoReset();
 	}
 
 	private onComplete({
 		shouldNotify = true,
 	}: { shouldNotify?: boolean } = {}): void {
-		match(this.timerState.state)
+		match(this.currentInterval.state)
 			.with("focus", () => {
 				this.onFocusCompleted?.();
 				this.focusIntervals = {
@@ -207,40 +189,19 @@ export class IntervalTimer {
 				};
 				if (this.focusIntervals.set === this.settings.longBreakAfter) {
 					this.focusIntervals.set = 0;
-					this.timerState = {
-						timer: this.createTimer(
-							this.settings.longBreakDuration,
-							0,
-						),
-						state: "longBreak",
-					};
-					this.onChangeState("initialized", {
+					this.enterInterval("longBreak", {
 						minutes: this.settings.longBreakDuration,
 						seconds: 0,
 					});
 				} else {
-					this.timerState = {
-						timer: this.createTimer(
-							this.settings.shortBreakDuration,
-							0,
-						),
-						state: "shortBreak",
-					};
-					this.onChangeState("initialized", {
+					this.enterInterval("shortBreak", {
 						minutes: this.settings.shortBreakDuration,
 						seconds: 0,
 					});
 				}
 			})
 			.with("shortBreak", "longBreak", () => {
-				this.timerState = {
-					timer: this.createTimer(
-						this.settings.focusIntervalDuration,
-						0,
-					),
-					state: "focus",
-				};
-				this.onChangeState("initialized", {
+				this.enterInterval("focus", {
 					minutes: this.settings.focusIntervalDuration,
 					seconds: 0,
 				});
@@ -249,12 +210,12 @@ export class IntervalTimer {
 
 		if (shouldNotify) {
 			this.notifier(
-				match(this.timerState.state)
+				match(this.currentInterval.state)
 					.with("focus", () => "⏰  Now it's time to focus")
 					.with("shortBreak", () => "☕️  Time for a short break")
 					.with("longBreak", () => "🏖️  Time for a long break")
 					.exhaustive(),
-				{ state: this.timerState.state },
+				{ state: this.currentInterval.state },
 			);
 		}
 	}
@@ -270,5 +231,14 @@ export class IntervalTimer {
 			this.onPause.bind(this),
 			this.onComplete.bind(this),
 		);
+	}
+
+	private enterInterval(state: IntervalTimerState, time: Time): void {
+		this.currentInterval.timer.dispose();
+		this.currentInterval = {
+			timer: this.createTimer(time.minutes, time.seconds),
+			state,
+		};
+		this.onChangeState("initialized", time);
 	}
 }
