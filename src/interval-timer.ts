@@ -89,10 +89,6 @@ export class IntervalTimer {
 		});
 	}
 
-	public enableAutoReset(): void {
-		this.autoResetScheduler.enable();
-	}
-
 	public applySnapshot(snapshot: Snapshot): void {
 		this.focusIntervals = {
 			total: snapshot.focusIntervals?.total ?? 0,
@@ -102,6 +98,10 @@ export class IntervalTimer {
 			minutes: snapshot.minutes ?? this.settings.focusIntervalDuration,
 			seconds: snapshot.seconds ?? 0,
 		});
+	}
+
+	public enableAutoReset(): void {
+		this.autoResetScheduler.enable();
 	}
 
 	public disableAutoReset(): void {
