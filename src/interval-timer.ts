@@ -107,7 +107,7 @@ export class IntervalTimer {
 	}
 
 	public start(): void {
-		this.onStart?.(this.timerState.state);
+		this.onStart?.(this.currentInterval.state);
 		this.currentInterval.timer.start();
 	}
 
