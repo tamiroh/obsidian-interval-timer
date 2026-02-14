@@ -115,7 +115,7 @@ export class IntervalTimer {
 
 	public resetIntervalsSet(): void {
 		this.focusIntervals.set = 0;
-		this.enterToInterval("longBreak", {
+		this.enterInterval("longBreak", {
 			minutes: this.settings.longBreakDuration,
 			seconds: 0,
 		});
@@ -123,7 +123,7 @@ export class IntervalTimer {
 
 	public resetTotalIntervals(): void {
 		this.focusIntervals = { total: 0, set: 0 };
-		this.enterToInterval("focus", {
+		this.enterInterval("focus", {
 			minutes: this.settings.focusIntervalDuration,
 			seconds: 0,
 		});
@@ -138,7 +138,7 @@ export class IntervalTimer {
 		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
 			return false;
 		}
-		this.enterToInterval(this.currentInterval.state, {
+		this.enterInterval(this.currentInterval.state, {
 			minutes,
 			seconds: 0,
 		});
@@ -179,19 +179,19 @@ export class IntervalTimer {
 				};
 				if (this.focusIntervals.set === this.settings.longBreakAfter) {
 					this.focusIntervals.set = 0;
-					this.enterToInterval("longBreak", {
+					this.enterInterval("longBreak", {
 						minutes: this.settings.longBreakDuration,
 						seconds: 0,
 					});
 				} else {
-					this.enterToInterval("shortBreak", {
+					this.enterInterval("shortBreak", {
 						minutes: this.settings.shortBreakDuration,
 						seconds: 0,
 					});
 				}
 			})
 			.with("shortBreak", "longBreak", () => {
-				this.enterToInterval("focus", {
+				this.enterInterval("focus", {
 					minutes: this.settings.focusIntervalDuration,
 					seconds: 0,
 				});
@@ -223,7 +223,7 @@ export class IntervalTimer {
 		);
 	}
 
-	private enterToInterval(state: IntervalTimerState, time: Time): void {
+	private enterInterval(state: IntervalTimerState, time: Time): void {
 		this.currentInterval.timer.dispose();
 		this.currentInterval = {
 			timer: this.createTimer(time.minutes, time.seconds),
