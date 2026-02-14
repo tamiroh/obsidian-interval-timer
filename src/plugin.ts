@@ -49,7 +49,7 @@ export default class Plugin extends BasePlugin {
 
 	private setupIntervalTimer(): void {
 		const onChangeState: onChangeStateFunction = (
-			timerState,
+			_timerState,
 			intervalTimerState,
 			time,
 			intervals,
@@ -74,7 +74,7 @@ export default class Plugin extends BasePlugin {
 			FlashOverlay.getInstance().show(overlayColor);
 			notify(this.settings.notificationStyle, message);
 		};
-		const initialParams = {
+		const snapshot = {
 			minutes: parseInt(
 				this.keyValueStore.get("time-minutes") ?? "0",
 				10,
@@ -95,13 +95,12 @@ export default class Plugin extends BasePlugin {
 				),
 			},
 		};
-
 		this.intervalTimer = new IntervalTimer(
 			onChangeState,
 			this.settings,
 			notifier,
-			initialParams,
 		);
+		this.intervalTimer.applySnapshot(snapshot);
 		this.intervalTimer.enableAutoReset();
 	}
 

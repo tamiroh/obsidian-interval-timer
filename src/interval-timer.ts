@@ -22,7 +22,7 @@ export type onChangeStateFunction = (
 	focusIntervals: { total: number; set: number },
 ) => void;
 
-export type InitialParams = {
+export type Snapshot = {
 	minutes?: Minutes;
 	seconds?: Seconds;
 	state?: IntervalTimerState;
@@ -56,7 +56,6 @@ export class IntervalTimer {
 		onChangeState: onChangeStateFunction,
 		settings: IntervalTimerSetting,
 		notifier: (message: string, context: NotifierContext) => void,
-		initialParams?: InitialParams,
 	) {
 		// Initialize properties
 
@@ -74,8 +73,8 @@ export class IntervalTimer {
 		};
 		this.settings = settings;
 		this.focusIntervals = {
-			total: initialParams?.focusIntervals?.total ?? 0,
-			set: initialParams?.focusIntervals?.set ?? 0,
+			total: 0,
+			set: 0,
 		};
 		this.notifier = notifier;
 		this.autoResetScheduler = new DailyScheduler(settings.resetTime, () => {
@@ -84,15 +83,25 @@ export class IntervalTimer {
 
 		// Enter the initial interval
 
-		this.enterInterval(initialParams?.state ?? "focus", {
-			minutes:
-				initialParams?.minutes ?? this.settings.focusIntervalDuration,
-			seconds: initialParams?.seconds ?? 0,
+		this.enterInterval("focus", {
+			minutes: this.settings.focusIntervalDuration,
+			seconds: 0,
 		});
 	}
 
 	public enableAutoReset(): void {
 		this.autoResetScheduler.enable();
+	}
+
+	public applySnapshot(snapshot: Snapshot): void {
+		this.focusIntervals = {
+			total: snapshot.focusIntervals?.total ?? 0,
+			set: snapshot.focusIntervals?.set ?? 0,
+		};
+		this.enterInterval(snapshot.state ?? "focus", {
+			minutes: snapshot.minutes ?? this.settings.focusIntervalDuration,
+			seconds: snapshot.seconds ?? 0,
+		});
 	}
 
 	public disableAutoReset(): void {
