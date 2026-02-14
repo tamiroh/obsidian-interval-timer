@@ -30,7 +30,7 @@ describe("CountdownTimer", () => {
 		// Assert
 		expect(result).toStrictEqual({ type: "succeeded" });
 		expect(handleSubtract).toHaveBeenCalledTimes(1);
-		expect(countdownTimer.getIntervalId()).not.toBeUndefined();
+		expect(countdownTimer.getCurrentTimerType()).toBe("running");
 	});
 
 	it("should call handleSubtract after one second", () => {
@@ -339,7 +339,6 @@ describe("CountdownTimer", () => {
 			resetTo: { minutes: 0, seconds: 5 },
 		});
 		expect(countdownTimer.getCurrentTimerType()).toBe("initialized");
-		expect(countdownTimer.getIntervalId()).toBeUndefined();
 	});
 
 	it("should start again after reset from completed state", () => {
@@ -409,7 +408,7 @@ describe("CountdownTimer", () => {
 		});
 	});
 
-	it("should expose interval id only while running", () => {
+	it("should stop timer when dispose is called while running", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer(
 			{ minutes: 0, seconds: 3 },
@@ -419,16 +418,11 @@ describe("CountdownTimer", () => {
 		);
 
 		// Act
-		const initialIntervalId = countdownTimer.getIntervalId();
 		countdownTimer.start();
-		const runningIntervalId = countdownTimer.getIntervalId();
-		countdownTimer.pause();
-		const pausedIntervalId = countdownTimer.getIntervalId();
+		countdownTimer.dispose();
 
 		// Assert
-		expect(initialIntervalId).toBeUndefined();
-		expect(runningIntervalId).not.toBeUndefined();
-		expect(pausedIntervalId).toBeUndefined();
+		expect(countdownTimer.getCurrentTimerType()).toBe("paused");
 	});
 
 	it("should not be affected by external mutation of initialTime", () => {

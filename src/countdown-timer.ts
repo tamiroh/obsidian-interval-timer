@@ -140,10 +140,16 @@ export class CountdownTimer {
 		};
 	}
 
-	public getIntervalId(): number | undefined {
-		return this.state.type === "running"
-			? this.state.intervalId
-			: undefined;
+	public dispose(): void {
+		if (this.state.type !== "running") {
+			return;
+		}
+
+		window.clearInterval(this.state.intervalId);
+		this.state = {
+			type: "paused",
+			currentTime: this.state.currentTime,
+		};
 	}
 
 	public getCurrentTimerType(): TimerType {
