@@ -23,10 +23,10 @@ export type onChangeStateFunction = (
 ) => void;
 
 export type Snapshot = {
-	minutes?: Minutes;
-	seconds?: Seconds;
-	state?: IntervalTimerState;
-	focusIntervals?: { total?: number; set?: number };
+	minutes: Minutes;
+	seconds: Seconds;
+	state: IntervalTimerState;
+	focusIntervals: { total: number; set: number };
 };
 
 export type NotifierContext = {
@@ -89,15 +89,14 @@ export class IntervalTimer {
 		});
 	}
 
-	// TODO: snapshot should have all properties, not partial
 	public applySnapshot(snapshot: Snapshot): void {
 		this.focusIntervals = {
-			total: snapshot.focusIntervals?.total ?? 0,
-			set: snapshot.focusIntervals?.set ?? 0,
+			total: snapshot.focusIntervals.total,
+			set: snapshot.focusIntervals.set,
 		};
-		this.enterInterval(snapshot.state ?? "focus", {
-			minutes: snapshot.minutes ?? this.settings.focusIntervalDuration,
-			seconds: snapshot.seconds ?? 0,
+		this.enterInterval(snapshot.state, {
+			minutes: snapshot.minutes,
+			seconds: snapshot.seconds,
 		});
 	}
 
