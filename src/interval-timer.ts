@@ -50,12 +50,18 @@ export class IntervalTimer {
 		context: NotifierContext,
 	) => void;
 
+	private readonly onStart: ((state: IntervalTimerState) => void) | undefined;
+
+	private readonly onFocusCompleted: (() => void) | undefined;
+
 	private readonly autoResetScheduler: DailyScheduler;
 
 	constructor(
 		onChangeState: onChangeStateFunction,
 		settings: IntervalTimerSetting,
 		notifier: (message: string, context: NotifierContext) => void,
+		onStart?: (state: IntervalTimerState) => void,
+		onFocusCompleted?: () => void,
 	) {
 		// Initialize properties
 
@@ -77,6 +83,8 @@ export class IntervalTimer {
 			set: 0,
 		};
 		this.notifier = notifier;
+		this.onStart = onStart;
+		this.onFocusCompleted = onFocusCompleted;
 		this.autoResetScheduler = new DailyScheduler(settings.resetTime, () => {
 			this.resetTotalIntervals();
 		});
@@ -109,6 +117,7 @@ export class IntervalTimer {
 	}
 
 	public start(): void {
+		this.onStart?.(this.currentInterval.state);
 		this.currentInterval.timer.start();
 	}
 
@@ -183,6 +192,7 @@ export class IntervalTimer {
 	}: { shouldNotify?: boolean } = {}): void {
 		match(this.currentInterval.state)
 			.with("focus", () => {
+				this.onFocusCompleted?.();
 				this.focusIntervals = {
 					total: this.focusIntervals.total + 1,
 					set: this.focusIntervals.set + 1,

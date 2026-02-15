@@ -3,6 +3,7 @@ import { match } from "ts-pattern";
 import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./setting-tab";
 import {
 	IntervalTimer,
+	IntervalTimerState,
 	NotifierContext,
 	onChangeStateFunction,
 } from "./interval-timer";
@@ -10,6 +11,7 @@ import { StatusBar } from "./status-bar";
 import { KeyValueStore } from "./key-value-store";
 import { notify } from "./notifier";
 import { FlashOverlay } from "./flash-overlay";
+import { TaskTracker } from "./task-tracker";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
 
 export default class Plugin extends BasePlugin {
@@ -21,12 +23,15 @@ export default class Plugin extends BasePlugin {
 
 	private keyValueStore: KeyValueStore;
 
+	private taskTracker: TaskTracker;
+
 	private intervalTimerSnapshotStore: IntervalTimerSnapshotStore;
 
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
 
 		this.keyValueStore = new KeyValueStore(manifest.id);
+		this.taskTracker = new TaskTracker(this.app, this.keyValueStore);
 		this.intervalTimerSnapshotStore = new IntervalTimerSnapshotStore(
 			this.keyValueStore,
 		);
@@ -52,6 +57,11 @@ export default class Plugin extends BasePlugin {
 	}
 
 	private setupIntervalTimer(): void {
+		const syncCurrentTaskTooltip = () => {
+			this.statusBar.updateTrackedTaskTooltip(
+				this.taskTracker.getTrackedTaskName(),
+			);
+		};
 		const onChangeState: onChangeStateFunction = (
 			_timerState,
 			intervalTimerState,
@@ -77,12 +87,29 @@ export default class Plugin extends BasePlugin {
 			FlashOverlay.getInstance().show(overlayColor);
 			notify(this.settings.notificationStyle, message);
 		};
+		const onStart = (state: IntervalTimerState) => {
+			if (state === "focus") {
+				const tracked = this.taskTracker.trackTaskFromActiveLine();
+				if (!tracked) {
+					this.taskTracker.untrack();
+				}
+				syncCurrentTaskTooltip();
+			}
+		};
+		const onFocusCompleted = () => {
+			this.taskTracker.incrementTrackedTask().finally(() => {
+				this.taskTracker.untrack();
+				syncCurrentTaskTooltip();
+			});
+		};
 		const snapshot = this.intervalTimerSnapshotStore.load();
 
 		this.intervalTimer = new IntervalTimer(
 			onChangeState,
 			this.settings,
 			notifier,
+			onStart,
+			onFocusCompleted,
 		);
 		if (snapshot !== null) {
 			this.intervalTimer.applySnapshot(snapshot);
