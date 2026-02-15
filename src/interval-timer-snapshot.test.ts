@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { KeyValueStore } from "./key-value-store";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
 
-describe("IntervalTimerSnapshot", () => {
+describe("IntervalTimerSnapshotStore", () => {
 	beforeEach(() => {
 		window.localStorage.clear();
 	});
