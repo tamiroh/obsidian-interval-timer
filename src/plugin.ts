@@ -3,6 +3,7 @@ import { match } from "ts-pattern";
 import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./setting-tab";
 import {
 	IntervalTimer,
+	IntervalTimerState,
 	NotifierContext,
 	onChangeStateFunction,
 } from "./interval-timer";
