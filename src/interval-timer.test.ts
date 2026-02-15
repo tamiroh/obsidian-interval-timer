@@ -592,7 +592,7 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
-				minutes: settings.focusIntervalDuration,
+				minutes: settings.shortBreakDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
 			});
@@ -601,7 +601,7 @@ describe("IntervalTimer", () => {
 			// Act
 			intervalTimer.start();
 			vi.advanceTimersByTime(
-				settings.focusIntervalDuration * 60 * 1000 + 1000,
+				settings.shortBreakDuration * 60 * 1000 + 1000,
 			);
 
 			// Assert
@@ -768,7 +768,7 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
-				minutes: settings.focusIntervalDuration,
+				minutes: settings.shortBreakDuration,
 				seconds: 0,
 				focusIntervals: { total: 2, set: 1 },
 			});
@@ -912,7 +912,7 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
-				minutes: settings.focusIntervalDuration,
+				minutes: settings.shortBreakDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
 			});
