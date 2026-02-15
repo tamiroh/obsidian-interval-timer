@@ -3,15 +3,14 @@ import { match } from "ts-pattern";
 import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./setting-tab";
 import {
 	IntervalTimer,
-	IntervalTimerState,
 	NotifierContext,
 	onChangeStateFunction,
 } from "./interval-timer";
 import { StatusBar } from "./status-bar";
-import { Seconds } from "./time";
 import { KeyValueStore } from "./key-value-store";
 import { notify } from "./notifier";
 import { FlashOverlay } from "./flash-overlay";
+import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
 
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;
@@ -22,10 +21,15 @@ export default class Plugin extends BasePlugin {
 
 	private keyValueStore: KeyValueStore;
 
+	private intervalTimerSnapshotStore: IntervalTimerSnapshotStore;
+
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
 
 		this.keyValueStore = new KeyValueStore(manifest.id);
+		this.intervalTimerSnapshotStore = new IntervalTimerSnapshotStore(
+			this.keyValueStore,
+		);
 		this.statusBar = new StatusBar(this.addStatusBarItem(), this.app);
 	}
 
@@ -54,12 +58,11 @@ export default class Plugin extends BasePlugin {
 			time,
 			intervals,
 		) => {
-			this.keyValueStore.set("timerState", intervalTimerState);
-			this.keyValueStore.set("time-minutes", String(time.minutes));
-			this.keyValueStore.set("time-seconds", String(time.seconds));
-			this.keyValueStore.set("intervals-set", String(intervals.set));
-			this.keyValueStore.set("intervals-total", String(intervals.total));
-
+			this.intervalTimerSnapshotStore.save(
+				intervalTimerState,
+				time,
+				intervals,
+			);
 			this.statusBar.update(intervals, time, intervalTimerState);
 		};
 		const notifier = (message: string, context: NotifierContext) => {
@@ -74,33 +77,16 @@ export default class Plugin extends BasePlugin {
 			FlashOverlay.getInstance().show(overlayColor);
 			notify(this.settings.notificationStyle, message);
 		};
-		const snapshot = {
-			minutes: parseInt(
-				this.keyValueStore.get("time-minutes") ?? "0",
-				10,
-			),
-			seconds: parseInt(
-				this.keyValueStore.get("time-seconds") ?? "0",
-				10,
-			) as Seconds,
-			state: this.keyValueStore.get("timerState") as IntervalTimerState,
-			focusIntervals: {
-				total: parseInt(
-					this.keyValueStore.get("intervals-total") ?? "0",
-					10,
-				),
-				set: parseInt(
-					this.keyValueStore.get("intervals-set") ?? "0",
-					10,
-				),
-			},
-		};
+		const snapshot = this.intervalTimerSnapshotStore.load();
+
 		this.intervalTimer = new IntervalTimer(
 			onChangeState,
 			this.settings,
 			notifier,
 		);
-		this.intervalTimer.applySnapshot(snapshot);
+		if (snapshot !== null) {
+			this.intervalTimer.applySnapshot(snapshot);
+		}
 		this.intervalTimer.enableAutoReset();
 	}
 
