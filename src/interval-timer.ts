@@ -22,7 +22,7 @@ export type onChangeStateFunction = (
 	focusIntervals: { total: number; set: number },
 ) => void;
 
-export type InitialParams = {
+export type Snapshot = {
 	minutes?: Minutes;
 	seconds?: Seconds;
 	state?: IntervalTimerState;
@@ -56,8 +56,13 @@ export class IntervalTimer {
 		onChangeState: onChangeStateFunction,
 		settings: IntervalTimerSetting,
 		notifier: (message: string, context: NotifierContext) => void,
-		initialParams?: InitialParams,
 	) {
+		// Initialize properties
+
+		this.currentInterval = {
+			timer: this.createTimer(0, 0), // dummy timer, will be replaced immediately
+			state: "focus",
+		};
 		this.onChangeState = (timerState, time) => {
 			onChangeState(
 				timerState,
@@ -68,25 +73,31 @@ export class IntervalTimer {
 		};
 		this.settings = settings;
 		this.focusIntervals = {
-			total: initialParams?.focusIntervals?.total ?? 0,
-			set: initialParams?.focusIntervals?.set ?? 0,
-		};
-		this.currentInterval = {
-			timer: this.createTimer(
-				initialParams?.minutes ?? this.settings.focusIntervalDuration,
-				initialParams?.seconds ?? 0,
-			),
-			state: initialParams?.state ?? "focus",
+			total: 0,
+			set: 0,
 		};
 		this.notifier = notifier;
 		this.autoResetScheduler = new DailyScheduler(settings.resetTime, () => {
 			this.resetTotalIntervals();
 		});
 
-		this.onChangeState("initialized", {
-			minutes:
-				initialParams?.minutes ?? this.settings.focusIntervalDuration,
-			seconds: initialParams?.seconds ?? 0,
+		// Enter the initial interval
+
+		this.enterInterval("focus", {
+			minutes: this.settings.focusIntervalDuration,
+			seconds: 0,
+		});
+	}
+
+	// TODO: snapshot should have all properties, not partial
+	public applySnapshot(snapshot: Snapshot): void {
+		this.focusIntervals = {
+			total: snapshot.focusIntervals?.total ?? 0,
+			set: snapshot.focusIntervals?.set ?? 0,
+		};
+		this.enterInterval(snapshot.state ?? "focus", {
+			minutes: snapshot.minutes ?? this.settings.focusIntervalDuration,
+			seconds: snapshot.seconds ?? 0,
 		});
 	}
 
@@ -131,7 +142,7 @@ export class IntervalTimer {
 
 	public skipInterval(): void {
 		this.currentInterval.timer.pause();
-		this.onComplete({ shouldNotify: false });
+		this.enterNextInterval({ shouldNotify: false });
 	}
 
 	public retime(minutes: number): boolean {
@@ -168,7 +179,7 @@ export class IntervalTimer {
 		this.disableAutoReset();
 	}
 
-	private onComplete({
+	private enterNextInterval({
 		shouldNotify = true,
 	}: { shouldNotify?: boolean } = {}): void {
 		match(this.currentInterval.state)
@@ -210,16 +221,16 @@ export class IntervalTimer {
 		}
 	}
 
-	private onPause(current: Time): void {
-		this.onChangeState("paused", current);
-	}
-
 	private createTimer(minutes: number, seconds: Seconds): CountdownTimer {
+		const handlePause = (current: Time): void => {
+			this.onChangeState("paused", current);
+		};
+
 		return new CountdownTimer(
 			{ minutes, seconds },
 			(time: Time) => this.onChangeState("running", time),
-			this.onPause.bind(this),
-			this.onComplete.bind(this),
+			handlePause,
+			this.enterNextInterval.bind(this),
 		);
 	}
 

@@ -261,8 +261,10 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-				{ focusIntervals: { total: 3, set: 2 } },
 			);
+			intervalTimer.applySnapshot({
+				focusIntervals: { total: 3, set: 2 },
+			});
 			handleChangeState.mockClear();
 
 			intervalTimer.resetIntervalsSet();
@@ -291,8 +293,11 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-				{ focusIntervals: { total: 3, set: 2 }, state: "focus" },
 			);
+			intervalTimer.applySnapshot({
+				focusIntervals: { total: 3, set: 2 },
+				state: "focus",
+			});
 			handleChangeState.mockClear();
 
 			intervalTimer.resetIntervalsSet();
@@ -323,8 +328,10 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-				{ focusIntervals: { total: 2, set: 1 } },
 			);
+			intervalTimer.applySnapshot({
+				focusIntervals: { total: 2, set: 1 },
+			});
 			handleChangeState.mockClear();
 
 			intervalTimer.resetTotalIntervals();
@@ -353,8 +360,8 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-				{ state: "focus" },
 			);
+			intervalTimer.applySnapshot({ state: "focus" });
 			handleChangeState.mockClear();
 
 			const updated = intervalTimer.retime(7);
@@ -385,8 +392,8 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-				{ state: "focus" },
 			);
+			intervalTimer.applySnapshot({ state: "focus" });
 			handleChangeState.mockClear();
 
 			// Act
@@ -417,8 +424,11 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				notifier,
-				{ focusIntervals: { total: 1, set: 1 }, state: "focus" },
 			);
+			intervalTimer.applySnapshot({
+				focusIntervals: { total: 1, set: 1 },
+				state: "focus",
+			});
 			handleChangeState.mockClear();
 
 			intervalTimer.start();
@@ -453,8 +463,8 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-				{ state: "focus" },
 			);
+			intervalTimer.applySnapshot({ state: "focus" });
 			handleChangeState.mockClear();
 
 			intervalTimer.skipInterval();
@@ -509,8 +519,8 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				notifier,
-				{ state: "shortBreak" },
 			);
+			intervalTimer.applySnapshot({ state: "shortBreak" });
 			handleChangeState.mockClear();
 
 			intervalTimer.start();
@@ -548,12 +558,12 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-				{
-					state: "shortBreak",
-					minutes: settings.shortBreakDuration,
-					focusIntervals: { total: 7, set: 3 },
-				},
 			);
+			intervalTimer.applySnapshot({
+				state: "shortBreak",
+				minutes: settings.shortBreakDuration,
+				focusIntervals: { total: 7, set: 3 },
+			});
 			handleChangeState.mockClear();
 
 			intervalTimer.start();
@@ -587,8 +597,8 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				notifier,
-				{ state: "focus" },
 			);
+			intervalTimer.applySnapshot({ state: "focus" });
 			handleChangeState.mockClear();
 
 			// Act
@@ -629,8 +639,8 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				notifier,
-				{ state: "focus" },
 			);
+			intervalTimer.applySnapshot({ state: "focus" });
 			handleChangeState.mockClear();
 
 			intervalTimer.skipInterval();
@@ -660,8 +670,11 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-				{ state: "shortBreak", focusIntervals: { total: 2, set: 1 } },
 			);
+			intervalTimer.applySnapshot({
+				state: "shortBreak",
+				focusIntervals: { total: 2, set: 1 },
+			});
 			handleChangeState.mockClear();
 
 			intervalTimer.skipInterval();
@@ -791,8 +804,8 @@ describe("IntervalTimer", () => {
 				handleChangeState,
 				settings,
 				notifier,
-				{ state: "shortBreak" },
 			);
+			intervalTimer.applySnapshot({ state: "shortBreak" });
 			handleChangeState.mockClear();
 
 			intervalTimer.start();
@@ -807,6 +820,71 @@ describe("IntervalTimer", () => {
 				{ set: 0, total: 0 },
 			);
 			expect(notifier).not.toHaveBeenCalled();
+
+			intervalTimer.dispose();
+		});
+	});
+
+	describe("Snapshot", () => {
+		it("should apply snapshot values to state, time, and intervals", () => {
+			const handleChangeState = vi.fn();
+			const settings: IntervalTimerSetting = {
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				notificationStyle: "simple",
+				resetTime: { hours: 0, minutes: 0 },
+			};
+			const intervalTimer = new IntervalTimer(
+				handleChangeState,
+				settings,
+				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			);
+			handleChangeState.mockClear();
+
+			intervalTimer.applySnapshot({
+				state: "shortBreak",
+				minutes: 3,
+				seconds: 20,
+				focusIntervals: { total: 7, set: 2 },
+			});
+
+			expect(handleChangeState).toHaveBeenCalledWith(
+				"initialized",
+				"shortBreak",
+				{ minutes: 3, seconds: 20 },
+				{ set: 2, total: 7 },
+			);
+
+			intervalTimer.dispose();
+		});
+
+		it("should fill missing snapshot fields with defaults", () => {
+			const handleChangeState = vi.fn();
+			const settings: IntervalTimerSetting = {
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				notificationStyle: "simple",
+				resetTime: { hours: 0, minutes: 0 },
+			};
+			const intervalTimer = new IntervalTimer(
+				handleChangeState,
+				settings,
+				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			);
+			handleChangeState.mockClear();
+
+			intervalTimer.applySnapshot({});
+
+			expect(handleChangeState).toHaveBeenCalledWith(
+				"initialized",
+				"focus",
+				{ minutes: 25, seconds: 0 },
+				{ set: 0, total: 0 },
+			);
 
 			intervalTimer.dispose();
 		});
