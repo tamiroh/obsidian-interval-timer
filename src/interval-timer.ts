@@ -187,6 +187,10 @@ export class IntervalTimer {
 		this.disableAutoReset();
 	}
 
+	public get state(): IntervalTimerState {
+		return this.currentInterval.state;
+	}
+
 	private enterNextInterval({
 		shouldNotify = true,
 	}: { shouldNotify?: boolean } = {}): void {

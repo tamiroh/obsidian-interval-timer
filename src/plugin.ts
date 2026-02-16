@@ -13,6 +13,7 @@ import { notify } from "./notifier";
 import { FlashOverlay } from "./flash-overlay";
 import { TaskTracker } from "./task-tracker";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
+import { TaskLineHighlighter } from "./task-line-highlight-extension";
 
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;
@@ -27,6 +28,8 @@ export default class Plugin extends BasePlugin {
 
 	private intervalTimerSnapshotStore: IntervalTimerSnapshotStore;
 
+	private readonly taskLineHighlighter: TaskLineHighlighter;
+
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
 
@@ -35,12 +38,17 @@ export default class Plugin extends BasePlugin {
 		this.intervalTimerSnapshotStore = new IntervalTimerSnapshotStore(
 			this.keyValueStore,
 		);
+		this.taskLineHighlighter = new TaskLineHighlighter(
+			this.taskTracker,
+			() => this.intervalTimer.state === "focus",
+		);
 		this.statusBar = new StatusBar(this.addStatusBarItem(), this.app);
 	}
 
 	public override async onload(): Promise<void> {
 		await this.loadSettings();
 		this.setupIntervalTimer();
+		this.setupTaskLineInteraction();
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
 
@@ -57,13 +65,8 @@ export default class Plugin extends BasePlugin {
 	}
 
 	private setupIntervalTimer(): void {
-		const syncCurrentTaskTooltip = () => {
-			this.statusBar.updateTrackedTaskTooltip(
-				this.taskTracker.getTrackedTaskName(),
-			);
-		};
 		const onChangeState: onChangeStateFunction = (
-			_timerState,
+			timerState,
 			intervalTimerState,
 			time,
 			intervals,
@@ -74,6 +77,9 @@ export default class Plugin extends BasePlugin {
 				intervals,
 			);
 			this.statusBar.update(intervals, time, intervalTimerState);
+			if (timerState === "initialized") {
+				this.untrackCurrentTask();
+			}
 		};
 		const notifier = (message: string, context: NotifierContext) => {
 			const overlayColor = match(context.state)
@@ -89,17 +95,12 @@ export default class Plugin extends BasePlugin {
 		};
 		const onStart = (state: IntervalTimerState) => {
 			if (state === "focus") {
-				const tracked = this.taskTracker.trackTaskFromActiveLine();
-				if (!tracked) {
-					this.taskTracker.untrack();
-				}
-				syncCurrentTaskTooltip();
+				this.trackCurrentTaskFromActiveLine();
 			}
 		};
 		const onFocusCompleted = () => {
 			this.taskTracker.incrementTrackedTask().finally(() => {
-				this.taskTracker.untrack();
-				syncCurrentTaskTooltip();
+				this.untrackCurrentTask();
 			});
 		};
 		const snapshot = this.intervalTimerSnapshotStore.load();
@@ -115,6 +116,49 @@ export default class Plugin extends BasePlugin {
 			this.intervalTimer.applySnapshot(snapshot);
 		}
 		this.intervalTimer.enableAutoReset();
+	}
+
+	private setupTaskLineInteraction(): void {
+		this.registerEditorExtension(
+			this.taskLineHighlighter.createExtension(),
+		);
+		this.registerDomEvent(document, "click", (event) => {
+			if (!(event.target instanceof HTMLElement)) {
+				return;
+			}
+			const startTaskButton = event.target.closest(
+				".interval-timer-start-task-button",
+			);
+			if (!startTaskButton) {
+				return;
+			}
+			event.preventDefault();
+
+			this.trackCurrentTaskFromActiveLine();
+			this.intervalTimer.start();
+		});
+	}
+
+	private syncCurrentTaskTooltip(): void {
+		this.statusBar.updateTrackedTaskTooltip(
+			this.taskTracker.getTrackedTaskName(),
+		);
+	}
+
+	private untrackCurrentTask(): void {
+		this.taskTracker.untrack();
+		this.syncCurrentTaskTooltip();
+		this.app.workspace.updateOptions();
+	}
+
+	private trackCurrentTaskFromActiveLine(): boolean {
+		const tracked = this.taskTracker.trackTaskFromActiveLine();
+		if (!tracked) {
+			this.taskTracker.untrack();
+		}
+		this.syncCurrentTaskTooltip();
+		this.app.workspace.updateOptions();
+		return tracked;
 	}
 
 	private addCommands(): void {
