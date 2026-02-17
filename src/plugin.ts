@@ -93,7 +93,7 @@ export default class Plugin extends BasePlugin {
 			FlashOverlay.getInstance().show(overlayColor);
 			notify(this.settings.notificationStyle, message);
 		};
-		const onStart = (state: IntervalTimerState) => {
+		const onStartedFreshly = (state: IntervalTimerState) => {
 			if (state === "focus") {
 				this.trackCurrentTaskFromActiveLine();
 			}
@@ -109,7 +109,7 @@ export default class Plugin extends BasePlugin {
 			onChangeState,
 			this.settings,
 			notifier,
-			onStart,
+			onStartedFreshly,
 			onFocusIntervalEnded,
 		);
 		if (snapshot !== null) {

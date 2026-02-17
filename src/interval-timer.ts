@@ -50,7 +50,9 @@ export class IntervalTimer {
 		context: NotifierContext,
 	) => void;
 
-	private readonly onStart: ((state: IntervalTimerState) => void) | undefined;
+	private readonly onStartedFreshly:
+		| ((state: IntervalTimerState) => void)
+		| undefined;
 
 	private readonly onFocusIntervalEnded: (() => void) | undefined;
 
@@ -60,7 +62,7 @@ export class IntervalTimer {
 		onChangeState: onChangeStateFunction,
 		settings: IntervalTimerSetting,
 		notifier: (message: string, context: NotifierContext) => void,
-		onStart?: (state: IntervalTimerState) => void,
+		onStartedFreshly?: (state: IntervalTimerState) => void,
 		onFocusIntervalEnded?: () => void,
 	) {
 		// Initialize properties
@@ -83,7 +85,7 @@ export class IntervalTimer {
 			set: 0,
 		};
 		this.notifier = notifier;
-		this.onStart = onStart;
+		this.onStartedFreshly = onStartedFreshly;
 		this.onFocusIntervalEnded = onFocusIntervalEnded;
 		this.autoResetScheduler = new DailyScheduler(settings.resetTime, () => {
 			this.resetTotalIntervals();
@@ -117,8 +119,14 @@ export class IntervalTimer {
 	}
 
 	public start(): void {
-		this.onStart?.(this.currentInterval.state);
-		this.currentInterval.timer.start();
+		const currentTimerType =
+			this.currentInterval.timer.getCurrentTimerType();
+
+		const result = this.currentInterval.timer.start();
+
+		if (result.type === "succeeded" && currentTimerType === "initialized") {
+			this.onStartedFreshly?.(this.currentInterval.state);
+		}
 	}
 
 	public pause(): void {
