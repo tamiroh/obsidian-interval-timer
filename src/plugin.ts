@@ -98,7 +98,7 @@ export default class Plugin extends BasePlugin {
 				this.trackCurrentTaskFromActiveLine();
 			}
 		};
-		const onFocusCompleted = () => {
+		const onFocusIntervalEnded = () => {
 			this.taskTracker.incrementTrackedTask().finally(() => {
 				this.untrackCurrentTask();
 			});
@@ -110,7 +110,7 @@ export default class Plugin extends BasePlugin {
 			this.settings,
 			notifier,
 			onStart,
-			onFocusCompleted,
+			onFocusIntervalEnded,
 		);
 		if (snapshot !== null) {
 			this.intervalTimer.applySnapshot(snapshot);
