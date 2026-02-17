@@ -98,18 +98,11 @@ export class TaskLineHighlighter {
 				}
 
 				update(update: ViewUpdate): void {
-					if (
-						update.selectionSet ||
-						update.docChanged ||
-						update.viewportChanged ||
-						update.focusChanged
-					) {
-						this.decorations = buildDecorations(
-							update.view,
-							getTrackedTaskName(),
-							isHighlightEnabled(),
-						);
-					}
+					this.decorations = buildDecorations(
+						update.view,
+						getTrackedTaskName(),
+						isHighlightEnabled(),
+					);
 				}
 			},
 			{
