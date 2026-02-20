@@ -15,4 +15,8 @@ export class KeyValueStore {
 	public get(key: string): string | null {
 		return this.localStorage.getItem(`${this.uniqueKey}:${key}`);
 	}
+
+	public delete(key: string): void {
+		this.localStorage.removeItem(`${this.uniqueKey}:${key}`);
+	}
 }

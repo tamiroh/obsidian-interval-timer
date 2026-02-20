@@ -50,12 +50,20 @@ export class IntervalTimer {
 		context: NotifierContext,
 	) => void;
 
+	private readonly onStartedFreshly:
+		| ((state: IntervalTimerState) => void)
+		| undefined;
+
+	private readonly onFocusIntervalEnded: (() => void) | undefined;
+
 	private readonly autoResetScheduler: DailyScheduler;
 
 	constructor(
 		onChangeState: onChangeStateFunction,
 		settings: IntervalTimerSetting,
 		notifier: (message: string, context: NotifierContext) => void,
+		onStartedFreshly?: (state: IntervalTimerState) => void,
+		onFocusIntervalEnded?: () => void,
 	) {
 		// Initialize properties
 
@@ -77,6 +85,8 @@ export class IntervalTimer {
 			set: 0,
 		};
 		this.notifier = notifier;
+		this.onStartedFreshly = onStartedFreshly;
+		this.onFocusIntervalEnded = onFocusIntervalEnded;
 		this.autoResetScheduler = new DailyScheduler(settings.resetTime, () => {
 			this.resetTotalIntervals();
 		});
@@ -109,7 +119,14 @@ export class IntervalTimer {
 	}
 
 	public start(): void {
-		this.currentInterval.timer.start();
+		const currentTimerType =
+			this.currentInterval.timer.getCurrentTimerType();
+
+		const result = this.currentInterval.timer.start();
+
+		if (result.type === "succeeded" && currentTimerType === "initialized") {
+			this.onStartedFreshly?.(this.currentInterval.state);
+		}
 	}
 
 	public pause(): void {
@@ -178,11 +195,16 @@ export class IntervalTimer {
 		this.disableAutoReset();
 	}
 
+	public get state(): IntervalTimerState {
+		return this.currentInterval.state;
+	}
+
 	private enterNextInterval({
 		shouldNotify = true,
 	}: { shouldNotify?: boolean } = {}): void {
 		match(this.currentInterval.state)
 			.with("focus", () => {
+				this.onFocusIntervalEnded?.();
 				this.focusIntervals = {
 					total: this.focusIntervals.total + 1,
 					set: this.focusIntervals.set + 1,

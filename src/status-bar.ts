@@ -1,4 +1,4 @@
-import { App, Menu } from "obsidian";
+import { App, Menu, setTooltip } from "obsidian";
 import { Time } from "./time";
 import { IntervalTimer, IntervalTimerState } from "./interval-timer";
 import { RetimeModal } from "./retime-modal";
@@ -25,6 +25,13 @@ export class StatusBar {
 				? "color: #EE6152"
 				: "color: #4CBD4F",
 		);
+	}
+
+	public updateTrackedTaskTooltip(currentTaskName: string | null): void {
+		setTooltip(this.statusBarItem, currentTaskName ?? "", {
+			placement: "top",
+			delay: 100,
+		});
 	}
 
 	public enableClick(intervalTimer: IntervalTimer): void {

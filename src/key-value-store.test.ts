@@ -38,4 +38,13 @@ describe("KeyValueStore", () => {
 
 		expect(kvs.get("key1")).toBe("second");
 	});
+
+	it("should delete a value", () => {
+		const kvs = new KeyValueStore("unique-key");
+
+		kvs.set("key1", "value");
+		kvs.delete("key1");
+
+		expect(kvs.get("key1")).toBeNull();
+	});
 });

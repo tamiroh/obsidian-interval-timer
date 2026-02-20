@@ -1,0 +1,8 @@
+ignore:
+    - "src/notifier.ts"
+    - "src/plugin.ts"
+    - "src/retime-modal.ts"
+    - "src/setting-tab.ts"
+    - "src/status-bar.ts"
+    - "src/task-line-highlight-extension.ts"
+    - "src/task-tracker.ts"
