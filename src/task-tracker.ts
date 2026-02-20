@@ -59,8 +59,8 @@ export class TaskTracker {
 	}
 
 	public untrack(): void {
-		this.keyValueStore.set("current-task-name", "");
-		this.keyValueStore.set("current-task-path", "");
+		this.keyValueStore.delete("current-task-name");
+		this.keyValueStore.delete("current-task-path");
 	}
 
 	public getTrackedTaskName(): string | null {
