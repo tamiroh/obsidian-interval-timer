@@ -936,6 +936,53 @@ describe("IntervalTimer", () => {
 		});
 	});
 
+	describe("Setters and getters", () => {
+		it("should return focus as the initial state", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(
+				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				{
+					focusIntervalDuration: 25,
+					shortBreakDuration: 5,
+					longBreakDuration: 15,
+					longBreakAfter: 4,
+					notificationStyle: "simple",
+					resetTime: { hours: 0, minutes: 0 },
+				},
+				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			);
+
+			// Act & Assert
+			expect(intervalTimer.state).toBe("focus");
+
+			intervalTimer.dispose();
+		});
+
+		it("should return shortBreak after skipping focus", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(
+				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				{
+					focusIntervalDuration: 25,
+					shortBreakDuration: 5,
+					longBreakDuration: 15,
+					longBreakAfter: 4,
+					notificationStyle: "simple",
+					resetTime: { hours: 0, minutes: 0 },
+				},
+				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			);
+
+			// Act
+			intervalTimer.skipInterval();
+
+			// Assert
+			expect(intervalTimer.state).toBe("shortBreak");
+
+			intervalTimer.dispose();
+		});
+	});
+
 	describe("Snapshot", () => {
 		it("should apply snapshot values to state, time, and intervals", () => {
 			// Arrange
