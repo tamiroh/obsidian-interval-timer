@@ -1,12 +1,7 @@
 {
-	"bin/version-bump.mjs": {
-		"no-undef": {
-			"count": 1
-		}
-	},
 	"package.json": {
 		"depend/ban-dependencies": {
-			"count": 2
+			"count": 1
 		}
 	},
 	"src/countdown-timer.test.ts": {
