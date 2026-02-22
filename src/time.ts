@@ -1,70 +1,27 @@
-export type Minutes = number;
+declare const minutesBrand: unique symbol;
+export type Minutes = number & { readonly [minutesBrand]: true };
 
-export type Seconds =
-	| 0
-	| 1
-	| 2
-	| 3
-	| 4
-	| 5
-	| 6
-	| 7
-	| 8
-	| 9
-	| 10
-	| 11
-	| 12
-	| 13
-	| 14
-	| 15
-	| 16
-	| 17
-	| 18
-	| 19
-	| 20
-	| 21
-	| 22
-	| 23
-	| 24
-	| 25
-	| 26
-	| 27
-	| 28
-	| 29
-	| 30
-	| 31
-	| 32
-	| 33
-	| 34
-	| 35
-	| 36
-	| 37
-	| 38
-	| 39
-	| 40
-	| 41
-	| 42
-	| 43
-	| 44
-	| 45
-	| 46
-	| 47
-	| 48
-	| 49
-	| 50
-	| 51
-	| 52
-	| 53
-	| 54
-	| 55
-	| 56
-	| 57
-	| 58
-	| 59;
+declare const secondsBrand: unique symbol;
+export type Seconds = number & { readonly [secondsBrand]: true };
 
 export type Time = { minutes: Minutes; seconds: Seconds };
 
-export const toSeconds = (time: Time): number =>
+export const ensureMinutes = (value: number): Minutes => {
+	if (!Number.isInteger(value) || value < 0) {
+		throw new RangeError("Minutes must be a non-negative integer.");
+	}
+	return value as Minutes;
+};
+
+export const ensureSeconds = (value: number): Seconds => {
+	if (!Number.isInteger(value) || value < 0 || value > 59) {
+		throw new RangeError("Seconds must be an integer between 0 and 59.");
+	}
+	return value as Seconds;
+};
+
+export const toTotalSeconds = (time: Time): number =>
 	time.minutes * 60 + time.seconds;
 
-export const toMilliseconds = (time: Time): number => toSeconds(time) * 1000;
+export const toTotalMilliseconds = (time: Time): number =>
+	toTotalSeconds(time) * 1000;

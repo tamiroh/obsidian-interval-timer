@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";
+import { ensureMinutes, ensureSeconds } from "./time";
 
 describe("IntervalTimer", () => {
 	beforeEach(() => {
@@ -39,7 +40,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",
-				{ minutes: 25, seconds: 0 },
+				{ minutes: ensureMinutes(25), seconds: ensureSeconds(0) },
 				{ set: 0, total: 0 },
 			);
 
@@ -104,7 +105,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",
-				{ minutes: 25, seconds: 0 },
+				{ minutes: ensureMinutes(25), seconds: ensureSeconds(0) },
 				{ set: 0, total: 0 },
 			);
 
@@ -198,7 +199,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"running",
 				"focus",
-				{ minutes: 24, seconds: 59 },
+				{ minutes: ensureMinutes(24), seconds: ensureSeconds(59) },
 				{ set: 0, total: 0 },
 			);
 
@@ -232,7 +233,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenLastCalledWith(
 				"paused",
 				"focus",
-				{ minutes: 0, seconds: 59 },
+				{ minutes: ensureMinutes(0), seconds: ensureSeconds(59) },
 				{ set: 0, total: 0 },
 			);
 
@@ -266,7 +267,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",
-				{ minutes: 1, seconds: 0 },
+				{ minutes: ensureMinutes(1), seconds: ensureSeconds(0) },
 				{ set: 0, total: 0 },
 			);
 
@@ -291,8 +292,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
-				minutes: settings.focusIntervalDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.focusIntervalDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 3, set: 2 },
 			});
 			handleChangeState.mockClear();
@@ -304,7 +305,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"longBreak",
-				{ minutes: 15, seconds: 0 },
+				{ minutes: ensureMinutes(15), seconds: ensureSeconds(0) },
 				{ set: 0, total: 3 },
 			);
 
@@ -329,8 +330,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
-				minutes: settings.focusIntervalDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.focusIntervalDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 3, set: 2 },
 			});
 			handleChangeState.mockClear();
@@ -344,7 +345,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenLastCalledWith(
 				"initialized",
 				"shortBreak",
-				{ minutes: 5, seconds: 0 },
+				{ minutes: ensureMinutes(5), seconds: ensureSeconds(0) },
 				{ set: 1, total: 4 },
 			);
 
@@ -369,8 +370,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
-				minutes: settings.focusIntervalDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.focusIntervalDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 2, set: 1 },
 			});
 			handleChangeState.mockClear();
@@ -382,7 +383,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",
-				{ minutes: 25, seconds: 0 },
+				{ minutes: ensureMinutes(25), seconds: ensureSeconds(0) },
 				{ set: 0, total: 0 },
 			);
 
@@ -407,8 +408,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
-				minutes: settings.focusIntervalDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.focusIntervalDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 0, set: 0 },
 			});
 			handleChangeState.mockClear();
@@ -421,7 +422,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",
-				{ minutes: 7, seconds: 0 },
+				{ minutes: ensureMinutes(7), seconds: ensureSeconds(0) },
 				{ set: 0, total: 0 },
 			);
 
@@ -446,8 +447,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
-				minutes: settings.focusIntervalDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.focusIntervalDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 0, set: 0 },
 			});
 			handleChangeState.mockClear();
@@ -484,8 +485,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
-				minutes: settings.focusIntervalDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.focusIntervalDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 1, set: 1 },
 			});
 			handleChangeState.mockClear();
@@ -500,7 +501,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"longBreak",
-				{ minutes: 15, seconds: 0 },
+				{ minutes: ensureMinutes(15), seconds: ensureSeconds(0) },
 				{ set: 0, total: 2 },
 			);
 			expect(notifier).toHaveBeenCalledWith("🏖️  Time for a long break", {
@@ -528,8 +529,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
-				minutes: settings.focusIntervalDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.focusIntervalDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 0, set: 0 },
 			});
 			handleChangeState.mockClear();
@@ -545,28 +546,28 @@ describe("IntervalTimer", () => {
 				1,
 				"initialized",
 				"shortBreak",
-				{ minutes: 5, seconds: 0 },
+				{ minutes: ensureMinutes(5), seconds: ensureSeconds(0) },
 				{ set: 1, total: 1 },
 			);
 			expect(handleChangeState).toHaveBeenNthCalledWith(
 				2,
 				"initialized",
 				"focus",
-				{ minutes: 25, seconds: 0 },
+				{ minutes: ensureMinutes(25), seconds: ensureSeconds(0) },
 				{ set: 1, total: 1 },
 			);
 			expect(handleChangeState).toHaveBeenNthCalledWith(
 				3,
 				"initialized",
 				"longBreak",
-				{ minutes: 15, seconds: 0 },
+				{ minutes: ensureMinutes(15), seconds: ensureSeconds(0) },
 				{ set: 0, total: 2 },
 			);
 			expect(handleChangeState).toHaveBeenNthCalledWith(
 				4,
 				"initialized",
 				"focus",
-				{ minutes: 25, seconds: 0 },
+				{ minutes: ensureMinutes(25), seconds: ensureSeconds(0) },
 				{ set: 0, total: 2 },
 			);
 
@@ -592,8 +593,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
-				minutes: settings.shortBreakDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.shortBreakDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 0, set: 0 },
 			});
 			handleChangeState.mockClear();
@@ -608,7 +609,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",
-				{ minutes: 25, seconds: 0 },
+				{ minutes: ensureMinutes(25), seconds: ensureSeconds(0) },
 				{ set: 0, total: 0 },
 			);
 			expect(notifier).toHaveBeenCalledWith(
@@ -639,8 +640,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
-				minutes: settings.shortBreakDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.shortBreakDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 7, set: 3 },
 			});
 			handleChangeState.mockClear();
@@ -655,7 +656,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",
-				{ minutes: 25, seconds: 0 },
+				{ minutes: ensureMinutes(25), seconds: ensureSeconds(0) },
 				{ set: 3, total: 7 },
 			);
 
@@ -681,8 +682,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
-				minutes: settings.focusIntervalDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.focusIntervalDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 0, set: 0 },
 			});
 			handleChangeState.mockClear();
@@ -697,7 +698,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"shortBreak",
-				{ minutes: 5, seconds: 0 },
+				{ minutes: ensureMinutes(5), seconds: ensureSeconds(0) },
 				{ set: 1, total: 1 },
 			);
 			expect(notifier).toHaveBeenCalledWith(
@@ -729,8 +730,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
-				minutes: settings.focusIntervalDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.focusIntervalDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 0, set: 0 },
 			});
 			handleChangeState.mockClear();
@@ -742,7 +743,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"shortBreak",
-				{ minutes: 5, seconds: 0 },
+				{ minutes: ensureMinutes(5), seconds: ensureSeconds(0) },
 				{ set: 1, total: 1 },
 			);
 			expect(notifier).not.toHaveBeenCalled();
@@ -768,8 +769,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
-				minutes: settings.shortBreakDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.shortBreakDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 2, set: 1 },
 			});
 			handleChangeState.mockClear();
@@ -781,7 +782,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",
-				{ minutes: 25, seconds: 0 },
+				{ minutes: ensureMinutes(25), seconds: ensureSeconds(0) },
 				{ set: 1, total: 2 },
 			);
 
@@ -816,7 +817,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"running",
 				"focus",
-				{ minutes: 0, seconds: 59 },
+				{ minutes: ensureMinutes(0), seconds: ensureSeconds(59) },
 				{ set: 0, total: 0 },
 			);
 
@@ -850,7 +851,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",
-				{ minutes: 1, seconds: 0 },
+				{ minutes: ensureMinutes(1), seconds: ensureSeconds(0) },
 				{ set: 0, total: 0 },
 			);
 
@@ -886,7 +887,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"running",
 				"focus",
-				{ minutes: 0, seconds: 58 },
+				{ minutes: ensureMinutes(0), seconds: ensureSeconds(58) },
 				{ set: 0, total: 0 },
 			);
 
@@ -912,8 +913,8 @@ describe("IntervalTimer", () => {
 			);
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
-				minutes: settings.shortBreakDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.shortBreakDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 0, set: 0 },
 			});
 			handleChangeState.mockClear();
@@ -927,7 +928,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenLastCalledWith(
 				"initialized",
 				"focus",
-				{ minutes: 25, seconds: 0 },
+				{ minutes: ensureMinutes(25), seconds: ensureSeconds(0) },
 				{ set: 0, total: 0 },
 			);
 			expect(notifier).not.toHaveBeenCalled();
@@ -1005,8 +1006,8 @@ describe("IntervalTimer", () => {
 			// Act
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
-				minutes: 3,
-				seconds: 20,
+				minutes: ensureMinutes(3),
+				seconds: ensureSeconds(20),
 				focusIntervals: { total: 7, set: 2 },
 			});
 
@@ -1014,7 +1015,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"shortBreak",
-				{ minutes: 3, seconds: 20 },
+				{ minutes: ensureMinutes(3), seconds: ensureSeconds(20) },
 				{ set: 2, total: 7 },
 			);
 
@@ -1042,8 +1043,8 @@ describe("IntervalTimer", () => {
 			// Act
 			intervalTimer.applySnapshot({
 				state: "focus",
-				minutes: settings.focusIntervalDuration,
-				seconds: 0,
+				minutes: ensureMinutes(settings.focusIntervalDuration),
+				seconds: ensureSeconds(0),
 				focusIntervals: { total: 0, set: 0 },
 			});
 
@@ -1051,7 +1052,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",
-				{ minutes: 25, seconds: 0 },
+				{ minutes: ensureMinutes(25), seconds: ensureSeconds(0) },
 				{ set: 0, total: 0 },
 			);
 

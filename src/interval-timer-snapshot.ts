@@ -1,6 +1,6 @@
 import { IntervalTimerState, Snapshot } from "./interval-timer";
 import { KeyValueStore } from "./key-value-store";
-import { Seconds, Time } from "./time";
+import { Time, ensureMinutes, ensureSeconds } from "./time";
 
 export class IntervalTimerSnapshotStore {
 	private readonly keyValueStore: KeyValueStore;
@@ -25,15 +25,19 @@ export class IntervalTimerSnapshotStore {
 			return null;
 		}
 
-		return {
-			state: state as IntervalTimerState,
-			minutes: Number.parseInt(minutes, 10),
-			seconds: Number.parseInt(seconds, 10) as Seconds,
-			focusIntervals: {
-				total: Number.parseInt(total, 10),
-				set: Number.parseInt(set, 10),
-			},
-		};
+		try {
+			return {
+				state: state as IntervalTimerState,
+				minutes: ensureMinutes(Number.parseInt(minutes, 10)),
+				seconds: ensureSeconds(Number.parseInt(seconds, 10)),
+				focusIntervals: {
+					total: Number.parseInt(total, 10),
+					set: Number.parseInt(set, 10),
+				},
+			};
+		} catch {
+			return null;
+		}
 	}
 
 	public save(

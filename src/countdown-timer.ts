@@ -1,5 +1,11 @@
 import { match } from "ts-pattern";
-import { Seconds, Time, toMilliseconds, toSeconds } from "./time";
+import {
+	Time,
+	ensureSeconds,
+	toTotalMilliseconds,
+	ensureMinutes,
+	toTotalSeconds,
+} from "./time";
 
 export const timerTypes = [
 	"initialized",
@@ -70,8 +76,8 @@ export class CountdownTimer {
 			.with({ type: "initialized" }, () => new Date())
 			.with({ type: "paused" }, (state) => {
 				const elapsedMs =
-					toMilliseconds(this.initialTime) -
-					toMilliseconds(state.currentTime);
+					toTotalMilliseconds(this.initialTime) -
+					toTotalMilliseconds(state.currentTime);
 				return new Date(Date.now() - elapsedMs);
 			})
 			.exhaustive();
@@ -164,19 +170,22 @@ export class CountdownTimer {
 		}
 
 		const remainingSeconds = this.computeRemainingSeconds(startAt);
-		const previousRemainingSeconds = toSeconds(this.state.currentTime);
+		const previousRemainingSeconds = toTotalSeconds(this.state.currentTime);
 
 		if (remainingSeconds === previousRemainingSeconds) {
 			return "unchanged";
 		}
 		if (remainingSeconds <= 0) {
-			this.state.currentTime = { minutes: 0, seconds: 0 };
+			this.state.currentTime = {
+				minutes: ensureMinutes(0),
+				seconds: ensureSeconds(0),
+			};
 			return "completed";
 		}
 
 		this.state.currentTime = {
-			minutes: Math.floor(remainingSeconds / 60),
-			seconds: (remainingSeconds % 60) as Seconds,
+			minutes: ensureMinutes(Math.floor(remainingSeconds / 60)),
+			seconds: ensureSeconds(remainingSeconds % 60),
 		};
 		return "subtracted";
 	}
@@ -185,7 +194,7 @@ export class CountdownTimer {
 		const elapsedSeconds = Math.floor(
 			(Date.now() - startAt.getTime()) / 1000,
 		);
-		const initialSeconds = toSeconds(this.initialTime);
+		const initialSeconds = toTotalSeconds(this.initialTime);
 		return initialSeconds - elapsedSeconds;
 	}
 }

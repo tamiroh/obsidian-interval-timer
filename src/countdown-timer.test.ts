@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CountdownTimer } from "./countdown-timer";
-import { Seconds } from "./time";
+import { ensureMinutes, ensureSeconds } from "./time";
 
 describe("CountdownTimer", () => {
 	beforeEach(() => {
@@ -17,7 +17,7 @@ describe("CountdownTimer", () => {
 		const handlePause = vi.fn();
 		const handleComplete = vi.fn();
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 1, seconds: 0 },
+			{ minutes: ensureMinutes(1), seconds: ensureSeconds(0) },
 			handleSubtract,
 			handlePause,
 			handleComplete,
@@ -39,7 +39,7 @@ describe("CountdownTimer", () => {
 		const handlePause = vi.fn();
 		const handleComplete = vi.fn();
 		new CountdownTimer(
-			{ minutes: 1, seconds: 0 },
+			{ minutes: ensureMinutes(1), seconds: ensureSeconds(0) },
 			handleSubtract,
 			handlePause,
 			handleComplete,
@@ -51,8 +51,8 @@ describe("CountdownTimer", () => {
 		// Assert
 		expect(handleSubtract).toHaveBeenCalledTimes(1);
 		expect(handleSubtract).toHaveBeenLastCalledWith({
-			minutes: 0,
-			seconds: 59,
+			minutes: ensureMinutes(0),
+			seconds: ensureSeconds(59),
 		});
 	});
 
@@ -62,7 +62,7 @@ describe("CountdownTimer", () => {
 		const handlePause = vi.fn();
 		const handleComplete = vi.fn();
 		new CountdownTimer(
-			{ minutes: 1, seconds: 0 },
+			{ minutes: ensureMinutes(1), seconds: ensureSeconds(0) },
 			handleSubtract,
 			handlePause,
 			handleComplete,
@@ -74,8 +74,8 @@ describe("CountdownTimer", () => {
 		// Assert
 		expect(handleSubtract).toHaveBeenCalledTimes(60);
 		expect(handleSubtract).toHaveBeenLastCalledWith({
-			minutes: 0,
-			seconds: 0,
+			minutes: ensureMinutes(0),
+			seconds: ensureSeconds(0),
 		});
 	});
 
@@ -85,7 +85,7 @@ describe("CountdownTimer", () => {
 		const handlePause = vi.fn();
 		const handleComplete = vi.fn();
 		new CountdownTimer(
-			{ minutes: 1, seconds: 0 },
+			{ minutes: ensureMinutes(1), seconds: ensureSeconds(0) },
 			handleSubtract,
 			handlePause,
 			handleComplete,
@@ -102,7 +102,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleComplete = vi.fn();
 		new CountdownTimer(
-			{ minutes: 0, seconds: 1 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(1) },
 			vi.fn(),
 			vi.fn(),
 			handleComplete,
@@ -119,7 +119,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleComplete = vi.fn();
 		new CountdownTimer(
-			{ minutes: 0, seconds: 1 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(1) },
 			vi.fn(),
 			vi.fn(),
 			handleComplete,
@@ -139,7 +139,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleSubtract = vi.fn();
 		new CountdownTimer(
-			{ minutes: 0, seconds: 1 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(1) },
 			handleSubtract,
 			vi.fn(),
 			vi.fn(),
@@ -161,7 +161,7 @@ describe("CountdownTimer", () => {
 		const handlePause = vi.fn();
 		const handleComplete = vi.fn();
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 1, seconds: 0 },
+			{ minutes: ensureMinutes(1), seconds: ensureSeconds(0) },
 			handleSubtract,
 			handlePause,
 			handleComplete,
@@ -183,7 +183,7 @@ describe("CountdownTimer", () => {
 	it("should not start when timer is already running", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 1, seconds: 0 },
+			{ minutes: ensureMinutes(1), seconds: ensureSeconds(0) },
 			vi.fn(),
 			vi.fn(),
 			vi.fn(),
@@ -202,7 +202,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleComplete = vi.fn();
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 0, seconds: 1 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(1) },
 			vi.fn(),
 			vi.fn(),
 			handleComplete,
@@ -222,7 +222,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handlePause = vi.fn();
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 0, seconds: 10 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(10) },
 			vi.fn(),
 			handlePause,
 			vi.fn(),
@@ -239,7 +239,7 @@ describe("CountdownTimer", () => {
 	it("should fail to pause when completed", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 0, seconds: 1 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(1) },
 			vi.fn(),
 			vi.fn(),
 			vi.fn(),
@@ -257,7 +257,7 @@ describe("CountdownTimer", () => {
 	it("should report initialized timer type when created", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 0, seconds: 2 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(2) },
 			vi.fn(),
 			vi.fn(),
 			vi.fn(),
@@ -270,7 +270,7 @@ describe("CountdownTimer", () => {
 	it("should report running timer type after start", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 0, seconds: 2 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(2) },
 			vi.fn(),
 			vi.fn(),
 			vi.fn(),
@@ -286,7 +286,7 @@ describe("CountdownTimer", () => {
 	it("should report paused timer type after pause", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 0, seconds: 2 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(2) },
 			vi.fn(),
 			vi.fn(),
 			vi.fn(),
@@ -304,7 +304,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleComplete = vi.fn();
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 0, seconds: 2 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(2) },
 			vi.fn(),
 			vi.fn(),
 			handleComplete,
@@ -322,7 +322,7 @@ describe("CountdownTimer", () => {
 	it("should reset to the initial time from running state", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 0, seconds: 5 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(5) },
 			vi.fn(),
 			vi.fn(),
 			vi.fn(),
@@ -336,7 +336,7 @@ describe("CountdownTimer", () => {
 		// Assert
 		expect(result).toStrictEqual({
 			type: "succeeded",
-			resetTo: { minutes: 0, seconds: 5 },
+			resetTo: { minutes: ensureMinutes(0), seconds: ensureSeconds(5) },
 		});
 		expect(countdownTimer.getCurrentTimerType()).toBe("initialized");
 	});
@@ -344,7 +344,7 @@ describe("CountdownTimer", () => {
 	it("should start again after reset from completed state", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 0, seconds: 1 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(1) },
 			vi.fn(),
 			vi.fn(),
 			vi.fn(),
@@ -365,7 +365,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleSubtract = vi.fn();
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 0, seconds: 3 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(3) },
 			handleSubtract,
 			vi.fn(),
 			vi.fn(),
@@ -386,7 +386,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleSubtract = vi.fn();
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 0, seconds: 3 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(3) },
 			handleSubtract,
 			vi.fn(),
 			vi.fn(),
@@ -403,15 +403,15 @@ describe("CountdownTimer", () => {
 		// Assert
 		expect(handleSubtract).toHaveBeenCalledTimes(countAfterPause + 1);
 		expect(handleSubtract).toHaveBeenLastCalledWith({
-			minutes: 0,
-			seconds: 1,
+			minutes: ensureMinutes(0),
+			seconds: ensureSeconds(1),
 		});
 	});
 
 	it("should stop timer when dispose is called while running", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer(
-			{ minutes: 0, seconds: 3 },
+			{ minutes: ensureMinutes(0), seconds: ensureSeconds(3) },
 			vi.fn(),
 			vi.fn(),
 			vi.fn(),
@@ -428,7 +428,10 @@ describe("CountdownTimer", () => {
 	it("should not be affected by external mutation of initialTime", () => {
 		// Arrange
 		const handlePause = vi.fn();
-		const initialTime = { minutes: 1, seconds: 0 as Seconds };
+		const initialTime = {
+			minutes: ensureMinutes(1),
+			seconds: ensureSeconds(0),
+		};
 		const countdownTimer = new CountdownTimer(
 			initialTime,
 			vi.fn(),
@@ -437,12 +440,15 @@ describe("CountdownTimer", () => {
 		);
 
 		// Act
-		initialTime.minutes = 9;
-		initialTime.seconds = 59;
+		initialTime.minutes = ensureMinutes(9);
+		initialTime.seconds = ensureSeconds(59);
 		countdownTimer.start();
 		countdownTimer.pause();
 
 		// Assert
-		expect(handlePause).toHaveBeenCalledWith({ minutes: 1, seconds: 0 });
+		expect(handlePause).toHaveBeenCalledWith({
+			minutes: ensureMinutes(1),
+			seconds: ensureSeconds(0),
+		});
 	});
 });

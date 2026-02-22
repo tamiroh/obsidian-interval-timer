@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "./countdown-timer";
-import { Minutes, Seconds, Time } from "./time";
+import { Minutes, Seconds, Time, ensureMinutes, ensureSeconds } from "./time";
 import { NotificationStyle } from "./notifier";
 import { DailyScheduler } from "./daily-scheduler";
 
@@ -68,7 +68,7 @@ export class IntervalTimer {
 		// Initialize properties
 
 		this.currentInterval = {
-			timer: this.createTimer(0, 0), // dummy timer, will be replaced immediately
+			timer: this.createTimer(ensureMinutes(0), ensureSeconds(0)), // dummy timer, will be replaced immediately
 			state: "focus",
 		};
 		this.onChangeState = (timerState, time) => {
@@ -94,8 +94,8 @@ export class IntervalTimer {
 		// Enter the initial interval
 
 		this.enterInterval("focus", {
-			minutes: this.settings.focusIntervalDuration,
-			seconds: 0,
+			minutes: ensureMinutes(this.settings.focusIntervalDuration),
+			seconds: ensureSeconds(0),
 		});
 	}
 
@@ -143,16 +143,16 @@ export class IntervalTimer {
 	public resetIntervalsSet(): void {
 		this.focusIntervals.set = 0;
 		this.enterInterval("longBreak", {
-			minutes: this.settings.longBreakDuration,
-			seconds: 0,
+			minutes: ensureMinutes(this.settings.longBreakDuration),
+			seconds: ensureSeconds(0),
 		});
 	}
 
 	public resetTotalIntervals(): void {
 		this.focusIntervals = { total: 0, set: 0 };
 		this.enterInterval("focus", {
-			minutes: this.settings.focusIntervalDuration,
-			seconds: 0,
+			minutes: ensureMinutes(this.settings.focusIntervalDuration),
+			seconds: ensureSeconds(0),
 		});
 	}
 
@@ -166,8 +166,8 @@ export class IntervalTimer {
 			return false;
 		}
 		this.enterInterval(this.currentInterval.state, {
-			minutes,
-			seconds: 0,
+			minutes: ensureMinutes(minutes),
+			seconds: ensureSeconds(0),
 		});
 		return true;
 	}
@@ -212,20 +212,22 @@ export class IntervalTimer {
 				if (this.focusIntervals.set === this.settings.longBreakAfter) {
 					this.focusIntervals.set = 0;
 					this.enterInterval("longBreak", {
-						minutes: this.settings.longBreakDuration,
-						seconds: 0,
+						minutes: ensureMinutes(this.settings.longBreakDuration),
+						seconds: ensureSeconds(0),
 					});
 				} else {
 					this.enterInterval("shortBreak", {
-						minutes: this.settings.shortBreakDuration,
-						seconds: 0,
+						minutes: ensureMinutes(
+							this.settings.shortBreakDuration,
+						),
+						seconds: ensureSeconds(0),
 					});
 				}
 			})
 			.with("shortBreak", "longBreak", () => {
 				this.enterInterval("focus", {
-					minutes: this.settings.focusIntervalDuration,
-					seconds: 0,
+					minutes: ensureMinutes(this.settings.focusIntervalDuration),
+					seconds: ensureSeconds(0),
 				});
 			})
 			.exhaustive();
@@ -242,7 +244,7 @@ export class IntervalTimer {
 		}
 	}
 
-	private createTimer(minutes: number, seconds: Seconds): CountdownTimer {
+	private createTimer(minutes: Minutes, seconds: Seconds): CountdownTimer {
 		const handlePause = (current: Time): void => {
 			this.onChangeState("paused", current);
 		};
