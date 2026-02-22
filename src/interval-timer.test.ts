@@ -25,7 +25,7 @@ describe("IntervalTimer", () => {
 					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.enableAutoReset();
 			handleChangeState.mockClear();
@@ -60,7 +60,7 @@ describe("IntervalTimer", () => {
 					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.enableAutoReset();
 			handleChangeState.mockClear();
@@ -89,7 +89,7 @@ describe("IntervalTimer", () => {
 					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.enableAutoReset();
 			handleChangeState.mockClear();
@@ -125,7 +125,7 @@ describe("IntervalTimer", () => {
 					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.enableAutoReset();
 			intervalTimer.disableAutoReset();
@@ -155,7 +155,7 @@ describe("IntervalTimer", () => {
 					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.enableAutoReset();
 			intervalTimer.dispose();
@@ -219,7 +219,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			handleChangeState.mockClear();
 
@@ -253,7 +253,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			handleChangeState.mockClear();
 
@@ -287,7 +287,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
@@ -325,7 +325,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
@@ -365,7 +365,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
@@ -403,7 +403,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
@@ -442,7 +442,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
@@ -524,7 +524,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.applySnapshot({
 				state: "focus",
@@ -635,7 +635,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
@@ -764,7 +764,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
@@ -804,7 +804,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			handleChangeState.mockClear();
 
@@ -837,7 +837,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			handleChangeState.mockClear();
 
@@ -871,7 +871,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 
 			// Act
@@ -940,7 +940,7 @@ describe("IntervalTimer", () => {
 		it("should return focus as the initial state", () => {
 			// Arrange
 			const intervalTimer = new IntervalTimer(
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 				{
 					focusIntervalDuration: 25,
 					shortBreakDuration: 5,
@@ -949,7 +949,7 @@ describe("IntervalTimer", () => {
 					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 
 			// Act & Assert
@@ -961,7 +961,7 @@ describe("IntervalTimer", () => {
 		it("should return shortBreak after skipping focus", () => {
 			// Arrange
 			const intervalTimer = new IntervalTimer(
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 				{
 					focusIntervalDuration: 25,
 					shortBreakDuration: 5,
@@ -970,7 +970,7 @@ describe("IntervalTimer", () => {
 					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 
 			// Act
@@ -998,7 +998,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			handleChangeState.mockClear();
 
@@ -1035,7 +1035,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(
 				handleChangeState,
 				settings,
-				() => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+				() => {},
 			);
 			handleChangeState.mockClear();
 
