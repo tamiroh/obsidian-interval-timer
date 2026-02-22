@@ -1,0 +1,49 @@
+{
+	"bin/version-bump.mjs": {
+		"no-undef": {
+			"count": 1
+		}
+	},
+	"package.json": {
+		"depend/ban-dependencies": {
+			"count": 2
+		}
+	},
+	"src/countdown-timer.test.ts": {
+		"@typescript-eslint/no-unsafe-member-access": {
+			"count": 2
+		}
+	},
+	"src/flash-overlay.ts": {
+		"obsidianmd/no-forbidden-elements": {
+			"count": 1
+		},
+		"obsidianmd/no-static-styles-assignment": {
+			"count": 8
+		}
+	},
+	"src/notifier.ts": {
+		"@typescript-eslint/no-unsafe-assignment": {
+			"count": 1
+		},
+		"@typescript-eslint/no-unsafe-call": {
+			"count": 2
+		},
+		"@typescript-eslint/no-unsafe-member-access": {
+			"count": 2
+		}
+	},
+	"src/plugin.ts": {
+		"@typescript-eslint/no-floating-promises": {
+			"count": 1
+		},
+		"@typescript-eslint/no-unsafe-assignment": {
+			"count": 1
+		}
+	},
+	"src/retime-modal.ts": {
+		"obsidianmd/no-static-styles-assignment": {
+			"count": 3
+		}
+	}
+}

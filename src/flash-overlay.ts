@@ -1,14 +1,12 @@
 export type Color = { r: number; g: number; b: number };
 
 export class FlashOverlay {
-	// eslint-disable-next-line no-use-before-define
 	private static instance: FlashOverlay | undefined;
 
 	private overlay: HTMLDivElement | undefined;
 
 	private styleElement: HTMLStyleElement | undefined;
 
-	// eslint-disable-next-line no-useless-constructor, no-empty-function, @typescript-eslint/no-empty-function
 	private constructor() {}
 
 	public static getInstance(): FlashOverlay {
