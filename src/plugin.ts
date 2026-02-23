@@ -107,7 +107,10 @@ export default class Plugin extends BasePlugin {
 
 		this.intervalTimer = new IntervalTimer(
 			onChangeState,
-			this.settings,
+			{
+				...this.settings,
+				resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
+			},
 			notifier,
 			onStartedFreshly,
 			onFocusIntervalEnded,
