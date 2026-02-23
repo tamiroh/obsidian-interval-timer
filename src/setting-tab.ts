@@ -8,7 +8,6 @@ export type PluginSetting = {
 	longBreakDuration: number;
 	longBreakAfter: number;
 	notificationStyle: NotificationStyle;
-	resetTime: { hours: number; minutes: number };
 };
 
 export const DEFAULT_SETTINGS: PluginSetting = {
@@ -17,7 +16,6 @@ export const DEFAULT_SETTINGS: PluginSetting = {
 	longBreakDuration: 15,
 	longBreakAfter: 4,
 	notificationStyle: "simple",
-	resetTime: { hours: 0, minutes: 0 },
 };
 
 export class SettingTab extends PluginSettingTab {
