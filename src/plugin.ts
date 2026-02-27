@@ -1,6 +1,6 @@
 import { App, Plugin as BasePlugin, PluginManifest } from "obsidian";
 import { match } from "ts-pattern";
-import { DEFAULT_SETTINGS, PluginSetting, SettingTab } from "./setting-tab";
+import { SettingTab } from "./setting-tab";
 import {
 	IntervalTimer,
 	IntervalTimerState,
@@ -9,11 +9,27 @@ import {
 } from "./interval-timer";
 import { StatusBar } from "./status-bar";
 import { KeyValueStore } from "./key-value-store";
-import { notify } from "./notifier";
+import { NotificationStyle, notify } from "./notifier";
 import { FlashOverlay } from "./flash-overlay";
 import { TaskTracker } from "./task-tracker";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
 import { TaskLineHighlighter } from "./task-line-highlight-extension";
+
+export type PluginSetting = {
+	focusIntervalDuration: number;
+	shortBreakDuration: number;
+	longBreakDuration: number;
+	longBreakAfter: number;
+	notificationStyle: NotificationStyle;
+};
+
+const defaultPluginSetting = {
+	focusIntervalDuration: 25,
+	shortBreakDuration: 5,
+	longBreakDuration: 15,
+	longBreakAfter: 4,
+	notificationStyle: "simple",
+} satisfies PluginSetting;
 
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;
@@ -108,7 +124,10 @@ export default class Plugin extends BasePlugin {
 		this.intervalTimer = new IntervalTimer(
 			onChangeState,
 			{
-				...this.settings,
+				focusIntervalDuration: this.settings.focusIntervalDuration,
+				shortBreakDuration: this.settings.shortBreakDuration,
+				longBreakDuration: this.settings.longBreakDuration,
+				longBreakAfter: this.settings.longBreakAfter,
 				resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
 			},
 			notifier,
@@ -199,7 +218,7 @@ export default class Plugin extends BasePlugin {
 
 	private async loadSettings(): Promise<void> {
 		this.settings = {
-			...DEFAULT_SETTINGS,
+			...defaultPluginSetting,
 			...(await this.loadData()),
 		};
 	}

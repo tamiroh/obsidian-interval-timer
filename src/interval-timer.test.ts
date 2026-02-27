@@ -22,7 +22,6 @@ describe("IntervalTimer", () => {
 					shortBreakDuration: 5,
 					longBreakDuration: 15,
 					longBreakAfter: 4,
-					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
 				() => {},
@@ -57,7 +56,6 @@ describe("IntervalTimer", () => {
 					shortBreakDuration: 5,
 					longBreakDuration: 15,
 					longBreakAfter: 4,
-					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
 				() => {},
@@ -86,7 +84,6 @@ describe("IntervalTimer", () => {
 					shortBreakDuration: 5,
 					longBreakDuration: 15,
 					longBreakAfter: 4,
-					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
 				() => {},
@@ -122,7 +119,6 @@ describe("IntervalTimer", () => {
 					shortBreakDuration: 5,
 					longBreakDuration: 15,
 					longBreakAfter: 4,
-					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
 				() => {},
@@ -152,7 +148,6 @@ describe("IntervalTimer", () => {
 					shortBreakDuration: 5,
 					longBreakDuration: 15,
 					longBreakAfter: 4,
-					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
 				() => {},
@@ -179,7 +174,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const notifier = vi.fn();
@@ -213,7 +207,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 1,
 				longBreakDuration: 1,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -247,7 +240,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 1,
 				longBreakDuration: 1,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -281,7 +273,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -319,7 +310,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -359,7 +349,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -397,7 +386,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -436,7 +424,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 1,
 				longBreakDuration: 1,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -474,7 +461,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 2,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -518,7 +504,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 2,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -582,7 +567,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -629,7 +613,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 1,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -671,7 +654,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -719,7 +701,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -758,7 +739,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -798,7 +778,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 1,
 				longBreakDuration: 1,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -831,7 +810,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 1,
 				longBreakDuration: 1,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -865,7 +843,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 1,
 				longBreakDuration: 1,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -902,7 +879,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -946,7 +922,6 @@ describe("IntervalTimer", () => {
 					shortBreakDuration: 5,
 					longBreakDuration: 15,
 					longBreakAfter: 4,
-					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
 				() => {},
@@ -967,7 +942,6 @@ describe("IntervalTimer", () => {
 					shortBreakDuration: 5,
 					longBreakDuration: 15,
 					longBreakAfter: 4,
-					notificationStyle: "simple",
 					resetTime: { hours: 0, minutes: 0 },
 				},
 				() => {},
@@ -992,7 +966,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
@@ -1029,7 +1002,6 @@ describe("IntervalTimer", () => {
 				shortBreakDuration: 5,
 				longBreakDuration: 15,
 				longBreakAfter: 4,
-				notificationStyle: "simple",
 				resetTime: { hours: 0, minutes: 0 },
 			};
 			const intervalTimer = new IntervalTimer(
