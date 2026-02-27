@@ -1,7 +1,6 @@
 import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "./countdown-timer";
 import { Minutes, Seconds, Time } from "./time";
-import { NotificationStyle } from "./notifier";
 import { DailyScheduler } from "./daily-scheduler";
 
 export type IntervalTimerSetting = {
@@ -9,7 +8,6 @@ export type IntervalTimerSetting = {
 	shortBreakDuration: number;
 	longBreakDuration: number;
 	longBreakAfter: number;
-	notificationStyle: NotificationStyle;
 	resetTime: { hours: number; minutes: number };
 };
 

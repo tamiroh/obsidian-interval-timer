@@ -2,31 +2,15 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import Plugin from "./plugin";
 import { NotificationStyle } from "./notifier";
 
-export type PluginSetting = {
-	focusIntervalDuration: number;
-	shortBreakDuration: number;
-	longBreakDuration: number;
-	longBreakAfter: number;
-	notificationStyle: NotificationStyle;
-};
-
-export const DEFAULT_SETTINGS: PluginSetting = {
-	focusIntervalDuration: 25,
-	shortBreakDuration: 5,
-	longBreakDuration: 15,
-	longBreakAfter: 4,
-	notificationStyle: "simple",
-};
-
 export class SettingTab extends PluginSettingTab {
-	plugin: Plugin;
+	private plugin: Plugin;
 
 	constructor(app: App, plugin: Plugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
 
-	display(): void {
+	public display(): void {
 		const { containerEl } = this;
 
 		containerEl.empty();
