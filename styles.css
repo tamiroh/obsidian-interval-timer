@@ -4,6 +4,10 @@
 	border-radius: 4px;
 }
 
+.cm-line.interval-timer-task-line-highlight.interval-timer-task-line-highlight-tracking {
+	background-color: rgba(255, 100, 100, 0.25);
+}
+
 .interval-timer-start-task-button {
 	position: absolute;
 	right: 6px;

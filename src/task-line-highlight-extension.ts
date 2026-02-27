@@ -12,9 +12,12 @@ import {
 import { TaskLine } from "./task-line";
 import { TaskTracker } from "./task-tracker";
 
-const taskLineHighlightDecoration = Decoration.line({
-	class: "interval-timer-task-line-highlight",
-});
+const createTaskLineHighlightDecoration = (isTracking: boolean): Decoration =>
+	Decoration.line({
+		class: isTracking
+			? "interval-timer-task-line-highlight interval-timer-task-line-highlight-tracking"
+			: "interval-timer-task-line-highlight",
+	});
 
 const startTaskButtonDecoration = Decoration.widget({
 	side: 1,
@@ -42,6 +45,10 @@ const buildDecorations = (
 	if (!isHighlightEnabled) {
 		return builder.finish();
 	}
+
+	const taskLineHighlightDecoration = createTaskLineHighlightDecoration(
+		trackedTaskName !== null,
+	);
 
 	if (trackedTaskName) {
 		for (
