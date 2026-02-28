@@ -1,5 +1,7 @@
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import { App, displayTooltip, PluginSettingTab, Setting } from "obsidian";
 import Plugin, { PluginSetting } from "./plugin";
+
+const VALIDATION_TOOLTIP_CLASS = "interval-timer-validation-tooltip";
 
 export class SettingTab extends PluginSettingTab {
 	private plugin: Plugin;
@@ -28,6 +30,7 @@ export class SettingTab extends PluginSettingTab {
 						await this.updateSettingOrShowValidationError(
 							"focusIntervalDuration",
 							value,
+							text.inputEl,
 							"Focus interval duration",
 						);
 					}),
@@ -43,6 +46,7 @@ export class SettingTab extends PluginSettingTab {
 						await this.updateSettingOrShowValidationError(
 							"shortBreakDuration",
 							value,
+							text.inputEl,
 							"Short break duration",
 						);
 					}),
@@ -58,6 +62,7 @@ export class SettingTab extends PluginSettingTab {
 						await this.updateSettingOrShowValidationError(
 							"longBreakDuration",
 							value,
+							text.inputEl,
 							"Long break duration",
 						);
 					}),
@@ -73,6 +78,7 @@ export class SettingTab extends PluginSettingTab {
 						await this.updateSettingOrShowValidationError(
 							"longBreakAfter",
 							value,
+							text.inputEl,
 							"Start long break after",
 						);
 					}),
@@ -89,6 +95,7 @@ export class SettingTab extends PluginSettingTab {
 					await this.updateSettingOrShowValidationError(
 						"notificationStyle",
 						value,
+						dropdown.selectEl,
 						"Notification style",
 					);
 				});
@@ -98,12 +105,29 @@ export class SettingTab extends PluginSettingTab {
 	private async updateSettingOrShowValidationError(
 		key: keyof PluginSetting,
 		value: unknown,
+		targetEl: HTMLElement,
 		settingLabel: string,
 	): Promise<void> {
 		const result = await this.plugin.updateSetting(key, value);
-		if (result.ok) return;
+		if (result.ok) {
+			this.clearValidationTooltips();
+			return;
+		}
 
-		new Notice(this.formatParseErrorMessage(settingLabel, result.reason));
+		displayTooltip(
+			targetEl,
+			this.formatParseErrorMessage(settingLabel, result.reason),
+			{
+				placement: "left",
+				classes: ["mod-error", VALIDATION_TOOLTIP_CLASS],
+			},
+		);
+	}
+
+	private clearValidationTooltips(): void {
+		document
+			.querySelectorAll(`.${VALIDATION_TOOLTIP_CLASS}`)
+			.forEach((tooltipEl) => tooltipEl.remove());
 	}
 
 	private formatParseErrorMessage(
