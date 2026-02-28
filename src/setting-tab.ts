@@ -1,6 +1,7 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
-import Plugin from "./plugin";
-import { NotificationStyle } from "./notifier";
+import { App, displayTooltip, PluginSettingTab, Setting } from "obsidian";
+import Plugin, { PluginSetting } from "./plugin";
+
+const VALIDATION_TOOLTIP_CLASS = "interval-timer-validation-tooltip";
 
 export class SettingTab extends PluginSettingTab {
 	private plugin: Plugin;
@@ -26,9 +27,12 @@ export class SettingTab extends PluginSettingTab {
 						String(this.plugin.settings.focusIntervalDuration),
 					)
 					.onChange(async (value) => {
-						this.plugin.settings.focusIntervalDuration =
-							Number(value);
-						await this.plugin.saveSettings();
+						await this.updateSettingOrShowValidationError(
+							"focusIntervalDuration",
+							value,
+							text.inputEl,
+							"Focus interval duration",
+						);
 					}),
 			);
 
@@ -39,8 +43,12 @@ export class SettingTab extends PluginSettingTab {
 					.setPlaceholder("Example: 5")
 					.setValue(String(this.plugin.settings.shortBreakDuration))
 					.onChange(async (value) => {
-						this.plugin.settings.shortBreakDuration = Number(value);
-						await this.plugin.saveSettings();
+						await this.updateSettingOrShowValidationError(
+							"shortBreakDuration",
+							value,
+							text.inputEl,
+							"Short break duration",
+						);
 					}),
 			);
 
@@ -51,8 +59,12 @@ export class SettingTab extends PluginSettingTab {
 					.setPlaceholder("Example: 15")
 					.setValue(String(this.plugin.settings.longBreakDuration))
 					.onChange(async (value) => {
-						this.plugin.settings.longBreakDuration = Number(value);
-						await this.plugin.saveSettings();
+						await this.updateSettingOrShowValidationError(
+							"longBreakDuration",
+							value,
+							text.inputEl,
+							"Long break duration",
+						);
 					}),
 			);
 
@@ -63,8 +75,12 @@ export class SettingTab extends PluginSettingTab {
 					.setPlaceholder("Example: 4")
 					.setValue(String(this.plugin.settings.longBreakAfter))
 					.onChange(async (value) => {
-						this.plugin.settings.longBreakAfter = Number(value);
-						await this.plugin.saveSettings();
+						await this.updateSettingOrShowValidationError(
+							"longBreakAfter",
+							value,
+							text.inputEl,
+							"Start long break after",
+						);
 					}),
 			);
 
@@ -76,10 +92,58 @@ export class SettingTab extends PluginSettingTab {
 				.addOption("simple", "Simple")
 				.setValue(this.plugin.settings.notificationStyle)
 				.onChange(async (value) => {
-					this.plugin.settings.notificationStyle =
-						value as NotificationStyle;
-					await this.plugin.saveSettings();
+					await this.updateSettingOrShowValidationError(
+						"notificationStyle",
+						value,
+						dropdown.selectEl,
+						"Notification style",
+					);
 				});
 		});
+	}
+
+	private async updateSettingOrShowValidationError(
+		key: keyof PluginSetting,
+		value: unknown,
+		targetEl: HTMLElement,
+		settingLabel: string,
+	): Promise<void> {
+		const result = await this.plugin.updateSetting(key, value);
+		if (result.ok) {
+			this.clearValidationTooltips();
+			return;
+		}
+
+		displayTooltip(
+			targetEl,
+			this.formatParseErrorMessage(settingLabel, result.reason),
+			{
+				placement: "left",
+				classes: ["mod-error", VALIDATION_TOOLTIP_CLASS],
+			},
+		);
+	}
+
+	private clearValidationTooltips(): void {
+		document
+			.querySelectorAll(`.${VALIDATION_TOOLTIP_CLASS}`)
+			.forEach((tooltipEl) => tooltipEl.remove());
+	}
+
+	private formatParseErrorMessage(
+		settingLabel: string,
+		reason: Extract<
+			Awaited<ReturnType<Plugin["updateSetting"]>>,
+			{ ok: false }
+		>["reason"],
+	): string {
+		switch (reason) {
+			case "invalid_number":
+				return `${settingLabel}: please enter a number.`;
+			case "non_positive_integer":
+				return `${settingLabel}: please enter a positive integer.`;
+			case "invalid_notification_style":
+				return `${settingLabel}: invalid option selected.`;
+		}
 	}
 }

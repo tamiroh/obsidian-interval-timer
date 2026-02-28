@@ -14,6 +14,10 @@ import { FlashOverlay } from "./flash-overlay";
 import { TaskTracker } from "./task-tracker";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
 import { TaskLineHighlighter } from "./task-line-highlight-extension";
+import {
+	parsePositiveInteger,
+	ParsePositiveIntegerResult,
+} from "./value-parser";
 
 export type PluginSetting = {
 	focusIntervalDuration: number;
@@ -30,6 +34,10 @@ const defaultPluginSetting = {
 	longBreakAfter: 4,
 	notificationStyle: "simple",
 } satisfies PluginSetting;
+
+type ParseNotificationStyleResult =
+	| { ok: true; value: NotificationStyle }
+	| { ok: false; reason: "invalid_notification_style" };
 
 export default class Plugin extends BasePlugin {
 	public settings!: PluginSetting;
@@ -76,8 +84,36 @@ export default class Plugin extends BasePlugin {
 		this.intervalTimer.dispose();
 	}
 
-	public async saveSettings(): Promise<void> {
-		await this.saveData(this.settings);
+	public async updateSetting(
+		key: keyof PluginSetting,
+		value: unknown,
+	): Promise<ParsePositiveIntegerResult | ParseNotificationStyleResult> {
+		switch (key) {
+			case "focusIntervalDuration":
+			case "shortBreakDuration":
+			case "longBreakDuration":
+			case "longBreakAfter": {
+				const parsed = parsePositiveInteger(value);
+				if (!parsed.ok) return parsed;
+
+				this.settings[key] = parsed.value;
+				await this.saveData(this.settings);
+
+				return parsed;
+			}
+			case "notificationStyle": {
+				const parsed: ParseNotificationStyleResult =
+					value === "system" || value === "simple"
+						? { ok: true, value }
+						: { ok: false, reason: "invalid_notification_style" };
+				if (!parsed.ok) return parsed;
+
+				this.settings.notificationStyle = parsed.value;
+				await this.saveData(this.settings);
+
+				return parsed;
+			}
+		}
 	}
 
 	private setupIntervalTimer(): void {
@@ -219,7 +255,7 @@ export default class Plugin extends BasePlugin {
 	private async loadSettings(): Promise<void> {
 		this.settings = {
 			...defaultPluginSetting,
-			...(await this.loadData()),
+			...((await this.loadData()) as PluginSetting | undefined | null),
 		};
 	}
 }
