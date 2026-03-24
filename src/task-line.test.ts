@@ -9,6 +9,7 @@ describe("TaskLine", () => {
 		expect(taskLine?.prefix).toBe("- [ ] ");
 		expect(taskLine?.taskName).toBe("write docs");
 		expect(taskLine?.completedIntervals).toBe(1);
+		expect(taskLine?.carriedOverIntervals).toBeNull();
 		expect(taskLine?.estimatedIntervals).toBe(3);
 		expect(taskLine?.toString()).toBe("- [ ] write docs 1/3");
 	});
@@ -18,6 +19,24 @@ describe("TaskLine", () => {
 
 		expect(taskLine?.toIncremented().toString()).toBe(
 			"- [ ] write docs 4/2",
+		);
+	});
+
+	it("parses a task line with carried-over intervals", () => {
+		const taskLine = TaskLine.from("- [ ] write docs 2,1/6");
+
+		expect(taskLine).not.toBeNull();
+		expect(taskLine?.completedIntervals).toBe(1);
+		expect(taskLine?.carriedOverIntervals).toBe(2);
+		expect(taskLine?.estimatedIntervals).toBe(6);
+		expect(taskLine?.toString()).toBe("- [ ] write docs 2,1/6");
+	});
+
+	it("increments completed intervals while preserving carried-over intervals", () => {
+		const taskLine = TaskLine.from("- [ ] write docs 2,1/6");
+
+		expect(taskLine?.toIncremented().toString()).toBe(
+			"- [ ] write docs 2,2/6",
 		);
 	});
 
@@ -33,7 +52,17 @@ describe("TaskLine", () => {
 		expect(taskLine?.prefix).toBe("  - [ ] ");
 		expect(taskLine?.taskName).toBe("write docs");
 		expect(taskLine?.completedIntervals).toBe(1);
+		expect(taskLine?.carriedOverIntervals).toBeNull();
 		expect(taskLine?.estimatedIntervals).toBe(3);
+	});
+
+	it("parses task line with carried-over intervals and extra whitespace", () => {
+		const taskLine = TaskLine.from("  - [ ] write docs   2 , 1 / 6  ");
+
+		expect(taskLine).not.toBeNull();
+		expect(taskLine?.completedIntervals).toBe(1);
+		expect(taskLine?.carriedOverIntervals).toBe(2);
+		expect(taskLine?.estimatedIntervals).toBe(6);
 	});
 
 	it("parses task name containing slash", () => {
@@ -42,6 +71,7 @@ describe("TaskLine", () => {
 		expect(taskLine).not.toBeNull();
 		expect(taskLine?.taskName).toBe("api v2/a");
 		expect(taskLine?.completedIntervals).toBe(1);
+		expect(taskLine?.carriedOverIntervals).toBeNull();
 		expect(taskLine?.estimatedIntervals).toBe(3);
 	});
 
@@ -56,7 +86,9 @@ describe("TaskLine", () => {
 		const incremented = original?.toIncremented();
 
 		expect(original?.completedIntervals).toBe(1);
+		expect(original?.carriedOverIntervals).toBeNull();
 		expect(incremented?.completedIntervals).toBe(2);
+		expect(incremented?.carriedOverIntervals).toBeNull();
 		expect(original?.toString()).toBe("- [ ] write docs 1/3");
 		expect(incremented?.toString()).toBe("- [ ] write docs 2/3");
 	});

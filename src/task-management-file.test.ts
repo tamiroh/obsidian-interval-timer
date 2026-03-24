@@ -50,6 +50,14 @@ describe("TaskManagementFile", () => {
 		);
 	});
 
+	it("increments completed intervals while preserving carried-over intervals", () => {
+		const file = new TaskManagementFile("- [ ] write docs 2,1/6");
+
+		const updated = file.toIncremented("write docs");
+
+		expect(updated?.toContent()).toBe("- [ ] write docs 2,2/6");
+	});
+
 	it("increments only the targeted task line in a complex document", () => {
 		const file = new TaskManagementFile(
 			`# Daily Notes
