@@ -73,4 +73,18 @@ describe("IntervalTimerSnapshotStore", () => {
 
 		expect(snapshot).toBeNull();
 	});
+
+	it("should return null when intervals set is greater than total", () => {
+		const keyValueStore = new KeyValueStore("snapshot-test");
+		const snapshotStore = new IntervalTimerSnapshotStore(keyValueStore);
+		keyValueStore.set("timerState", "focus");
+		keyValueStore.set("time-minutes", "25");
+		keyValueStore.set("time-seconds", "0");
+		keyValueStore.set("intervals-total", "1");
+		keyValueStore.set("intervals-set", "2");
+
+		const snapshot = snapshotStore.load();
+
+		expect(snapshot).toBeNull();
+	});
 });

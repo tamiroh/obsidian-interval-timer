@@ -53,6 +53,9 @@ export class IntervalTimerSnapshotStore {
 		) {
 			return null;
 		}
+		if (parsedSet.value > parsedTotal.value) {
+			return null;
+		}
 
 		return {
 			state,
