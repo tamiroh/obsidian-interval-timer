@@ -64,6 +64,9 @@ export type Seconds =
 
 export type Time = { minutes: Minutes; seconds: Seconds };
 
+export const isSeconds = (value: number): value is Seconds =>
+	Number.isInteger(value) && value >= 0 && value < 60;
+
 export const toSeconds = (time: Time): number =>
 	time.minutes * 60 + time.seconds;
 

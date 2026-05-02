@@ -1,6 +1,18 @@
-import { IntervalTimerState, Snapshot } from "./interval-timer";
+import {
+	IntervalTimerState,
+	intervalTimerStates,
+	Snapshot,
+} from "./interval-timer";
 import { KeyValueStore } from "./key-value-store";
-import { Seconds, Time } from "./time";
+import { Time } from "./time";
+import {
+	parseMinutes,
+	parseNonNegativeInteger,
+	parseSeconds,
+} from "./value-parser";
+
+const isIntervalTimerState = (value: string): value is IntervalTimerState =>
+	intervalTimerStates.some((state) => state === value);
 
 export class IntervalTimerSnapshotStore {
 	private readonly keyValueStore: KeyValueStore;
@@ -25,13 +37,33 @@ export class IntervalTimerSnapshotStore {
 			return null;
 		}
 
+		if (!isIntervalTimerState(state)) {
+			return null;
+		}
+
+		const parsedMinutes = parseMinutes(minutes);
+		const parsedSeconds = parseSeconds(seconds);
+		const parsedTotal = parseNonNegativeInteger(total);
+		const parsedSet = parseNonNegativeInteger(set);
+		if (
+			!parsedMinutes.ok ||
+			!parsedSeconds.ok ||
+			!parsedTotal.ok ||
+			!parsedSet.ok
+		) {
+			return null;
+		}
+		if (parsedSet.value > parsedTotal.value) {
+			return null;
+		}
+
 		return {
-			state: state as IntervalTimerState,
-			minutes: Number.parseInt(minutes, 10),
-			seconds: Number.parseInt(seconds, 10) as Seconds,
+			state,
+			minutes: parsedMinutes.value,
+			seconds: parsedSeconds.value,
 			focusIntervals: {
-				total: Number.parseInt(total, 10),
-				set: Number.parseInt(set, 10),
+				total: parsedTotal.value,
+				set: parsedSet.value,
 			},
 		};
 	}

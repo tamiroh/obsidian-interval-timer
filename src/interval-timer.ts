@@ -11,7 +11,13 @@ export type IntervalTimerSetting = {
 	resetTime: { hours: number; minutes: number };
 };
 
-export type IntervalTimerState = "focus" | "shortBreak" | "longBreak";
+export const intervalTimerStates = [
+	"focus",
+	"shortBreak",
+	"longBreak",
+] as const;
+
+export type IntervalTimerState = (typeof intervalTimerStates)[number];
 
 export type onChangeStateFunction = (
 	timerState: TimerType,
