@@ -12,6 +12,7 @@ export class SystemNotifier extends Notifier {
 	private current: Notification | null = null;
 
 	override notify(message: string): void {
+		if (document.hasFocus()) return;
 		this.clearNotification();
 		this.current = new Notification(message, { body: "Interval Timer" });
 		this.current.addEventListener(
