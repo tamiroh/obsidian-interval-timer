@@ -9,7 +9,7 @@ import {
 } from "./interval-timer";
 import { StatusBar } from "./status-bar";
 import { KeyValueStore } from "./key-value-store";
-import { NotificationStyle, notify } from "./notifier";
+import { NotificationStyle, Notifier, createNotifier } from "./notifier";
 import { FlashOverlay } from "./flash-overlay";
 import { TaskTracker } from "./task-tracker";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
@@ -46,6 +46,8 @@ export default class Plugin extends BasePlugin {
 
 	private intervalTimer!: IntervalTimer;
 
+	private notifier!: Notifier;
+
 	private keyValueStore: KeyValueStore;
 
 	private taskTracker: TaskTracker;
@@ -71,12 +73,16 @@ export default class Plugin extends BasePlugin {
 
 	public override async onload(): Promise<void> {
 		await this.loadSettings();
+		this.notifier = createNotifier(this.settings.notificationStyle);
 		this.setupIntervalTimer();
 		this.setupTaskLineInteraction();
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
 
 		this.statusBar.enableClick(this.intervalTimer);
+		this.registerDomEvent(window, "focus", () =>
+			this.notifier.clearNotification(),
+		);
 	}
 
 	public override onunload(): void {
@@ -108,6 +114,8 @@ export default class Plugin extends BasePlugin {
 						: { ok: false, reason: "invalid_notification_style" };
 				if (!parsed.ok) return parsed;
 
+				this.notifier.clearNotification();
+				this.notifier = createNotifier(parsed.value);
 				this.settings.notificationStyle = parsed.value;
 				await this.saveData(this.settings);
 
@@ -133,7 +141,7 @@ export default class Plugin extends BasePlugin {
 				this.untrackCurrentTask();
 			}
 		};
-		const notifier = (message: string, context: NotifierContext) => {
+		const onNotify = (message: string, context: NotifierContext) => {
 			const overlayColor = match(context.state)
 				.with("focus", () => ({ r: 255, g: 100, b: 100 }))
 				.with("shortBreak", "longBreak", () => ({
@@ -143,7 +151,7 @@ export default class Plugin extends BasePlugin {
 				}))
 				.exhaustive();
 			FlashOverlay.getInstance().show(overlayColor);
-			notify(this.settings.notificationStyle, message);
+			this.notifier.notify(message);
 		};
 		const onStartedFreshly = (state: IntervalTimerState) => {
 			if (state === "focus") {
@@ -166,7 +174,7 @@ export default class Plugin extends BasePlugin {
 				longBreakAfter: this.settings.longBreakAfter,
 				resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
 			},
-			notifier,
+			onNotify,
 			onStartedFreshly,
 			onFocusIntervalEnded,
 		);
