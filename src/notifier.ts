@@ -14,11 +14,16 @@ export class SystemNotifier extends Notifier {
 	override notify(message: string): void {
 		if (document.hasFocus()) return;
 		this.clearNotification();
-		this.current = new Notification(message, { body: "Interval Timer" });
-		this.current.addEventListener(
+		const notification = new Notification(message, {
+			body: "Interval Timer",
+		});
+		this.current = notification;
+		notification.addEventListener(
 			"close",
 			() => {
-				this.current = null;
+				if (this.current === notification) {
+					this.current = null;
+				}
 			},
 			{ once: true },
 		);
