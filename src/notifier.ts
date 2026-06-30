@@ -1,19 +1,48 @@
 import { match } from "ts-pattern";
 import { Notice } from "obsidian";
 
-const electron = window.require?.("electron");
-
 export type NotificationStyle = "system" | "simple";
 
-export const notify = (style: NotificationStyle, message: string) =>
+export abstract class Notifier {
+	abstract notify(message: string): void;
+	clearNotification(): void {}
+}
+
+export class SystemNotifier extends Notifier {
+	private current: Notification | null = null;
+
+	override notify(message: string): void {
+		if (document.hasFocus()) return;
+		this.clearNotification();
+		const notification = new Notification(message, {
+			body: "Interval Timer",
+		});
+		this.current = notification;
+		notification.addEventListener(
+			"close",
+			() => {
+				if (this.current === notification) {
+					this.current = null;
+				}
+			},
+			{ once: true },
+		);
+	}
+
+	override clearNotification(): void {
+		this.current?.close();
+		this.current = null;
+	}
+}
+
+export class SimpleNotifier extends Notifier {
+	override notify(message: string): void {
+		new Notice(message);
+	}
+}
+
+export const createNotifier = (style: NotificationStyle): Notifier =>
 	match(style)
-		.with("system", () => {
-			new electron.remote.Notification({
-				title: message,
-				body: "Interval Timer",
-			}).show();
-		})
-		.with("simple", () => {
-			new Notice(message);
-		})
+		.with("system", () => new SystemNotifier())
+		.with("simple", () => new SimpleNotifier())
 		.exhaustive();
