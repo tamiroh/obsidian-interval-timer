@@ -14,7 +14,8 @@ describe("DailyScheduler", () => {
 		// Arrange
 		vi.setSystemTime(new Date(2024, 0, 1, 9, 0, 0, 0)); // 09:00
 		const callback = vi.fn();
-		const scheduler = new DailyScheduler( // Scheduled at 10:00
+		const scheduler = new DailyScheduler(
+			// Scheduled at 10:00
 			{ hours: 10, minutes: 0 },
 			callback,
 		);
@@ -34,7 +35,8 @@ describe("DailyScheduler", () => {
 		// Arrange
 		vi.setSystemTime(new Date(2024, 0, 1, 10, 30, 0, 0)); // 10:30
 		const callback = vi.fn();
-		const scheduler = new DailyScheduler( // Scheduled at 10:00
+		const scheduler = new DailyScheduler(
+			// Scheduled at 10:00
 			{ hours: 10, minutes: 0 },
 			callback,
 		);
@@ -53,7 +55,8 @@ describe("DailyScheduler", () => {
 		// Arrange
 		vi.setSystemTime(new Date(2024, 0, 1, 9, 0, 0, 0)); // 09:00
 		const callback = vi.fn();
-		const scheduler = new DailyScheduler( // Scheduled at 10:00
+		const scheduler = new DailyScheduler(
+			// Scheduled at 10:00
 			{ hours: 10, minutes: 0 },
 			callback,
 		);
@@ -73,7 +76,8 @@ describe("DailyScheduler", () => {
 		// Arrange
 		vi.setSystemTime(new Date(2024, 0, 1, 9, 59, 0, 0)); // 09:59
 		const callback = vi.fn();
-		const scheduler = new DailyScheduler( // Scheduled at 10:00
+		const scheduler = new DailyScheduler(
+			// Scheduled at 10:00
 			{ hours: 10, minutes: 0 },
 			callback,
 		);
@@ -93,7 +97,8 @@ describe("DailyScheduler", () => {
 		// Arrange
 		vi.setSystemTime(new Date(2024, 0, 1, 10, 30, 0, 0)); // Day 1, 10:30
 		const callback = vi.fn();
-		const scheduler = new DailyScheduler( // Scheduled at 10:00
+		const scheduler = new DailyScheduler(
+			// Scheduled at 10:00
 			{ hours: 10, minutes: 0 },
 			callback,
 		);
@@ -112,7 +117,8 @@ describe("DailyScheduler", () => {
 		// Arrange
 		vi.setSystemTime(new Date(2024, 0, 1, 9, 0, 0, 0)); // 09:00
 		const callback = vi.fn();
-		const scheduler = new DailyScheduler( // Scheduled at 10:00
+		const scheduler = new DailyScheduler(
+			// Scheduled at 10:00
 			{ hours: 10, minutes: 0 },
 			callback,
 		);
@@ -131,7 +137,8 @@ describe("DailyScheduler", () => {
 		// Arrange
 		vi.setSystemTime(new Date(2024, 0, 1, 23, 59, 0, 0)); // 23:59
 		const callback = vi.fn();
-		const scheduler = new DailyScheduler( // Scheduled at 00:00
+		const scheduler = new DailyScheduler(
+			// Scheduled at 00:00
 			{ hours: 0, minutes: 0 },
 			callback,
 		);
@@ -151,7 +158,8 @@ describe("DailyScheduler", () => {
 		// Arrange
 		vi.setSystemTime(new Date(2024, 0, 1, 9, 0, 0, 0)); // 09:00
 		const callback = vi.fn();
-		const scheduler = new DailyScheduler( // Scheduled at 10:00
+		const scheduler = new DailyScheduler(
+			// Scheduled at 10:00
 			{ hours: 10, minutes: 0 },
 			callback,
 		);
@@ -195,7 +203,8 @@ describe("DailyScheduler", () => {
 		// Arrange
 		vi.setSystemTime(new Date(2024, 0, 1, 9, 0, 0, 0)); // Jan 1, 09:00
 		const callback = vi.fn();
-		const scheduler = new DailyScheduler( // Scheduled at 10:00
+		const scheduler = new DailyScheduler(
+			// Scheduled at 10:00
 			{ hours: 10, minutes: 0 },
 			callback,
 		);

@@ -13,11 +13,11 @@ export class RetimeModal extends Modal {
 		const { contentEl } = this;
 		contentEl.textContent = "";
 
-		const title = document.createElement("h3");
+		const title = createEl("h3");
 		title.textContent = "Retime";
 		contentEl.appendChild(title);
 
-		const input = document.createElement("input");
+		const input = createEl("input");
 		input.type = "number";
 		input.min = "1";
 		input.placeholder = "Minutes";
@@ -30,12 +30,12 @@ export class RetimeModal extends Modal {
 		});
 		contentEl.appendChild(input);
 
-		const actions = document.createElement("div");
+		const actions = createDiv();
 		actions.style.marginTop = "4px";
-		const applyButton = document.createElement("button");
+		const applyButton = createEl("button");
 		applyButton.textContent = "Apply";
 		applyButton.addEventListener("click", () => this.apply(input.value));
-		const cancelButton = document.createElement("button");
+		const cancelButton = createEl("button");
 		cancelButton.textContent = "Cancel";
 		cancelButton.addEventListener("click", () => this.close());
 		actions.append(applyButton, cancelButton);

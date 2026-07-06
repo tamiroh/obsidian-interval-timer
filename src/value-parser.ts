@@ -5,8 +5,7 @@ import { isSeconds, type Minutes, type Seconds } from "./time";
 //
 
 export type ParseResult<T, R extends string> =
-	| { ok: true; value: T }
-	| { ok: false; reason: R };
+	{ ok: true; value: T } | { ok: false; reason: R };
 
 type ParseFailureReason<T extends ParseResult<unknown, string>> = Extract<
 	T,
