@@ -55,8 +55,7 @@ export class IntervalTimer {
 	) => void;
 
 	private readonly onStartedFreshly:
-		| ((state: IntervalTimerState) => void)
-		| undefined;
+		((state: IntervalTimerState) => void) | undefined;
 
 	private readonly onFocusIntervalEnded: (() => void) | undefined;
 
