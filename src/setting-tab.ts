@@ -11,7 +11,7 @@ export class SettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	public display(): void {
+	public override display(): void {
 		const { containerEl } = this;
 
 		containerEl.empty();

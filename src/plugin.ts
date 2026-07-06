@@ -40,7 +40,7 @@ type ParseNotificationStyleResult =
 	| { ok: false; reason: "invalid_notification_style" };
 
 export default class Plugin extends BasePlugin {
-	public settings!: PluginSetting;
+	public override settings!: PluginSetting;
 
 	private statusBar: StatusBar;
 
