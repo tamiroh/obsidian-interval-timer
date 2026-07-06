@@ -37,5 +37,6 @@ export default defineConfig(
 		"versions.json",
 		"main.js",
 		"vitest.config.ts",
+		"vitest.setup.ts",
 	]),
 );
