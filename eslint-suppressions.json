@@ -10,9 +10,6 @@
 		}
 	},
 	"src/flash-overlay.ts": {
-		"obsidianmd/no-forbidden-elements": {
-			"count": 1
-		},
 		"obsidianmd/no-static-styles-assignment": {
 			"count": 8
 		}

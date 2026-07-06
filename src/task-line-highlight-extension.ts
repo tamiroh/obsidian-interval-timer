@@ -1,6 +1,6 @@
-/* eslint-disable import/no-extraneous-dependencies */
-
+// eslint-disable-next-line import/no-extraneous-dependencies -- provided by obsidian
 import { type Extension, RangeSetBuilder } from "@codemirror/state";
+// eslint-disable-next-line import/no-extraneous-dependencies -- provided by obsidian
 import {
 	Decoration,
 	type DecorationSet,
@@ -23,7 +23,7 @@ const startTaskButtonDecoration = Decoration.widget({
 	side: 1,
 	widget: new (class extends WidgetType {
 		toDOM(): HTMLElement {
-			const link = document.createElement("a");
+			const link = createEl("a");
 			link.href = "#";
 			link.className = "interval-timer-start-task-button";
 			link.textContent = "Start task";

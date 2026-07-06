@@ -2,7 +2,7 @@
 	"id": "obsidian-interval-timer",
 	"name": "Interval Timer",
 	"version": "0.3.2",
-	"minAppVersion": "0.15.0",
+	"minAppVersion": "1.8.7",
 	"description": "Interval Timer for Obsidian",
 	"author": "tamiroh",
 	"authorUrl": "https://github.com/tamiroh",

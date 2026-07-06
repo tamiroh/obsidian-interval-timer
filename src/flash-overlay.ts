@@ -33,7 +33,7 @@ export class FlashOverlay {
 			return;
 		}
 
-		this.overlay = document.createElement("div");
+		this.overlay = createDiv();
 		this.overlay.style.position = "fixed";
 		this.overlay.style.top = "0";
 		this.overlay.style.left = "0";
@@ -53,7 +53,7 @@ export class FlashOverlay {
 	private addKeyframesIfNeeded(): void {
 		if (this.styleElement !== undefined) return;
 
-		this.styleElement = document.createElement("style");
+		this.styleElement = createEl("style");
 		this.styleElement.textContent = `
 			@keyframes flash-fade {
 				0% { opacity: 0.9; }
