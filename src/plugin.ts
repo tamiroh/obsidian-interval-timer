@@ -136,7 +136,12 @@ export default class Plugin extends BasePlugin {
 				time,
 				intervals,
 			);
-			this.statusBar.update(intervals, time, intervalTimerState);
+			this.statusBar.update(
+				intervals,
+				time,
+				intervalTimerState,
+				timerState,
+			);
 			if (timerState === "initialized") {
 				this.untrackCurrentTask();
 			}
