@@ -224,12 +224,20 @@ export default class Plugin extends BasePlugin {
 		this.addCommand({
 			id: "start-timer",
 			name: "Start timer",
-			callback: () => this.intervalTimer.start(),
+			checkCallback: (checking) => {
+				const canStart = this.intervalTimer.canStart;
+				if (!checking && canStart) this.intervalTimer.start();
+				return canStart;
+			},
 		});
 		this.addCommand({
 			id: "pause-timer",
 			name: "Pause timer",
-			callback: () => this.intervalTimer.pause(),
+			checkCallback: (checking) => {
+				const canPause = this.intervalTimer.canPause;
+				if (!checking && canPause) this.intervalTimer.pause();
+				return canPause;
+			},
 		});
 		this.addCommand({
 			id: "reset-timer",
@@ -247,9 +255,13 @@ export default class Plugin extends BasePlugin {
 			callback: () => this.intervalTimer.resetTotalIntervals(),
 		});
 		this.addCommand({
-			id: "skip-interval", // TODO: only show this command when the timer type is break
+			id: "skip-interval",
 			name: "Skip interval",
-			callback: () => this.intervalTimer.skipInterval(),
+			checkCallback: (checking) => {
+				const canSkip = this.intervalTimer.state !== "focus";
+				if (!checking && canSkip) this.intervalTimer.skipInterval();
+				return canSkip;
+			},
 		});
 	}
 
