@@ -2,6 +2,7 @@ import { TFile, type App } from "obsidian";
 import { KeyValueStore } from "./key-value-store";
 import { TaskManagementFile } from "./task-management-file";
 import { TaskLine } from "./task-line";
+import { Markdown } from "./markdown";
 
 export class TaskTracker {
 	private readonly app: App;
@@ -20,10 +21,12 @@ export class TaskTracker {
 			return false;
 		}
 
-		const taskLineOnCursor = TaskLine.from(
-			editor.getLine(editor.getCursor().line),
-		);
-		if (!taskLineOnCursor) {
+		const cursor = editor.getCursor();
+		const taskLineOnCursor = TaskLine.from(editor.getLine(cursor.line));
+		if (
+			!taskLineOnCursor ||
+			new Markdown(editor.getValue()).isLineInCodeBlock(cursor.line + 1)
+		) {
 			return false;
 		}
 

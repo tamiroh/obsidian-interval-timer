@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Markdown } from "./markdown";
 
-describe("Markdown.toContent", () => {
+describe("Markdown", () => {
 	it("returns the original Markdown content", () => {
 		const content = `first line
 second line
@@ -9,9 +9,7 @@ second line
 
 		expect(new Markdown(content).toContent()).toBe(content);
 	});
-});
 
-describe("Markdown.isLineInCodeBlock", () => {
 	it.each([
 		[1, false],
 		[2, true],
