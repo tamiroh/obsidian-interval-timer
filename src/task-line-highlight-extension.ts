@@ -11,6 +11,7 @@ import {
 } from "@codemirror/view";
 import { TaskLine } from "./task-line";
 import { TaskTracker } from "./task-tracker";
+import { Markdown } from "./markdown";
 
 const createTaskLineHighlightDecoration = (isTracking: boolean): Decoration =>
 	Decoration.line({
@@ -49,6 +50,7 @@ const buildDecorations = (
 	const taskLineHighlightDecoration = createTaskLineHighlightDecoration(
 		trackedTaskName !== null,
 	);
+	const markdown = new Markdown(view.state.doc.toString());
 
 	if (trackedTaskName) {
 		for (
@@ -58,7 +60,10 @@ const buildDecorations = (
 		) {
 			const line = view.state.doc.line(lineNumber);
 			const taskLine = TaskLine.from(line.text);
-			if (taskLine?.taskName === trackedTaskName) {
+			if (
+				taskLine?.taskName === trackedTaskName &&
+				!markdown.isLineInCodeBlock(lineNumber)
+			) {
 				builder.add(line.from, line.from, taskLineHighlightDecoration);
 				return builder.finish();
 			}
@@ -67,7 +72,10 @@ const buildDecorations = (
 	}
 
 	const line = view.state.doc.lineAt(view.state.selection.main.head);
-	if (TaskLine.from(line.text) !== null) {
+	if (
+		TaskLine.from(line.text) !== null &&
+		!markdown.isLineInCodeBlock(line.number)
+	) {
 		builder.add(line.from, line.from, taskLineHighlightDecoration);
 		builder.add(line.to, line.to, startTaskButtonDecoration);
 	}
