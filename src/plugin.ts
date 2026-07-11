@@ -103,6 +103,7 @@ export default class Plugin extends BasePlugin {
 				if (!parsed.ok) return parsed;
 
 				this.settings[key] = parsed.value;
+				this.intervalTimer.updateSettings({ [key]: parsed.value });
 				await this.saveData(this.settings);
 
 				return parsed;

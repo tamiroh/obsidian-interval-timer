@@ -11,6 +11,11 @@ export type IntervalTimerSetting = {
 	resetTime: { hours: number; minutes: number };
 };
 
+export type MutableIntervalTimerSetting = Omit<
+	IntervalTimerSetting,
+	"resetTime"
+>;
+
 export const intervalTimerStates = [
 	"focus",
 	"shortBreak",
@@ -47,7 +52,7 @@ export class IntervalTimer {
 
 	private readonly onChangeState: (type: TimerType, time: Time) => void;
 
-	private readonly settings: IntervalTimerSetting;
+	private settings: IntervalTimerSetting;
 
 	private readonly notifier: (
 		message: string,
@@ -82,7 +87,10 @@ export class IntervalTimer {
 				this.focusIntervals,
 			);
 		};
-		this.settings = settings;
+		this.settings = {
+			...settings,
+			resetTime: { ...settings.resetTime },
+		};
 		this.focusIntervals = {
 			total: 0,
 			set: 0,
@@ -90,9 +98,12 @@ export class IntervalTimer {
 		this.notifier = notifier;
 		this.onStartedFreshly = onStartedFreshly;
 		this.onFocusIntervalEnded = onFocusIntervalEnded;
-		this.autoResetScheduler = new DailyScheduler(settings.resetTime, () => {
-			this.resetTotalIntervals();
-		});
+		this.autoResetScheduler = new DailyScheduler(
+			this.settings.resetTime,
+			() => {
+				this.resetTotalIntervals();
+			},
+		);
 
 		// Enter the initial interval
 
@@ -119,6 +130,12 @@ export class IntervalTimer {
 
 	public disableAutoReset(): void {
 		this.autoResetScheduler.disable();
+	}
+
+	public updateSettings(
+		settings: Partial<MutableIntervalTimerSetting>,
+	): void {
+		this.settings = { ...this.settings, ...settings };
 	}
 
 	public start(): void {
@@ -212,7 +229,7 @@ export class IntervalTimer {
 					total: this.focusIntervals.total + 1,
 					set: this.focusIntervals.set + 1,
 				};
-				if (this.focusIntervals.set === this.settings.longBreakAfter) {
+				if (this.focusIntervals.set >= this.settings.longBreakAfter) {
 					this.focusIntervals.set = 0;
 					this.enterInterval("longBreak", {
 						minutes: this.settings.longBreakDuration,
