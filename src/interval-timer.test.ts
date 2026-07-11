@@ -223,6 +223,40 @@ describe("IntervalTimer", () => {
 			intervalTimer.dispose();
 		});
 
+		it("should start a long break after lowering longBreakAfter below the current set count", () => {
+			const handleChangeState = vi.fn();
+			const intervalTimer = new IntervalTimer(
+				handleChangeState,
+				{
+					focusIntervalDuration: 25,
+					shortBreakDuration: 5,
+					longBreakDuration: 15,
+					longBreakAfter: 4,
+					resetTime: { hours: 0, minutes: 0 },
+				},
+				() => {},
+			);
+			intervalTimer.applySnapshot({
+				state: "focus",
+				minutes: 25,
+				seconds: 0,
+				focusIntervals: { total: 3, set: 3 },
+			});
+			handleChangeState.mockClear();
+
+			intervalTimer.updateSettings({ longBreakAfter: 2 });
+			intervalTimer.skipInterval();
+
+			expect(handleChangeState).toHaveBeenLastCalledWith(
+				"initialized",
+				"longBreak",
+				{ minutes: 15, seconds: 0 },
+				{ set: 0, total: 4 },
+			);
+
+			intervalTimer.dispose();
+		});
+
 		it("should enter running state when started", () => {
 			// Arrange
 			const handleChangeState = vi.fn();

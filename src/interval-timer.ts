@@ -229,7 +229,7 @@ export class IntervalTimer {
 					total: this.focusIntervals.total + 1,
 					set: this.focusIntervals.set + 1,
 				};
-				if (this.focusIntervals.set === this.settings.longBreakAfter) {
+				if (this.focusIntervals.set >= this.settings.longBreakAfter) {
 					this.focusIntervals.set = 0;
 					this.enterInterval("longBreak", {
 						minutes: this.settings.longBreakDuration,
