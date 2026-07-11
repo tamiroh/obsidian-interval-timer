@@ -31,3 +31,13 @@
 	color: var(--color-cyan);
 	opacity: 1;
 }
+
+.interval-timer-time-separator-running {
+	animation: interval-timer-blink 1s steps(1, end) infinite;
+}
+
+@keyframes interval-timer-blink {
+	50% {
+		visibility: hidden;
+	}
+}
