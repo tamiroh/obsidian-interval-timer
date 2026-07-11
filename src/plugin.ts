@@ -18,22 +18,9 @@ import {
 	parsePositiveInteger,
 	ParsePositiveIntegerResult,
 } from "./value-parser";
+import { parsePluginSetting, PluginSetting } from "./plugin-setting";
 
-export type PluginSetting = {
-	focusIntervalDuration: number;
-	shortBreakDuration: number;
-	longBreakDuration: number;
-	longBreakAfter: number;
-	notificationStyle: NotificationStyle;
-};
-
-const defaultPluginSetting = {
-	focusIntervalDuration: 25,
-	shortBreakDuration: 5,
-	longBreakDuration: 15,
-	longBreakAfter: 4,
-	notificationStyle: "simple",
-} satisfies PluginSetting;
+export type { PluginSetting } from "./plugin-setting";
 
 type ParseNotificationStyleResult =
 	| { ok: true; value: NotificationStyle }
@@ -267,9 +254,6 @@ export default class Plugin extends BasePlugin {
 	}
 
 	private async loadSettings(): Promise<void> {
-		this.settings = {
-			...defaultPluginSetting,
-			...((await this.loadData()) as PluginSetting | undefined | null),
-		};
+		this.settings = parsePluginSetting(await this.loadData());
 	}
 }
