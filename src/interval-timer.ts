@@ -2,6 +2,7 @@ import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "./countdown-timer";
 import { Minutes, Seconds, Time } from "./time";
 import { DailyScheduler } from "./daily-scheduler";
+import { parsePositiveInteger } from "./value-parser";
 
 export type IntervalTimerSetting = {
 	focusIntervalDuration: number;
@@ -41,6 +42,9 @@ export type Snapshot = {
 export type NotifierContext = {
 	state: IntervalTimerState;
 };
+
+export type RetimeResult =
+	{ ok: true } | { ok: false; reason: "invalid_minutes" | "timer_running" };
 
 export class IntervalTimer {
 	private currentInterval: {
@@ -181,15 +185,19 @@ export class IntervalTimer {
 		this.enterNextInterval({ shouldNotify: false });
 	}
 
-	public retime(minutes: number): boolean {
+	public retime(minutes: number): RetimeResult {
+		const parsed = parsePositiveInteger(minutes);
+		if (!parsed.ok) {
+			return { ok: false, reason: "invalid_minutes" };
+		}
 		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
-			return false;
+			return { ok: false, reason: "timer_running" };
 		}
 		this.enterInterval(this.currentInterval.state, {
-			minutes,
+			minutes: parsed.value,
 			seconds: 0,
 		});
-		return true;
+		return { ok: true };
 	}
 
 	public touch(): void {

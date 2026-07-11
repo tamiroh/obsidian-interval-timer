@@ -1,4 +1,5 @@
 import { App, Modal, Notice } from "obsidian";
+import { match } from "ts-pattern";
 import { IntervalTimer } from "./interval-timer";
 
 export class RetimeModal extends Modal {
@@ -20,6 +21,7 @@ export class RetimeModal extends Modal {
 		const input = createEl("input");
 		input.type = "number";
 		input.min = "1";
+		input.step = "1";
 		input.placeholder = "Minutes";
 		input.style.width = "160px";
 		input.style.marginBottom = "8px";
@@ -47,15 +49,22 @@ export class RetimeModal extends Modal {
 	}
 
 	private apply(value: string): void {
-		const minutes = Number(value);
-		if (!Number.isFinite(minutes) || minutes <= 0) {
-			new Notice("Please enter a positive number of minutes.");
-			return;
-		}
-
-		const updated = this.intervalTimer.retime(minutes);
-		if (!updated) {
-			new Notice("Retime is available only when the timer is stopped.");
+		const result = this.intervalTimer.retime(Number(value));
+		if (!result.ok) {
+			new Notice(
+				match(result.reason)
+					.with(
+						"invalid_minutes",
+						() =>
+							"Please enter a positive whole number of minutes.",
+					)
+					.with(
+						"timer_running",
+						() =>
+							"Retime is available only when the timer is stopped.",
+					)
+					.exhaustive(),
+			);
 			return;
 		}
 
