@@ -1,12 +1,7 @@
 import { TaskLine } from "./task-line";
+import { Markdown } from "./markdown";
 
-export class TaskManagementFile {
-	private readonly lines: string[];
-
-	constructor(content: string) {
-		this.lines = content.split("\n");
-	}
-
+export class TaskManagementFile extends Markdown {
 	public toIncremented(taskName: string): TaskManagementFile | null {
 		const target = this.find(taskName);
 		if (target == null) {
@@ -25,10 +20,6 @@ export class TaskManagementFile {
 		);
 	}
 
-	public toContent(): string {
-		return this.lines.join("\n");
-	}
-
 	private find(
 		taskName: string,
 	): { index: number; taskLine: TaskLine } | null {
@@ -36,7 +27,10 @@ export class TaskManagementFile {
 			const candidateLine = this.lines[i];
 			const candidateTask =
 				candidateLine == null ? null : TaskLine.from(candidateLine);
-			if (candidateTask?.taskName === taskName) {
+			if (
+				candidateTask?.taskName === taskName &&
+				!this.isLineInCodeBlock(i + 1)
+			) {
 				return { index: i, taskLine: candidateTask };
 			}
 		}

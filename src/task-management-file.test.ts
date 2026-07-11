@@ -93,4 +93,45 @@ Some free text paragraph.
 - [ ] test code 0/2`,
 		);
 	});
+
+	it.each([
+		["backtick", "```md", "```"],
+		["tilde", "~~~md", "~~~"],
+	])(
+		"does not increment a task inside a %s fenced code block",
+		(_name, openingFence, closingFence) => {
+			const file = new TaskManagementFile(
+				`${openingFence}\n- [ ] example task 0/3\n${closingFence}`,
+			);
+
+			expect(file.toIncremented("example task")).toBeNull();
+		},
+	);
+
+	it("increments a task after a fenced code block", () => {
+		const file = new TaskManagementFile(
+			`   \`\`\`md
+- [ ] example task 0/3
+   \`\`\`
+- [ ] example task 1/3`,
+		);
+
+		expect(file.toIncremented("example task")?.toContent()).toBe(
+			`   \`\`\`md
+- [ ] example task 0/3
+   \`\`\`
+- [ ] example task 2/3`,
+		);
+	});
+
+	it("keeps ignoring tasks when a shorter fence does not close the block", () => {
+		const file = new TaskManagementFile(
+			`\`\`\`\`md
+- [ ] example task 0/3
+\`\`\`
+- [ ] example task 1/3`,
+		);
+
+		expect(file.toIncremented("example task")).toBeNull();
+	});
 });
