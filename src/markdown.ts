@@ -18,19 +18,21 @@ export class Markdown {
 		if (lineNumber < 1 || lineNumber > this.lines.length) return false;
 
 		let fence: Fence | null = null;
-		for (let index = 0; index < lineNumber; index += 1) {
+		for (let index = 0; index < lineNumber - 1; index += 1) {
 			const line = this.lines[index] ?? "";
 			if (fence === null) {
 				fence = Markdown.parseOpeningFence(line);
-				if (index + 1 === lineNumber) return fence !== null;
 				continue;
 			}
 
 			if (Markdown.isClosingFence(line, fence)) fence = null;
-			if (index + 1 === lineNumber) return true;
 		}
 
-		return false;
+		return (
+			fence !== null ||
+			Markdown.parseOpeningFence(this.lines[lineNumber - 1] ?? "") !==
+				null
+		);
 	}
 
 	private static parseOpeningFence(line: string): Fence | null {
