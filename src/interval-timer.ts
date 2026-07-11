@@ -98,9 +98,12 @@ export class IntervalTimer {
 		this.notifier = notifier;
 		this.onStartedFreshly = onStartedFreshly;
 		this.onFocusIntervalEnded = onFocusIntervalEnded;
-		this.autoResetScheduler = new DailyScheduler(settings.resetTime, () => {
-			this.resetTotalIntervals();
-		});
+		this.autoResetScheduler = new DailyScheduler(
+			this.settings.resetTime,
+			() => {
+				this.resetTotalIntervals();
+			},
+		);
 
 		// Enter the initial interval
 
