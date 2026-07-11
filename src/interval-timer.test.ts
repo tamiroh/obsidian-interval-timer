@@ -166,6 +166,63 @@ describe("IntervalTimer", () => {
 	});
 
 	describe("Basic controls", () => {
+		it("should apply updated durations from the next interval", () => {
+			const handleChangeState = vi.fn();
+			const intervalTimer = new IntervalTimer(
+				handleChangeState,
+				{
+					focusIntervalDuration: 25,
+					shortBreakDuration: 5,
+					longBreakDuration: 15,
+					longBreakAfter: 4,
+					resetTime: { hours: 0, minutes: 0 },
+				},
+				() => {},
+			);
+			handleChangeState.mockClear();
+
+			intervalTimer.updateSettings({ shortBreakDuration: 10 });
+			intervalTimer.skipInterval();
+
+			expect(handleChangeState).toHaveBeenLastCalledWith(
+				"initialized",
+				"shortBreak",
+				{ minutes: 10, seconds: 0 },
+				{ set: 1, total: 1 },
+			);
+
+			intervalTimer.dispose();
+		});
+
+		it("should not change the duration of the current interval", () => {
+			const handleChangeState = vi.fn();
+			const intervalTimer = new IntervalTimer(
+				handleChangeState,
+				{
+					focusIntervalDuration: 25,
+					shortBreakDuration: 5,
+					longBreakDuration: 15,
+					longBreakAfter: 4,
+					resetTime: { hours: 0, minutes: 0 },
+				},
+				() => {},
+			);
+			handleChangeState.mockClear();
+
+			intervalTimer.updateSettings({ focusIntervalDuration: 30 });
+			intervalTimer.start();
+			vi.advanceTimersByTime(1000);
+
+			expect(handleChangeState).toHaveBeenLastCalledWith(
+				"running",
+				"focus",
+				{ minutes: 24, seconds: 59 },
+				{ set: 0, total: 0 },
+			);
+
+			intervalTimer.dispose();
+		});
+
 		it("should enter running state when started", () => {
 			// Arrange
 			const handleChangeState = vi.fn();
