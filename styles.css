@@ -1,11 +1,11 @@
 .cm-line.interval-timer-task-line-highlight {
 	position: relative;
-	background-color: rgba(255, 230, 80, 0.25);
+	background-color: rgb(255 230 80 / 25%);
 	border-radius: 4px;
 }
 
 .cm-line.interval-timer-task-line-highlight.interval-timer-task-line-highlight-tracking {
-	background-color: rgba(255, 100, 100, 0.25);
+	background-color: rgb(255 100 100 / 25%);
 }
 
 .interval-timer-start-task-button {
@@ -24,7 +24,6 @@
 	opacity: 0.9;
 	font-family: var(--font-interface);
 	appearance: none;
-	-webkit-appearance: none;
 }
 
 .interval-timer-start-task-button:hover {
