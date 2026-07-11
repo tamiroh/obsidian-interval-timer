@@ -166,6 +166,80 @@ describe("IntervalTimer", () => {
 	});
 
 	describe("Basic controls", () => {
+		it("should allow starting but not pausing initially", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(
+				() => {},
+				{
+					focusIntervalDuration: 25,
+					shortBreakDuration: 5,
+					longBreakDuration: 15,
+					longBreakAfter: 4,
+					resetTime: { hours: 0, minutes: 0 },
+				},
+				() => {},
+			);
+
+			// Act
+			const canStart = intervalTimer.canStart;
+			const canPause = intervalTimer.canPause;
+
+			// Assert
+			expect(canStart).toBe(true);
+			expect(canPause).toBe(false);
+
+			intervalTimer.dispose();
+		});
+
+		it("should allow pausing but not starting while running", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(
+				() => {},
+				{
+					focusIntervalDuration: 25,
+					shortBreakDuration: 5,
+					longBreakDuration: 15,
+					longBreakAfter: 4,
+					resetTime: { hours: 0, minutes: 0 },
+				},
+				() => {},
+			);
+
+			// Act
+			intervalTimer.start();
+
+			// Assert
+			expect(intervalTimer.canStart).toBe(false);
+			expect(intervalTimer.canPause).toBe(true);
+
+			intervalTimer.dispose();
+		});
+
+		it("should allow starting but not pausing while paused", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(
+				() => {},
+				{
+					focusIntervalDuration: 25,
+					shortBreakDuration: 5,
+					longBreakDuration: 15,
+					longBreakAfter: 4,
+					resetTime: { hours: 0, minutes: 0 },
+				},
+				() => {},
+			);
+			intervalTimer.start();
+
+			// Act
+			intervalTimer.pause();
+
+			// Assert
+			expect(intervalTimer.canStart).toBe(true);
+			expect(intervalTimer.canPause).toBe(false);
+
+			intervalTimer.dispose();
+		});
+
 		it("should apply updated durations from the next interval", () => {
 			const handleChangeState = vi.fn();
 			const intervalTimer = new IntervalTimer(

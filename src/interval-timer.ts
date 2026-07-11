@@ -219,6 +219,16 @@ export class IntervalTimer {
 		return this.currentInterval.state;
 	}
 
+	public get canStart(): boolean {
+		return ["initialized", "paused"].includes(
+			this.currentInterval.timer.getCurrentTimerType(),
+		);
+	}
+
+	public get canPause(): boolean {
+		return this.currentInterval.timer.getCurrentTimerType() === "running";
+	}
+
 	private enterNextInterval({
 		shouldNotify = true,
 	}: { shouldNotify?: boolean } = {}): void {
