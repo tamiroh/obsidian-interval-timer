@@ -16,14 +16,14 @@ describe("FlashOverlay", () => {
 		flashOverlay.show({ r: 255, g: 100, b: 100 });
 
 		// Assert
-		const overlay = document.querySelector('div[style*="position: fixed"]');
+		const overlay = document.querySelector(".interval-timer-flash-overlay");
 		expect(overlay).not.toBeNull();
 		expect(overlay?.getAttribute("style")).toContain(
 			"background-color: rgba(255, 100, 100, 0.9)",
 		);
 	});
 
-	it("should add keyframes style element on first show", () => {
+	it("should inject the overlay styles and keyframes on first show", () => {
 		// Arrange
 		const flashOverlay = FlashOverlay.getInstance();
 
@@ -33,6 +33,9 @@ describe("FlashOverlay", () => {
 		// Assert
 		const styleElement = document.head.querySelector("style");
 		expect(styleElement).not.toBeNull();
+		expect(styleElement?.textContent).toContain(
+			".interval-timer-flash-overlay",
+		);
 		expect(styleElement?.textContent).toContain("@keyframes flash-fade");
 	});
 
@@ -46,7 +49,7 @@ describe("FlashOverlay", () => {
 
 		// Assert
 		const overlays = document.querySelectorAll(
-			'div[style*="position: fixed"]',
+			".interval-timer-flash-overlay",
 		);
 		expect(overlays.length).toBe(1);
 	});
@@ -61,12 +64,12 @@ describe("FlashOverlay", () => {
 
 		// Assert
 		const overlay = document.querySelector(
-			'div[style*="position: fixed"]',
+			".interval-timer-flash-overlay",
 		) as HTMLDivElement;
 		expect(overlay).not.toBeNull();
 		expect(overlay.style.backgroundColor).toBe("rgba(100, 255, 100, 0.9)");
 		const overlays = document.querySelectorAll(
-			'div[style*="position: fixed"]',
+			".interval-timer-flash-overlay",
 		);
 		expect(overlays.length).toBe(1);
 	});
@@ -80,7 +83,7 @@ describe("FlashOverlay", () => {
 		flashOverlay.hide();
 
 		// Assert
-		const overlay = document.querySelector('div[style*="position: fixed"]');
+		const overlay = document.querySelector(".interval-timer-flash-overlay");
 		expect(overlay).toBeNull();
 	});
 
@@ -95,7 +98,7 @@ describe("FlashOverlay", () => {
 		// Assert
 		const styleElement = document.head.querySelector("style");
 		expect(styleElement).toBeNull();
-		const overlay = document.querySelector('div[style*="position: fixed"]');
+		const overlay = document.querySelector(".interval-timer-flash-overlay");
 		expect(overlay).toBeNull();
 	});
 
@@ -104,7 +107,7 @@ describe("FlashOverlay", () => {
 		const flashOverlay = FlashOverlay.getInstance();
 		flashOverlay.show({ r: 255, g: 100, b: 100 });
 		const overlay = document.querySelector(
-			'div[style*="position: fixed"]',
+			".interval-timer-flash-overlay",
 		) as HTMLDivElement;
 
 		// Act
@@ -112,7 +115,7 @@ describe("FlashOverlay", () => {
 
 		// Assert
 		const overlayAfterClick = document.querySelector(
-			'div[style*="position: fixed"]',
+			".interval-timer-flash-overlay",
 		);
 		expect(overlayAfterClick).toBeNull();
 	});

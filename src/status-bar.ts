@@ -44,11 +44,13 @@ export class StatusBar {
 			"interval-timer-time-separator-running",
 			timerState === "running",
 		);
-		this.statusBarItem.setAttribute(
-			"style",
-			intervalTimerState === "focus"
-				? "color: #EE6152"
-				: "color: #4CBD4F",
+		this.statusBarItem.classList.toggle(
+			"interval-timer-status-bar-focus",
+			intervalTimerState === "focus",
+		);
+		this.statusBarItem.classList.toggle(
+			"interval-timer-status-bar-break",
+			intervalTimerState !== "focus",
 		);
 	}
 

@@ -23,8 +23,7 @@ export class RetimeModal extends Modal {
 		input.min = "1";
 		input.step = "1";
 		input.placeholder = "Minutes";
-		input.style.width = "160px";
-		input.style.marginBottom = "8px";
+		input.classList.add("interval-timer-retime-input");
 		input.addEventListener("keydown", (event) => {
 			if (event.key === "Enter") {
 				this.apply(input.value);
@@ -33,7 +32,7 @@ export class RetimeModal extends Modal {
 		contentEl.appendChild(input);
 
 		const actions = createDiv();
-		actions.style.marginTop = "4px";
+		actions.classList.add("interval-timer-retime-actions");
 		const applyButton = createEl("button");
 		applyButton.textContent = "Apply";
 		applyButton.addEventListener("click", () => this.apply(input.value));
