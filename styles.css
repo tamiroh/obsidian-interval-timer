@@ -42,11 +42,11 @@
 }
 
 .interval-timer-status-bar-focus {
-	color: #ee6152;
+	color: #ee6152 !important;
 }
 
 .interval-timer-status-bar-break {
-	color: #4cbd4f;
+	color: #4cbd4f !important;
 }
 
 .interval-timer-retime-input {
