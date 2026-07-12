@@ -29,7 +29,7 @@ export default defineConfig(
 		},
 	},
 	{
-		files: ["src/obsidian-globals-fake.ts"],
+		files: ["src/obsidian-globals-fake.ts", "src/obsidian-fake.ts"],
 		rules: {
 			"obsidianmd/prefer-create-el": "off",
 		},
