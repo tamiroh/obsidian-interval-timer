@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
+import { execSync } from "child_process";
 
 const targetVersion = process.argv[2];
 
@@ -12,3 +13,9 @@ writeFileSync("manifest.json", JSON.stringify(manifest, null, "\t") + "\n");
 let versions = JSON.parse(readFileSync("versions.json", "utf8"));
 versions[targetVersion] = minAppVersion;
 writeFileSync("versions.json", JSON.stringify(versions, null, "\t") + "\n");
+
+// keep package.json and package-lock.json in sync with manifest.json
+execSync(
+	`npm version ${targetVersion} --no-git-tag-version --allow-same-version`,
+	{ stdio: "inherit" },
+);
