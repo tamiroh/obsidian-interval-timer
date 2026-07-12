@@ -7,8 +7,7 @@ A configurable work/break cycle timer for [Obsidian](https://obsidian.md/). It w
 ## Features
 
 - Start, pause, and reset the timer (Of course, it's a timer!)
-- Interval group count available
-- Interval count and interval group count are always visible on your status bar
+- Tracks completed focus intervals and sets, always visible on your status bar
 - Configurable work and break intervals
 - Notify with system notification when the timer is done
 
