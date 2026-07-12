@@ -1,11 +1,86 @@
 import type {
 	App,
+	displayTooltip as RealDisplayTooltip,
 	Modal as RealModal,
 	Notice as RealNotice,
+	Plugin as RealPlugin,
+	PluginManifest,
+	PluginSettingTab as RealPluginSettingTab,
+	Setting as RealSetting,
 	setTooltip as RealSetTooltip,
 } from "obsidian";
 
 export class TFile {}
+
+export class Plugin implements Pick<
+	RealPlugin,
+	| "app"
+	| "manifest"
+	| "addStatusBarItem"
+	| "registerDomEvent"
+	| "registerEditorExtension"
+	| "addCommand"
+	| "addSettingTab"
+	| "loadData"
+	| "saveData"
+> {
+	public app: App;
+
+	public manifest: PluginManifest;
+
+	constructor(app: App, manifest: PluginManifest) {
+		this.app = app;
+		this.manifest = manifest;
+	}
+
+	public addStatusBarItem(): HTMLElement {
+		return document.createElement("div");
+	}
+
+	public registerDomEvent(): void {}
+
+	public registerEditorExtension(): void {}
+
+	public addCommand(
+		command: Parameters<RealPlugin["addCommand"]>[0],
+	): ReturnType<RealPlugin["addCommand"]> {
+		return command;
+	}
+
+	public addSettingTab(): void {}
+
+	public loadData(): ReturnType<RealPlugin["loadData"]> {
+		return Promise.resolve(null);
+	}
+
+	public saveData(): ReturnType<RealPlugin["saveData"]> {
+		return Promise.resolve();
+	}
+}
+
+export class PluginSettingTab implements Pick<
+	RealPluginSettingTab,
+	"app" | "containerEl" | "hide"
+> {
+	public app: App;
+
+	public containerEl: HTMLElement;
+
+	constructor(app: App) {
+		this.app = app;
+		this.containerEl = document.createElement("div");
+	}
+
+	public display(): void {}
+
+	public hide(): void {}
+}
+
+export class Setting {
+	constructor(_containerEl: ConstructorParameters<typeof RealSetting>[0]) {}
+}
+
+export const displayTooltip: typeof RealDisplayTooltip = () => {};
 
 export class Notice {
 	static messages: string[] = [];

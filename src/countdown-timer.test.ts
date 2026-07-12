@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CountdownTimer } from "./countdown-timer";
-import { Seconds } from "./time";
+import { Seconds, Time } from "./time";
 
 describe("CountdownTimer", () => {
 	beforeEach(() => {
@@ -137,7 +137,7 @@ describe("CountdownTimer", () => {
 
 	it("should call handleSubtract with 00:00 only once", () => {
 		// Arrange
-		const handleSubtract = vi.fn();
+		const handleSubtract = vi.fn<(time: Time) => void>();
 		new CountdownTimer(
 			{ minutes: 0, seconds: 1 },
 			handleSubtract,

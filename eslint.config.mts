@@ -34,6 +34,12 @@ export default defineConfig(
 			"obsidianmd/prefer-create-el": "off",
 		},
 	},
+	{
+		files: ["package.json"],
+		rules: {
+			"depend/ban-dependencies": ["error", { allowed: ["lint-staged"] }],
+		},
+	},
 	globalIgnores([
 		"node_modules",
 		"dist",

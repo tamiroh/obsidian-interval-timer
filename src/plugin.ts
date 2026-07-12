@@ -1,4 +1,4 @@
-import { App, Plugin as BasePlugin, PluginManifest } from "obsidian";
+import { App, Notice, Plugin as BasePlugin, PluginManifest } from "obsidian";
 import { match } from "ts-pattern";
 import { SettingTab } from "./setting-tab";
 import {
@@ -152,9 +152,14 @@ export default class Plugin extends BasePlugin {
 			}
 		};
 		const onFocusIntervalEnded = () => {
-			this.taskTracker.incrementTrackedTask().finally(() => {
-				this.untrackCurrentTask();
-			});
+			this.taskTracker
+				.incrementTrackedTask()
+				.catch(() => {
+					new Notice("Failed to record task completion.");
+				})
+				.finally(() => {
+					this.untrackCurrentTask();
+				});
 		};
 		const snapshot = this.intervalTimerSnapshotStore.load();
 
