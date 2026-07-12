@@ -1,9 +1,21 @@
 export function setupObsidianGlobals(): void {
 	window.createEl = <K extends keyof HTMLElementTagNameMap>(
 		tag: K,
-	): HTMLElementTagNameMap[K] => document.createElement(tag);
+		o?: DomElementInfo | string,
+		callback?: (el: HTMLElementTagNameMap[K]) => void,
+	): HTMLElementTagNameMap[K] => {
+		if (o !== undefined || callback !== undefined) {
+			throw new Error(
+				"createEl: options and callback are not supported by this test fake",
+			);
+		}
+		return document.createElement(tag);
+	};
 
-	window.createDiv = (): HTMLDivElement => document.createElement("div");
+	window.createDiv = (
+		o?: DomElementInfo | string,
+		callback?: (el: HTMLDivElement) => void,
+	): HTMLDivElement => window.createEl("div", o, callback);
 
 	Node.prototype.createSpan = function (
 		this: Node,
