@@ -28,6 +28,12 @@ export default defineConfig(
 			...vitest.configs.recommended.rules,
 		},
 	},
+	{
+		files: ["src/obsidian-globals-fake.ts"],
+		rules: {
+			"obsidianmd/prefer-create-el": "off",
+		},
+	},
 	globalIgnores([
 		"node_modules",
 		"dist",
