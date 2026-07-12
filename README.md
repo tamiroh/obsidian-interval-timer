@@ -1,5 +1,7 @@
 # Interval Timer for Obsidian 🕔
 
+[![CI](https://github.com/tamiroh/obsidian-interval-timer/actions/workflows/ci.yml/badge.svg)](https://github.com/tamiroh/obsidian-interval-timer/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/tamiroh/obsidian-interval-timer/graph/badge.svg?token=SJIYQOXPYV)](https://codecov.io/gh/tamiroh/obsidian-interval-timer)
+
 A configurable work/break cycle timer for [Obsidian](https://obsidian.md/). It works out of the box for the [Pomodoro Technique](https://www.pomodorotechnique.com/), but it is not limited to it — any minute-scale work/rest rhythm fits.
 
 ## Features
