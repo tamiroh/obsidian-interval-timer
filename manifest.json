@@ -1,11 +1,10 @@
 {
-	"id": "obsidian-interval-timer",
+	"id": "interval-timer",
 	"name": "Interval Timer",
 	"version": "0.3.2",
 	"minAppVersion": "1.8.7",
-	"description": "Interval Timer for Obsidian",
+	"description": "A configurable work/break cycle timer for the Pomodoro Technique and similar methods.",
 	"author": "tamiroh",
 	"authorUrl": "https://github.com/tamiroh",
-	"fundingUrl": "",
 	"isDesktopOnly": false
 }
