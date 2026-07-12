@@ -567,10 +567,10 @@ describe("IntervalTimer", () => {
 			handleChangeState.mockClear();
 
 			// Act
-			const updated = intervalTimer.retime(7);
+			const result = intervalTimer.retime(7);
 
 			// Assert
-			expect(updated).toBe(true);
+			expect(result).toEqual({ ok: true });
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",
@@ -606,10 +606,51 @@ describe("IntervalTimer", () => {
 
 			// Act
 			intervalTimer.start();
-			const updated = intervalTimer.retime(7);
+			const result = intervalTimer.retime(7);
 
 			// Assert
-			expect(updated).toBe(false);
+			expect(result).toEqual({ ok: false, reason: "timer_running" });
+			expect(handleChangeState).not.toHaveBeenCalled();
+
+			intervalTimer.dispose();
+		});
+
+		it("should reject non-integer or non-positive minutes", () => {
+			// Arrange
+			const handleChangeState = vi.fn();
+			const settings: IntervalTimerSetting = {
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			};
+			const intervalTimer = new IntervalTimer(
+				handleChangeState,
+				settings,
+				() => {},
+			);
+			intervalTimer.applySnapshot({
+				state: "focus",
+				minutes: settings.focusIntervalDuration,
+				seconds: 0,
+				focusIntervals: { total: 0, set: 0 },
+			});
+			handleChangeState.mockClear();
+
+			// Act & Assert
+			expect(intervalTimer.retime(1.5)).toEqual({
+				ok: false,
+				reason: "invalid_minutes",
+			});
+			expect(intervalTimer.retime(0)).toEqual({
+				ok: false,
+				reason: "invalid_minutes",
+			});
+			expect(intervalTimer.retime(-5)).toEqual({
+				ok: false,
+				reason: "invalid_minutes",
+			});
 			expect(handleChangeState).not.toHaveBeenCalled();
 
 			intervalTimer.dispose();
