@@ -33,28 +33,31 @@ export class FlashOverlay {
 			return;
 		}
 
-		this.overlay = createDiv();
-		this.overlay.style.position = "fixed";
-		this.overlay.style.top = "0";
-		this.overlay.style.left = "0";
-		this.overlay.style.width = "100%";
-		this.overlay.style.height = "100%";
-		this.overlay.style.backgroundColor = `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`;
-		this.overlay.style.zIndex = "9999";
-		this.overlay.style.cursor = "pointer";
-		this.overlay.style.animation = "flash-fade 1s linear infinite";
-		this.overlay.addEventListener("click", () => this.hide());
+		this.addStylesIfNeeded();
 
-		this.addKeyframesIfNeeded();
+		this.overlay = createDiv();
+		this.overlay.classList.add("interval-timer-flash-overlay");
+		this.overlay.style.backgroundColor = `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`;
+		this.overlay.addEventListener("click", () => this.hide());
 
 		document.body.appendChild(this.overlay);
 	}
 
-	private addKeyframesIfNeeded(): void {
+	private addStylesIfNeeded(): void {
 		if (this.styleElement !== undefined) return;
 
 		this.styleElement = createEl("style");
 		this.styleElement.textContent = `
+			.interval-timer-flash-overlay {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				z-index: 9999;
+				cursor: pointer;
+				animation: flash-fade 1s linear infinite;
+			}
 			@keyframes flash-fade {
 				0% { opacity: 0.9; }
 				100% { opacity: 0.3; }

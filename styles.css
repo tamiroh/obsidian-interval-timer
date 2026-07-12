@@ -40,3 +40,20 @@
 		visibility: hidden;
 	}
 }
+
+.interval-timer-status-bar-focus {
+	color: #ee6152 !important;
+}
+
+.interval-timer-status-bar-break {
+	color: #4cbd4f !important;
+}
+
+.interval-timer-retime-input {
+	width: 160px;
+	margin-bottom: 8px;
+}
+
+.interval-timer-retime-actions {
+	margin-top: 4px;
+}
