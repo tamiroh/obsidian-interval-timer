@@ -19,12 +19,14 @@ import {
 	ParsePositiveIntegerResult,
 } from "./value-parser";
 import { parsePluginSetting, PluginSetting } from "./plugin-setting";
+import type { Result } from "./result";
 
 export type { PluginSetting } from "./plugin-setting";
 
-type ParseNotificationStyleResult =
-	| { ok: true; value: NotificationStyle }
-	| { ok: false; reason: "invalid_notification_style" };
+type ParseNotificationStyleResult = Result<
+	NotificationStyle,
+	"invalid_notification_style"
+>;
 
 export default class Plugin extends BasePlugin {
 	public override settings!: PluginSetting;

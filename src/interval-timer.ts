@@ -3,6 +3,7 @@ import { CountdownTimer, TimerType } from "./countdown-timer";
 import { Minutes, Seconds, Time } from "./time";
 import { DailyScheduler } from "./daily-scheduler";
 import { parsePositiveInteger } from "./value-parser";
+import type { Result } from "./result";
 
 export type IntervalTimerSetting = {
 	focusIntervalDuration: number;
@@ -43,8 +44,7 @@ export type NotifierContext = {
 	state: IntervalTimerState;
 };
 
-export type RetimeResult =
-	{ ok: true } | { ok: false; reason: "invalid_minutes" | "timer_running" };
+export type RetimeResult = Result<void, "invalid_minutes" | "timer_running">;
 
 export class IntervalTimer {
 	private currentInterval: {
@@ -197,7 +197,7 @@ export class IntervalTimer {
 			minutes: parsed.value,
 			seconds: 0,
 		});
-		return { ok: true };
+		return { ok: true, value: undefined };
 	}
 
 	public touch(): void {

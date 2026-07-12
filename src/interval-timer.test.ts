@@ -570,7 +570,7 @@ describe("IntervalTimer", () => {
 			const result = intervalTimer.retime(7);
 
 			// Assert
-			expect(result).toEqual({ ok: true });
+			expect(result).toEqual({ ok: true, value: undefined });
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",

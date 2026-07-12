@@ -1,22 +1,11 @@
 import { isSeconds, type Minutes, type Seconds } from "./time";
-
-//
-// General Types
-//
-
-export type ParseResult<T, R extends string> =
-	{ ok: true; value: T } | { ok: false; reason: R };
-
-type ParseFailureReason<T extends ParseResult<unknown, string>> = Extract<
-	T,
-	{ ok: false }
->["reason"];
+import type { Result, ResultFailureReason } from "./result";
 
 //
 // Positive Integer Parser
 //
 
-export type ParsePositiveIntegerResult = ParseResult<
+export type ParsePositiveIntegerResult = Result<
 	number,
 	"invalid_number" | "non_positive_integer"
 >;
@@ -49,7 +38,7 @@ const toNumber = (value: unknown): number =>
 // Non-negative Integer Parser
 //
 
-export type ParseNonNegativeIntegerResult = ParseResult<
+export type ParseNonNegativeIntegerResult = Result<
 	number,
 	"invalid_number" | "negative_integer" | "non_integer"
 >;
@@ -74,18 +63,18 @@ export function parseNonNegativeInteger(
 // Time Parsers
 //
 
-export type ParseMinutesResult = ParseResult<
+export type ParseMinutesResult = Result<
 	Minutes,
-	ParseFailureReason<ParseNonNegativeIntegerResult>
+	ResultFailureReason<ParseNonNegativeIntegerResult>
 >;
 
 export function parseMinutes(value: unknown): ParseMinutesResult {
 	return parseNonNegativeInteger(value);
 }
 
-export type ParseSecondsResult = ParseResult<
+export type ParseSecondsResult = Result<
 	Seconds,
-	ParseFailureReason<ParseNonNegativeIntegerResult> | "out_of_range_seconds"
+	ResultFailureReason<ParseNonNegativeIntegerResult> | "out_of_range_seconds"
 >;
 
 export function parseSeconds(value: unknown): ParseSecondsResult {
