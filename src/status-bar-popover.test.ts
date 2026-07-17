@@ -38,11 +38,14 @@ describe("StatusBarPopover", () => {
 	});
 
 	it("renders the remaining time and empty task state", async () => {
+		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
 
+		// Act
 		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
 
+		// Assert
 		await waitFor(() =>
 			expect(
 				el.querySelector(".interval-timer-popover-clock-time"),
@@ -55,12 +58,15 @@ describe("StatusBarPopover", () => {
 	});
 
 	it("visualizes the remaining proportion", async () => {
+		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
 		popover.update({ minutes: 25, seconds: 0 }, "focus", "initialized");
 
+		// Act
 		popover.update({ minutes: 15, seconds: 0 }, "focus", "running");
 
+		// Assert
 		await waitFor(() =>
 			expect(
 				(
@@ -73,11 +79,14 @@ describe("StatusBarPopover", () => {
 	});
 
 	it("uses the break color independently from the status bar", async () => {
+		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
 
+		// Act
 		popover.update({ minutes: 5, seconds: 0 }, "shortBreak", "paused");
 
+		// Assert
 		await waitFor(() =>
 			expect(el.querySelector(".interval-timer-popover")).toHaveClass(
 				"interval-timer-popover-break",
@@ -87,9 +96,11 @@ describe("StatusBarPopover", () => {
 	});
 
 	it("shows progress toward the next long break", async () => {
+		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
 
+		// Act
 		popover.update(
 			{ minutes: 25, seconds: 0 },
 			"focus",
@@ -98,6 +109,7 @@ describe("StatusBarPopover", () => {
 			4,
 		);
 
+		// Assert
 		await waitFor(() =>
 			expect(
 				el.querySelectorAll(
@@ -120,9 +132,11 @@ describe("StatusBarPopover", () => {
 	});
 
 	it("shows a completed set during a long break", async () => {
+		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
 
+		// Act
 		popover.update(
 			{ minutes: 15, seconds: 0 },
 			"longBreak",
@@ -131,6 +145,7 @@ describe("StatusBarPopover", () => {
 			4,
 		);
 
+		// Assert
 		await waitFor(() =>
 			expect(
 				el.querySelectorAll(
@@ -141,15 +156,19 @@ describe("StatusBarPopover", () => {
 	});
 
 	it("updates the tracked task", async () => {
+		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
 
+		// Act
 		popover.updateTrackedTask("Write report");
 
+		// Assert
 		expect(await within(el).findByText("Write report")).toBeInTheDocument();
 	});
 
 	it("resets the intervals set from the integrated action", async () => {
+		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		const popover = await createPopover(el);
@@ -162,32 +181,49 @@ describe("StatusBarPopover", () => {
 			).toBeEnabled(),
 		);
 
+		// Act
 		await user.click(
 			await within(el).findByRole("button", { name: "Reset set" }),
 		);
 
+		// Assert
 		expect(resetSpy).toHaveBeenCalledOnce();
 		intervalTimer.dispose();
 	});
 
 	it("starts the timer from the integrated action", async () => {
+		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		const popover = await createPopover(el);
 		const intervalTimer = createIntervalTimer();
 		const startSpy = vi.spyOn(intervalTimer, "start");
 		const start = within(el).getByRole("button", { name: "Start" });
-		expect(start).toBeDisabled();
 		popover.enableActions(intervalTimer);
 		await waitFor(() => expect(start).toBeEnabled());
 
+		// Act
 		await user.click(start);
 
+		// Assert
 		expect(startSpy).toHaveBeenCalledOnce();
 		intervalTimer.dispose();
 	});
 
+	it("disables start until timer actions are connected", async () => {
+		// Arrange
+		const el = createDiv();
+		await createPopover(el);
+
+		// Act
+		const start = within(el).getByRole("button", { name: "Start" });
+
+		// Assert
+		expect(start).toBeDisabled();
+	});
+
 	it("turns the remaining time into an inline field", async () => {
+		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		const popover = await createPopover(el);
@@ -195,8 +231,10 @@ describe("StatusBarPopover", () => {
 		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
 		popover.enableActions(intervalTimer);
 
+		// Act
 		await user.click(await within(el).findByRole("button", { name: "07" }));
 
+		// Assert
 		const input = getRetimeInput(el);
 		expect(input).toHaveValue(7);
 		expect(input).toHaveFocus();
@@ -207,7 +245,23 @@ describe("StatusBarPopover", () => {
 		intervalTimer.dispose();
 	});
 
+	it("disables retime while the timer is running", async () => {
+		// Arrange
+		const el = createDiv();
+		const popover = await createPopover(el);
+		const intervalTimer = createIntervalTimer();
+		popover.enableActions(intervalTimer);
+		// Act
+		popover.update({ minutes: 7, seconds: 0 }, "focus", "running");
+
+		// Assert
+		const minutes = await within(el).findByRole("button", { name: "07" });
+		expect(minutes).toBeDisabled();
+		intervalTimer.dispose();
+	});
+
 	it("applies a time edited in place", async () => {
+		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		const popover = await createPopover(el);
@@ -222,10 +276,12 @@ describe("StatusBarPopover", () => {
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
 
+		// Act
 		await user.clear(getRetimeInput(el));
 		await user.type(getRetimeInput(el), "12");
 		fireEvent.submit(getRetimeForm(el));
 
+		// Assert
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
 			"focus",
@@ -240,6 +296,7 @@ describe("StatusBarPopover", () => {
 	});
 
 	it("applies an edited time on focusout", async () => {
+		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		const popover = await createPopover(el);
@@ -254,10 +311,12 @@ describe("StatusBarPopover", () => {
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
 
+		// Act
 		await user.clear(getRetimeInput(el));
 		await user.type(getRetimeInput(el), "18");
 		await user.tab();
 
+		// Assert
 		expect(handleChangeState).toHaveBeenCalledWith(
 			"initialized",
 			"focus",
@@ -271,6 +330,7 @@ describe("StatusBarPopover", () => {
 	});
 
 	it("keeps editing when the inline time is invalid", async () => {
+		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		const popover = await createPopover(el);
@@ -279,10 +339,12 @@ describe("StatusBarPopover", () => {
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
 
+		// Act
 		await user.clear(getRetimeInput(el));
 		await user.type(getRetimeInput(el), "1.5");
 		fireEvent.submit(getRetimeForm(el));
 
+		// Assert
 		expect(Notice.messages).toEqual([
 			"Enter a positive whole number of minutes.",
 		]);
@@ -293,27 +355,42 @@ describe("StatusBarPopover", () => {
 	});
 
 	it("does not open a custom context menu", async () => {
+		// Arrange
 		const el = createDiv();
 		await createPopover(el);
 
+		// Act
 		fireEvent.contextMenu(el);
 
+		// Assert
 		expect(Menu.instances).toHaveLength(0);
 	});
 
 	it("keeps popover actions from triggering the status bar click", async () => {
+		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		const statusBarClick = vi.fn();
 		el.addEventListener("click", statusBarClick);
-		await createPopover(el);
+		const popover = await createPopover(el);
+		const intervalTimer = createIntervalTimer();
+		popover.enableActions(intervalTimer);
+		await waitFor(() =>
+			expect(
+				within(el).getByRole("button", { name: "00" }),
+			).toBeEnabled(),
+		);
 
+		// Act
 		await user.click(within(el).getByRole("button", { name: "00" }));
 
+		// Assert
 		expect(statusBarClick).not.toHaveBeenCalled();
+		intervalTimer.dispose();
 	});
 
 	it("pins the popover after it is clicked", async () => {
+		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		await createPopover(el);
@@ -321,12 +398,15 @@ describe("StatusBarPopover", () => {
 			".interval-timer-popover",
 		) as HTMLElement;
 
+		// Act
 		await user.click(popover);
 
+		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-pinned");
 	});
 
 	it("keeps a pinned popover open after the pointer leaves", async () => {
+		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		await createPopover(el);
@@ -335,12 +415,15 @@ describe("StatusBarPopover", () => {
 		) as HTMLElement;
 		await user.click(popover);
 
+		// Act
 		fireEvent.mouseLeave(el);
 
+		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-pinned");
 	});
 
 	it("dismisses a pinned popover from its close button", async () => {
+		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		await createPopover(el);
@@ -349,8 +432,10 @@ describe("StatusBarPopover", () => {
 		) as HTMLElement;
 		await user.click(popover);
 
+		// Act
 		await user.click(within(el).getByRole("button", { name: "×" }));
 
+		// Assert
 		expect(popover).not.toHaveClass("interval-timer-popover-pinned");
 		expect(popover).toHaveClass("interval-timer-popover-dismissed");
 	});

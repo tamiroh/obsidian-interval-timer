@@ -291,6 +291,16 @@ button.interval-timer-popover-clock-minutes:focus-visible {
 	outline: none;
 }
 
+button.interval-timer-popover-clock-minutes:disabled,
+button.interval-timer-popover-clock-minutes:disabled:hover {
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-normal);
+	cursor: default;
+	opacity: 1;
+}
+
 .interval-timer-popover-inline-retime-form {
 	position: absolute;
 	inset: 0;

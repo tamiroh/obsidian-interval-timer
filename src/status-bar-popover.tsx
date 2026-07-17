@@ -251,6 +251,10 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 									ref={minutesButton}
 									type="button"
 									className="interval-timer-popover-clock-minutes"
+									disabled={
+										!intervalTimer ||
+										timerState === "running"
+									}
 									onClick={startEditingTime}
 								>
 									{String(time.minutes).padStart(2, "0")}
