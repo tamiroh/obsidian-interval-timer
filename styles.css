@@ -315,7 +315,7 @@ button.interval-timer-popover-clock-minutes:disabled:hover {
 	visibility: hidden;
 }
 
-input[type="number"].interval-timer-popover-inline-retime-input {
+input[type="text"].interval-timer-popover-inline-retime-input {
 	appearance: textfield;
 	min-width: 0;
 	width: calc(100% + 4px);
@@ -338,13 +338,7 @@ input[type="number"].interval-timer-popover-inline-retime-input {
 	text-align: center;
 }
 
-input[type="number"].interval-timer-popover-inline-retime-input::-webkit-inner-spin-button,
-input[type="number"].interval-timer-popover-inline-retime-input::-webkit-outer-spin-button {
-	margin: 0;
-	appearance: none;
-}
-
-input[type="number"].interval-timer-popover-inline-retime-input:focus {
+input[type="text"].interval-timer-popover-inline-retime-input:focus {
 	border-color: var(--interval-timer-accent);
 	box-shadow: 0 0 0 2px
 		color-mix(in srgb, var(--interval-timer-accent) 18%, transparent);
@@ -393,7 +387,7 @@ input[type="number"].interval-timer-popover-inline-retime-input:focus {
 	margin-top: 8px;
 }
 
-button.interval-timer-popover-start-timer,
+button.interval-timer-popover-touch-action,
 button.interval-timer-popover-reset-set {
 	display: inline-flex;
 	gap: 4px;
@@ -414,8 +408,8 @@ button.interval-timer-popover-reset-set {
 	line-height: 18px;
 }
 
-button.interval-timer-popover-start-timer:hover,
-button.interval-timer-popover-start-timer:focus-visible,
+button.interval-timer-popover-touch-action:hover,
+button.interval-timer-popover-touch-action:focus-visible,
 button.interval-timer-popover-reset-set:hover,
 button.interval-timer-popover-reset-set:focus-visible {
 	border: 0;
@@ -424,13 +418,13 @@ button.interval-timer-popover-reset-set:focus-visible {
 	color: var(--interval-timer-accent);
 }
 
-button.interval-timer-popover-start-timer:focus-visible,
+button.interval-timer-popover-touch-action:focus-visible,
 button.interval-timer-popover-reset-set:focus-visible {
 	outline: 1px solid var(--interval-timer-accent);
 	outline-offset: 3px;
 }
 
-button.interval-timer-popover-start-timer:disabled {
+button.interval-timer-popover-touch-action:disabled {
 	background: transparent;
 	box-shadow: none;
 	color: var(--text-faint);

@@ -1118,6 +1118,90 @@ describe("IntervalTimer", () => {
 		});
 	});
 
+	describe("Predict touch behavior", () => {
+		const settings: IntervalTimerSetting = {
+			focusIntervalDuration: 25,
+			shortBreakDuration: 5,
+			longBreakDuration: 15,
+			longBreakAfter: 4,
+			resetTime: { hours: 0, minutes: 0 },
+		};
+
+		it("should predict start from initialized state", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(
+				() => {},
+				settings,
+				() => {},
+			);
+
+			// Act
+			const action = intervalTimer.predictTouch();
+
+			// Assert
+			expect(action).toBe("start");
+			intervalTimer.dispose();
+		});
+
+		it("should predict resume from paused state", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(
+				() => {},
+				settings,
+				() => {},
+			);
+			intervalTimer.start();
+			intervalTimer.pause();
+
+			// Act
+			const action = intervalTimer.predictTouch();
+
+			// Assert
+			expect(action).toBe("resume");
+			intervalTimer.dispose();
+		});
+
+		it("should predict reset while a focus interval is running", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(
+				() => {},
+				settings,
+				() => {},
+			);
+			intervalTimer.start();
+
+			// Act
+			const action = intervalTimer.predictTouch();
+
+			// Assert
+			expect(action).toBe("reset");
+			intervalTimer.dispose();
+		});
+
+		it("should predict skip while a break interval is running", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(
+				() => {},
+				settings,
+				() => {},
+			);
+			intervalTimer.applySnapshot({
+				state: "shortBreak",
+				minutes: settings.shortBreakDuration,
+				seconds: 0,
+				focusIntervals: { total: 0, set: 0 },
+			});
+			intervalTimer.start();
+
+			// Act
+			const action = intervalTimer.predictTouch();
+
+			// Assert
+			expect(action).toBe("skip");
+			intervalTimer.dispose();
+		});
+	});
+
 	describe("Setters and getters", () => {
 		it("should return focus as the initial state", () => {
 			// Arrange

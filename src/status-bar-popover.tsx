@@ -8,8 +8,13 @@ import {
 } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { Notice } from "obsidian";
+import { match } from "ts-pattern";
 import { TimerType } from "./countdown-timer";
-import { IntervalTimer, IntervalTimerState } from "./interval-timer";
+import {
+	IntervalTimer,
+	IntervalTimerState,
+	TouchAction,
+} from "./interval-timer";
 import { ObservableStore } from "./observable-store";
 import { Time, toSeconds } from "./time";
 
@@ -28,6 +33,7 @@ type PopoverSnapshot = {
 	currentTaskName: string | null;
 	isPinned: boolean;
 	isDismissed: boolean;
+	touchAction: TouchAction;
 	intervalTimer: IntervalTimer | null;
 };
 
@@ -46,6 +52,7 @@ export class StatusBarPopover {
 		currentTaskName: null,
 		isPinned: false,
 		isDismissed: false,
+		touchAction: "start",
 		intervalTimer: null,
 	});
 
@@ -83,6 +90,9 @@ export class StatusBarPopover {
 			intervalsSet,
 			longBreakAfter,
 			remainingPercent: this.getRemainingPercent(remainingSeconds),
+			touchAction:
+				this.store.getSnapshot().intervalTimer?.predictTouch() ??
+				"start",
 		});
 	}
 
@@ -95,7 +105,10 @@ export class StatusBarPopover {
 	}
 
 	public enableActions(intervalTimer: IntervalTimer): void {
-		this.store.update({ intervalTimer });
+		this.store.update({
+			intervalTimer,
+			touchAction: intervalTimer.predictTouch(),
+		});
 	}
 
 	private getRemainingPercent(remainingSeconds: number): number {
@@ -126,10 +139,12 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 		currentTaskName,
 		isPinned,
 		isDismissed,
+		touchAction,
 	} = useSyncExternalStore(store.subscribe, store.getSnapshot);
 	const [isEditingTime, setIsEditingTime] = useState(false);
 	const minutesButton = useRef<HTMLButtonElement>(null);
 	const retimeInput = useRef<HTMLInputElement>(null);
+	const touchActionPresentation = getTouchActionPresentation(touchAction);
 
 	const startEditingTime = () => {
 		setIsEditingTime(true);
@@ -265,14 +280,17 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 								>
 									<input
 										ref={retimeInput}
-										type="number"
+										type="text"
+										inputMode="numeric"
+										pattern="[0-9]*"
 										className="interval-timer-popover-inline-retime-input"
-										min="1"
-										step="1"
 										autoComplete="off"
 										spellCheck={false}
 										defaultValue={time.minutes}
 										onKeyDown={handleRetimeKeyDown}
+										onClick={(event) =>
+											event.currentTarget.select()
+										}
 										onBlur={() => {
 											if (isEditingTime)
 												applyRetime(false);
@@ -301,16 +319,19 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 					</div>
 					<div className="interval-timer-popover-task-actions">
 						<Action
-							className="interval-timer-popover-start-timer"
-							icon="▶"
-							disabled={
-								!intervalTimer ||
-								(timerState !== "initialized" &&
-									timerState !== "paused")
-							}
-							onClick={() => intervalTimer?.start()}
+							className="interval-timer-popover-touch-action"
+							icon={touchActionPresentation.icon}
+							disabled={!intervalTimer}
+							onClick={() => {
+								if (!intervalTimer) return;
+
+								intervalTimer.touch();
+								store.update({
+									touchAction: intervalTimer.predictTouch(),
+								});
+							}}
 						>
-							Start
+							{touchActionPresentation.label}
 						</Action>
 						<Action
 							className="interval-timer-popover-reset-set"
@@ -325,6 +346,16 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 		</div>
 	);
 };
+
+const getTouchActionPresentation = (
+	action: TouchAction,
+): { label: string; icon: string } =>
+	match(action)
+		.with("start", () => ({ label: "Start", icon: "▶" }))
+		.with("resume", () => ({ label: "Resume", icon: "▶" }))
+		.with("reset", () => ({ label: "Reset", icon: "↺" }))
+		.with("skip", () => ({ label: "Skip", icon: "↪" }))
+		.exhaustive();
 
 type SetRingProps = Pick<
 	PopoverSnapshot,

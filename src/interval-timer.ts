@@ -46,6 +46,8 @@ export type NotifierContext = {
 
 export type RetimeResult = Result<void, "invalid_minutes" | "timer_running">;
 
+export type TouchAction = "start" | "resume" | "reset" | "skip";
+
 export class IntervalTimer {
 	private currentInterval: {
 		timer: CountdownTimer;
@@ -201,20 +203,21 @@ export class IntervalTimer {
 	}
 
 	public touch(): void {
-		match(this.currentInterval.timer.getCurrentTimerType())
-			.with("initialized", "paused", "completed", () => {
-				this.start();
-			})
-			.with("running", () => {
-				match(this.currentInterval.state)
-					.with("focus", () => {
-						this.reset();
-					})
-					.with("shortBreak", "longBreak", () => {
-						this.skipInterval();
-					})
-					.exhaustive();
-			})
+		const action = this.predictTouch();
+		match(action)
+			.with("start", "resume", () => this.start())
+			.with("reset", () => this.reset())
+			.with("skip", () => this.skipInterval())
+			.exhaustive();
+	}
+
+	public predictTouch(): TouchAction {
+		return match(this.currentInterval.timer.getCurrentTimerType())
+			.with("initialized", "completed", () => "start" as const)
+			.with("paused", () => "resume" as const)
+			.with("running", () =>
+				this.currentInterval.state === "focus" ? "reset" : "skip",
+			)
 			.exhaustive();
 	}
 

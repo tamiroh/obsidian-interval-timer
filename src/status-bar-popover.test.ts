@@ -35,6 +35,7 @@ describe("StatusBarPopover", () => {
 		popovers.forEach((popover) => popover.dispose());
 		popovers.clear();
 		document.body.replaceChildren();
+		vi.restoreAllMocks();
 	});
 
 	it("renders the remaining time and empty task state", async () => {
@@ -191,13 +192,13 @@ describe("StatusBarPopover", () => {
 		intervalTimer.dispose();
 	});
 
-	it("starts the timer from the integrated action", async () => {
+	it("runs the timer touch action from the integrated action", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		const popover = await createPopover(el);
 		const intervalTimer = createIntervalTimer();
-		const startSpy = vi.spyOn(intervalTimer, "start");
+		const touchSpy = vi.spyOn(intervalTimer, "touch");
 		const start = within(el).getByRole("button", { name: "Start" });
 		popover.enableActions(intervalTimer);
 		await waitFor(() => expect(start).toBeEnabled());
@@ -206,7 +207,74 @@ describe("StatusBarPopover", () => {
 		await user.click(start);
 
 		// Assert
-		expect(startSpy).toHaveBeenCalledOnce();
+		expect(touchSpy).toHaveBeenCalledOnce();
+		expect(
+			await within(el).findByRole("button", { name: "Reset" }),
+		).toBeEnabled();
+		intervalTimer.dispose();
+	});
+
+	it("shows reset while a focus interval is running", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		const popover = await createPopover(el);
+		const intervalTimer = createIntervalTimer();
+		const touchSpy = vi.spyOn(intervalTimer, "touch");
+		intervalTimer.start();
+		popover.enableActions(intervalTimer);
+		popover.update({ minutes: 24, seconds: 0 }, "focus", "running");
+
+		// Act
+		await user.click(
+			await within(el).findByRole("button", { name: "Reset" }),
+		);
+
+		// Assert
+		expect(touchSpy).toHaveBeenCalledOnce();
+		intervalTimer.dispose();
+	});
+
+	it("shows skip while a break interval is running", async () => {
+		// Arrange
+		const el = createDiv();
+		const popover = await createPopover(el);
+		const intervalTimer = createIntervalTimer();
+		intervalTimer.applySnapshot({
+			state: "shortBreak",
+			minutes: 4,
+			seconds: 0,
+			focusIntervals: { total: 0, set: 0 },
+		});
+		intervalTimer.start();
+		popover.enableActions(intervalTimer);
+
+		// Act
+		popover.update({ minutes: 4, seconds: 0 }, "shortBreak", "running");
+
+		// Assert
+		expect(
+			await within(el).findByRole("button", { name: "Skip" }),
+		).toBeEnabled();
+		intervalTimer.dispose();
+	});
+
+	it("shows resume while an interval is paused", async () => {
+		// Arrange
+		const el = createDiv();
+		const popover = await createPopover(el);
+		const intervalTimer = createIntervalTimer();
+		intervalTimer.start();
+		intervalTimer.pause();
+		popover.enableActions(intervalTimer);
+
+		// Act
+		popover.update({ minutes: 12, seconds: 0 }, "focus", "paused");
+
+		// Assert
+		expect(
+			await within(el).findByRole("button", { name: "Resume" }),
+		).toBeEnabled();
 		intervalTimer.dispose();
 	});
 
@@ -236,12 +304,33 @@ describe("StatusBarPopover", () => {
 
 		// Assert
 		const input = getRetimeInput(el);
-		expect(input).toHaveValue(7);
+		expect(input).toHaveValue("7");
 		expect(input).toHaveFocus();
 		expect(
 			el.querySelector(".interval-timer-popover-retime-editor"),
 		).toHaveClass("interval-timer-popover-retime-editor-editing");
 		expect(within(el).getByText("05")).toBeInTheDocument();
+		intervalTimer.dispose();
+	});
+
+	it("selects the entire minute value when the input is clicked", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		const popover = await createPopover(el);
+		const intervalTimer = createIntervalTimer();
+		popover.update({ minutes: 12, seconds: 5 }, "focus", "initialized");
+		popover.enableActions(intervalTimer);
+		await user.click(await within(el).findByRole("button", { name: "12" }));
+		const input = getRetimeInput(el);
+		input.setSelectionRange(1, 1);
+
+		// Act
+		await user.click(input);
+
+		// Assert
+		expect(input.selectionStart).toBe(0);
+		expect(input.selectionEnd).toBe(input.value.length);
 		intervalTimer.dispose();
 	});
 
