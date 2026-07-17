@@ -31,6 +31,8 @@
 	opacity: 1;
 }
 
+/* Status bar */
+
 .interval-timer-time-separator-running {
 	animation: interval-timer-blink 1s steps(1, end) infinite;
 }
@@ -41,19 +43,405 @@
 	}
 }
 
+.interval-timer-status-bar {
+	--interval-timer-focus-color: #ee6152;
+	--interval-timer-break-color: #4cbd4f;
+	--interval-timer-accent: var(--interval-timer-focus-color);
+
+	position: relative;
+	isolation: isolate;
+}
+
 .interval-timer-status-bar-focus {
-	color: #ee6152 !important;
+	--interval-timer-accent: var(--interval-timer-focus-color);
+
+	color: var(--interval-timer-accent) !important;
 }
 
 .interval-timer-status-bar-break {
-	color: #4cbd4f !important;
+	--interval-timer-accent: var(--interval-timer-break-color);
+
+	color: var(--interval-timer-accent) !important;
 }
 
-.interval-timer-retime-input {
-	width: 160px;
-	margin-bottom: 8px;
+/* Status bar popover */
+
+.interval-timer-popover {
+	position: absolute;
+	z-index: var(--layer-popover, 100);
+	right: 10px;
+	bottom: calc(100% + 11px);
+	width: min(250px, calc(100vw - 24px));
+	padding: 14px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 12px;
+	background: var(--background-primary);
+	box-shadow: 0 8px 30px rgb(0 0 0 / 20%);
+	color: var(--text-normal);
+	opacity: 0;
+	pointer-events: auto;
+	transform: translateY(6px) scale(0.98);
+	transform-origin: right bottom;
+	transition:
+		opacity 140ms ease,
+		transform 140ms ease,
+		visibility 140ms;
+	visibility: hidden;
 }
 
-.interval-timer-retime-actions {
-	margin-top: 4px;
+.interval-timer-popover-focus {
+	--interval-timer-accent: var(--interval-timer-focus-color);
+}
+
+.interval-timer-popover-break {
+	--interval-timer-accent: var(--interval-timer-break-color);
+}
+
+.interval-timer-popover::before {
+	position: absolute;
+	right: 0;
+	bottom: -12px;
+	width: 100%;
+	height: 12px;
+	content: "";
+}
+
+.interval-timer-popover::after {
+	position: absolute;
+	right: 25px;
+	bottom: -6px;
+	width: 10px;
+	height: 10px;
+	border-right: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--background-modifier-border);
+	background: var(--background-primary);
+	content: "";
+	transform: rotate(45deg);
+}
+
+.interval-timer-status-bar:hover .interval-timer-popover,
+.interval-timer-status-bar:focus-visible .interval-timer-popover,
+.interval-timer-status-bar:focus-within .interval-timer-popover,
+.interval-timer-popover-pinned {
+	opacity: 1;
+	transform: translateY(0) scale(1);
+	visibility: visible;
+}
+
+.interval-timer-status-bar .interval-timer-popover-dismissed {
+	opacity: 0;
+	pointer-events: none;
+	transform: translateY(6px) scale(0.98);
+	visibility: hidden;
+}
+
+button.interval-timer-popover-close {
+	position: absolute;
+	z-index: 1;
+	top: -9px;
+	right: -9px;
+	display: grid;
+	place-items: center;
+	min-width: 0;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 50%;
+	appearance: none;
+	background: var(--background-primary);
+	box-shadow: 0 2px 8px rgb(0 0 0 / 16%);
+	color: var(--text-muted);
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: 400;
+	line-height: 1;
+	opacity: 0;
+	pointer-events: none;
+	transform: scale(0.8);
+	transition:
+		opacity 120ms ease,
+		transform 120ms ease;
+}
+
+.interval-timer-popover-pinned button.interval-timer-popover-close {
+	opacity: 1;
+	pointer-events: auto;
+	transform: scale(1);
+}
+
+button.interval-timer-popover-close:hover,
+button.interval-timer-popover-close:focus-visible {
+	border-color: var(--background-modifier-border-hover);
+	background: var(--background-primary);
+	box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+	color: var(--text-normal);
+}
+
+.interval-timer-popover-body {
+	display: grid;
+	grid-template-columns: 96px minmax(0, 1fr);
+	gap: 14px;
+	align-items: center;
+}
+
+.interval-timer-popover-clock {
+	position: relative;
+	width: 96px;
+	height: 96px;
+}
+
+.interval-timer-popover-clock-progress {
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+.interval-timer-popover-clock-track,
+.interval-timer-popover-clock-value {
+	fill: none;
+	stroke-width: 7;
+}
+
+.interval-timer-popover-clock-track {
+	stroke: var(--background-modifier-border);
+}
+
+.interval-timer-popover-clock-value {
+	stroke: var(--interval-timer-accent);
+	stroke-dasharray: 100;
+	stroke-dashoffset: 0;
+	stroke-linecap: round;
+	transform: rotate(-90deg);
+	transform-origin: 50% 50%;
+	transition: stroke-dashoffset 300ms linear;
+}
+
+.interval-timer-popover-set-ring-segment {
+	fill: none;
+	stroke: var(--background-modifier-border);
+	stroke-linecap: round;
+}
+
+.interval-timer-popover-set-ring-segment-filled {
+	stroke: var(--interval-timer-accent);
+}
+
+.interval-timer-popover-clock-readout {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.interval-timer-popover-retime-editor {
+	position: relative;
+	height: 30px;
+}
+
+.interval-timer-popover-clock-time {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--text-normal);
+	font-family: inherit;
+	font-size: 17px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	line-height: 22px;
+}
+
+button.interval-timer-popover-clock-minutes {
+	position: relative;
+	min-height: 0;
+	min-width: 0;
+	width: auto;
+	height: 30px;
+	padding: 0;
+	border: 0;
+	border-radius: 6px;
+	appearance: none;
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-normal);
+	cursor: text;
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+	letter-spacing: inherit;
+	line-height: 22px;
+	transition:
+		opacity 120ms ease,
+		transform 160ms ease,
+		border-color 120ms ease,
+		background-color 120ms ease;
+}
+
+button.interval-timer-popover-clock-minutes:hover,
+button.interval-timer-popover-clock-minutes:focus-visible {
+	border: 0;
+	background: var(--background-modifier-form-field);
+	box-shadow: 0 0 0 2px var(--background-modifier-border-hover);
+}
+
+button.interval-timer-popover-clock-minutes:focus-visible {
+	outline: none;
+}
+
+.interval-timer-popover-inline-retime-form {
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	opacity: 0;
+	pointer-events: none;
+	transform: scale(0.94);
+	transition:
+		opacity 120ms ease,
+		transform 160ms ease,
+		visibility 160ms;
+	visibility: hidden;
+}
+
+input[type="number"].interval-timer-popover-inline-retime-input {
+	appearance: textfield;
+	min-width: 0;
+	width: calc(100% + 4px);
+	height: 100%;
+	margin-left: -2px;
+	box-sizing: border-box;
+	padding: 0;
+	border: 1px solid var(--interval-timer-accent);
+	border-radius: 6px;
+	background: var(--background-modifier-form-field);
+	box-shadow: 0 0 0 2px
+		color-mix(in srgb, var(--interval-timer-accent) 18%, transparent);
+	color: var(--text-normal);
+	caret-color: var(--interval-timer-accent);
+	font-family: inherit;
+	font-size: 17px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	line-height: 22px;
+	text-align: center;
+}
+
+input[type="number"].interval-timer-popover-inline-retime-input::-webkit-inner-spin-button,
+input[type="number"].interval-timer-popover-inline-retime-input::-webkit-outer-spin-button {
+	margin: 0;
+	appearance: none;
+}
+
+input[type="number"].interval-timer-popover-inline-retime-input:focus {
+	border-color: var(--interval-timer-accent);
+	box-shadow: 0 0 0 2px
+		color-mix(in srgb, var(--interval-timer-accent) 18%, transparent);
+}
+
+.interval-timer-popover-retime-editor-editing
+	.interval-timer-popover-clock-minutes {
+	opacity: 0;
+	pointer-events: none;
+	transform: scale(1.06);
+}
+
+.interval-timer-popover-retime-editor-editing
+	.interval-timer-popover-inline-retime-form {
+	opacity: 1;
+	pointer-events: auto;
+	transform: scale(1);
+	visibility: visible;
+}
+
+.interval-timer-popover-task {
+	min-width: 0;
+}
+
+.interval-timer-popover-task-name {
+	display: -webkit-box;
+	overflow: hidden;
+	color: var(--text-normal);
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+
+.interval-timer-popover-task-name-empty {
+	color: var(--text-muted);
+	font-weight: 400;
+}
+
+.interval-timer-popover-task-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	align-items: flex-start;
+	margin-top: 8px;
+}
+
+button.interval-timer-popover-start-timer,
+button.interval-timer-popover-reset-set {
+	display: inline-flex;
+	gap: 4px;
+	align-items: center;
+	min-height: 0;
+	height: 18px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	appearance: none;
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-faint);
+	cursor: pointer;
+	font-size: 10px;
+	font-weight: 500;
+	line-height: 18px;
+}
+
+button.interval-timer-popover-start-timer:hover,
+button.interval-timer-popover-start-timer:focus-visible,
+button.interval-timer-popover-reset-set:hover,
+button.interval-timer-popover-reset-set:focus-visible {
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--interval-timer-accent);
+}
+
+button.interval-timer-popover-start-timer:focus-visible,
+button.interval-timer-popover-reset-set:focus-visible {
+	outline: 1px solid var(--interval-timer-accent);
+	outline-offset: 3px;
+}
+
+button.interval-timer-popover-start-timer:disabled {
+	background: transparent;
+	box-shadow: none;
+	color: var(--text-faint);
+	cursor: default;
+	opacity: 0.45;
+}
+
+.interval-timer-popover-task-action-icon {
+	display: inline-block;
+	min-width: 13px;
+	font-size: 13px;
+	line-height: 1;
+	text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.interval-timer-popover,
+	.interval-timer-popover-close,
+	.interval-timer-popover-clock-value,
+	.interval-timer-popover-clock-minutes,
+	.interval-timer-popover-inline-retime-form {
+		transition: none;
+	}
 }

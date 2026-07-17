@@ -20,7 +20,8 @@
 		"strictPropertyInitialization": true,
 		"forceConsistentCasingInFileNames": true,
 		"allowSyntheticDefaultImports": true,
+		"jsx": "react-jsx",
 		"skipLibCheck": true
 	},
-	"include": ["**/*.ts"]
+	"include": ["**/*.ts", "**/*.tsx"]
 }

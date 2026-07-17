@@ -1,34 +1,52 @@
-import { App, Menu, setTooltip } from "obsidian";
 import { Time } from "./time";
 import { IntervalTimer, IntervalTimerState } from "./interval-timer";
-import { RetimeModal } from "./retime-modal";
 import { TimerType } from "./countdown-timer";
+import { StatusBarPopover } from "./status-bar-popover";
 
 export class StatusBar {
-	private statusBarItem: HTMLElement;
+	private readonly statusBarItem: HTMLElement;
 
-	private app: App;
+	private readonly compact: HTMLSpanElement;
 
-	private intervalCount: Text;
+	private readonly compactIntervalCount: HTMLSpanElement;
 
-	private minutes: Text;
+	private readonly compactMinutes: Text;
 
-	private separator: HTMLSpanElement;
+	private readonly compactSeparator: HTMLSpanElement;
 
-	private seconds: Text;
+	private readonly compactSeconds: Text;
 
-	constructor(statusBarElement: HTMLElement, app: App) {
+	private readonly popover: StatusBarPopover;
+
+	private handleCompactClick: ((event: MouseEvent) => void) | null = null;
+
+	private handleCompactKeyDown: ((event: KeyboardEvent) => void) | null =
+		null;
+
+	constructor(statusBarElement: HTMLElement) {
 		this.statusBarItem = statusBarElement;
-		this.app = app;
-		this.intervalCount = document.createTextNode("");
-		this.minutes = document.createTextNode("");
-		this.statusBarItem.append(this.intervalCount, this.minutes);
-		this.separator = this.statusBarItem.createSpan({
+		this.statusBarItem.classList.add("interval-timer-status-bar");
+		this.statusBarItem.setAttribute("role", "timer");
+
+		this.compact = this.statusBarItem.createSpan({
+			cls: "interval-timer-status-bar-compact",
+		});
+		this.compactIntervalCount = this.compact.createSpan({
+			cls: "interval-timer-compact-intervals",
+		});
+		const compactTime = this.compact.createSpan({
+			cls: "interval-timer-compact-time",
+		});
+		this.compactMinutes = document.createTextNode("");
+		compactTime.append(this.compactMinutes);
+		this.compactSeparator = compactTime.createSpan({
 			cls: "interval-timer-time-separator",
 		});
-		this.separator.textContent = ":";
-		this.seconds = document.createTextNode("");
-		this.statusBarItem.append(this.seconds);
+		this.compactSeparator.textContent = ":";
+		this.compactSeconds = document.createTextNode("");
+		compactTime.append(this.compactSeconds);
+
+		this.popover = new StatusBarPopover(this.statusBarItem);
 	}
 
 	public update(
@@ -36,11 +54,19 @@ export class StatusBar {
 		time: Time,
 		intervalTimerState: IntervalTimerState,
 		timerState: TimerType,
+		longBreakAfter = 4,
 	): void {
-		this.intervalCount.textContent = `${intervals.set}/${intervals.total} `;
-		this.minutes.textContent = String(time.minutes).padStart(2, "0");
-		this.seconds.textContent = String(time.seconds).padStart(2, "0");
-		this.separator.classList.toggle(
+		this.compactIntervalCount.textContent = `${intervals.set}/${intervals.total} `;
+		this.compactMinutes.textContent = String(time.minutes).padStart(2, "0");
+		this.compactSeconds.textContent = String(time.seconds).padStart(2, "0");
+		this.popover.update(
+			time,
+			intervalTimerState,
+			timerState,
+			intervals.set,
+			longBreakAfter,
+		);
+		this.compactSeparator.classList.toggle(
 			"interval-timer-time-separator-running",
 			timerState === "running",
 		);
@@ -54,36 +80,44 @@ export class StatusBar {
 		);
 	}
 
-	public updateTrackedTaskTooltip(currentTaskName: string | null): void {
-		setTooltip(this.statusBarItem, currentTaskName ?? "", {
-			placement: "top",
-			delay: 100,
-		});
+	public updateTrackedTask(currentTaskName: string | null): void {
+		this.popover.updateTrackedTask(currentTaskName);
+	}
+
+	public updateLongBreakAfter(longBreakAfter: number): void {
+		this.popover.updateLongBreakAfter(longBreakAfter);
+	}
+
+	public dispose(): void {
+		if (this.handleCompactClick) {
+			this.compact.removeEventListener("click", this.handleCompactClick);
+		}
+		if (this.handleCompactKeyDown) {
+			this.compact.removeEventListener(
+				"keydown",
+				this.handleCompactKeyDown,
+			);
+		}
+		this.popover.dispose();
 	}
 
 	public enableClick(intervalTimer: IntervalTimer): void {
-		this.statusBarItem.classList.add("mod-clickable");
-		this.statusBarItem.addEventListener("click", (event) => {
+		this.compact.classList.add("mod-clickable");
+		this.compact.setAttribute("role", "button");
+		this.compact.tabIndex = 0;
+		this.handleCompactClick = (event) => {
 			if (event.button === 0) {
-				// Left click
 				intervalTimer.touch();
 			}
-		});
-		this.statusBarItem.addEventListener("contextmenu", (event) => {
-			// Right click
-			event.preventDefault();
-			new Menu()
-				.addItem((item) => {
-					item.setTitle("Reset intervals set").onClick(() => {
-						intervalTimer.resetIntervalsSet();
-					});
-				})
-				.addItem((item) => {
-					item.setTitle("Retime timer").onClick(() => {
-						new RetimeModal(this.app, intervalTimer).open();
-					});
-				})
-				.showAtMouseEvent(event);
-		});
+		};
+		this.handleCompactKeyDown = (event) => {
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				intervalTimer.touch();
+			}
+		};
+		this.compact.addEventListener("click", this.handleCompactClick);
+		this.compact.addEventListener("keydown", this.handleCompactKeyDown);
+		this.popover.enableActions(intervalTimer);
 	}
 }
