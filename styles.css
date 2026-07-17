@@ -67,6 +67,9 @@
 /* Status bar popover */
 
 .interval-timer-popover {
+	--interval-timer-popover-clock-size: 96px;
+	--interval-timer-popover-clock-ring-diameter: 91.2px;
+
 	position: absolute;
 	z-index: var(--layer-popover, 100);
 	right: 10px;
@@ -180,15 +183,17 @@ button.interval-timer-popover-close:focus-visible {
 
 .interval-timer-popover-body {
 	display: grid;
-	grid-template-columns: 96px minmax(0, 1fr);
+	grid-template-columns:
+		var(--interval-timer-popover-clock-size)
+		minmax(0, 1fr);
 	gap: 14px;
 	align-items: center;
 }
 
 .interval-timer-popover-clock {
 	position: relative;
-	width: 96px;
-	height: 96px;
+	width: var(--interval-timer-popover-clock-size);
+	height: var(--interval-timer-popover-clock-size);
 }
 
 .interval-timer-popover-clock-progress {
@@ -360,7 +365,11 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 }
 
 .interval-timer-popover-task {
+	display: flex;
+	flex-direction: column;
 	min-width: 0;
+	width: 100%;
+	height: var(--interval-timer-popover-clock-ring-diameter);
 }
 
 .interval-timer-popover-task-name {
@@ -384,7 +393,7 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 	flex-direction: column;
 	gap: 3px;
 	align-items: flex-start;
-	margin-top: 8px;
+	margin-top: auto;
 }
 
 button.interval-timer-popover-touch-action,
