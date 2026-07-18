@@ -304,8 +304,10 @@ describe("StatusBarPopover", () => {
 
 		// Assert
 		const input = getRetimeInput(el);
+		await waitFor(() => expect(input).toHaveFocus());
 		expect(input).toHaveValue("7");
-		expect(input).toHaveFocus();
+		expect(input.selectionStart).toBe(0);
+		expect(input.selectionEnd).toBe(input.value.length);
 		expect(
 			el.querySelector(".interval-timer-popover-retime-editor"),
 		).toHaveClass("interval-timer-popover-retime-editor-editing");
@@ -323,6 +325,7 @@ describe("StatusBarPopover", () => {
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "12" }));
 		const input = getRetimeInput(el);
+		await waitFor(() => expect(input).toHaveFocus());
 		input.setSelectionRange(1, 1);
 
 		// Act
@@ -364,6 +367,7 @@ describe("StatusBarPopover", () => {
 		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
+		await waitFor(() => expect(getRetimeInput(el)).toHaveFocus());
 
 		// Act
 		await user.clear(getRetimeInput(el));
@@ -399,6 +403,7 @@ describe("StatusBarPopover", () => {
 		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
+		await waitFor(() => expect(getRetimeInput(el)).toHaveFocus());
 
 		// Act
 		await user.clear(getRetimeInput(el));
@@ -427,6 +432,7 @@ describe("StatusBarPopover", () => {
 		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
+		await waitFor(() => expect(getRetimeInput(el)).toHaveFocus());
 
 		// Act
 		await user.clear(getRetimeInput(el));

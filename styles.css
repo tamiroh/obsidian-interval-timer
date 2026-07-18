@@ -316,11 +316,12 @@ button.interval-timer-popover-clock-minutes:disabled:hover {
 	transition:
 		opacity 120ms ease,
 		transform 160ms ease,
-		visibility 160ms;
+		visibility 0s linear 160ms;
 	visibility: hidden;
 }
 
 input[type="text"].interval-timer-popover-inline-retime-input {
+	user-select: text;
 	appearance: textfield;
 	min-width: 0;
 	width: calc(100% + 4px);
@@ -361,6 +362,7 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 	opacity: 1;
 	pointer-events: auto;
 	transform: scale(1);
+	transition-delay: 0s;
 	visibility: visible;
 }
 

@@ -148,11 +148,13 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 
 	const startEditingTime = () => {
 		setIsEditingTime(true);
-		if (retimeInput.current) {
+		window.requestAnimationFrame(() => {
+			if (!retimeInput.current) return;
+
 			retimeInput.current.value = String(time.minutes);
-			retimeInput.current.focus();
+			retimeInput.current.focus({ preventScroll: true });
 			retimeInput.current.select();
-		}
+		});
 	};
 
 	const stopEditingTime = (restoreFocus: boolean) => {
