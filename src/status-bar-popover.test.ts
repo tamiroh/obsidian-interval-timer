@@ -588,6 +588,27 @@ describe("StatusBarPopover", () => {
 		expect(popover).toHaveClass("interval-timer-popover-dismissed");
 	});
 
+	it("clears dismissal when focus returns to the status item", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		const focusTarget = createEl("button");
+		el.append(focusTarget);
+		await createPopover(el);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+		await user.click(popover);
+		await user.click(within(el).getByRole("button", { name: "Close" }));
+
+		// Act
+		await user.click(focusTarget);
+
+		// Assert
+		expect(popover).not.toHaveClass("interval-timer-popover-dismissed");
+		expect(popover).not.toHaveClass("interval-timer-popover-pinned");
+	});
+
 	const createIntervalTimer = (): IntervalTimer =>
 		new IntervalTimer(
 			() => {},

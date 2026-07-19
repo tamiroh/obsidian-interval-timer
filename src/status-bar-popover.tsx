@@ -59,12 +59,14 @@ export class StatusBarPopover {
 	constructor(private readonly container: HTMLElement) {
 		this.rootElement = container.createSpan();
 		this.root = createRoot(this.rootElement);
-		container.addEventListener("mouseleave", this.handleMouseLeave);
+		container.addEventListener("mouseleave", this.clearDismissal);
+		container.addEventListener("focusin", this.clearDismissal);
 		this.root.render(<Popover store={this.store} />);
 	}
 
 	public dispose(): void {
-		this.container.removeEventListener("mouseleave", this.handleMouseLeave);
+		this.container.removeEventListener("mouseleave", this.clearDismissal);
+		this.container.removeEventListener("focusin", this.clearDismissal);
 		this.root.unmount();
 		this.rootElement.remove();
 	}
@@ -118,7 +120,7 @@ export class StatusBarPopover {
 		);
 	}
 
-	private readonly handleMouseLeave = (): void => {
+	private readonly clearDismissal = (): void => {
 		if (this.store.getSnapshot().isDismissed) {
 			this.store.update({ isDismissed: false });
 		}
