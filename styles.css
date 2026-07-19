@@ -57,6 +57,16 @@ body {
 
 	position: relative;
 	isolation: isolate;
+	transition: background-color 100ms ease;
+}
+
+.interval-timer-status-bar:has(
+	> .interval-timer-status-bar-compact.mod-clickable:hover
+),
+.interval-timer-status-bar:has(
+	> .interval-timer-status-bar-compact.mod-clickable:focus-visible
+) {
+	background-color: var(--background-modifier-hover);
 }
 
 .interval-timer-status-bar-focus {
