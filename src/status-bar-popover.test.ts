@@ -146,13 +146,10 @@ describe("StatusBarPopover", () => {
 		);
 		expect(markers).toHaveLength(4);
 		expect(getRotation(markers[0] as SVGCircleElement)).toBeCloseTo(
-			-87.14,
+			-84.6,
 			2,
 		);
-		expect(getRotation(markers[1] as SVGCircleElement)).toBeCloseTo(
-			2.86,
-			2,
-		);
+		expect(getRotation(markers[1] as SVGCircleElement)).toBeCloseTo(5.4, 2);
 	});
 
 	it("shows a completed set during a long break", async () => {

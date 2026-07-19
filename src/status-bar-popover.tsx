@@ -20,8 +20,6 @@ import { Time, toSeconds } from "./time";
 
 const setRingRadius = 35;
 const setRingStrokeWidth = 3.5;
-const setRingCapOffsetDegrees =
-	(Math.atan(setRingStrokeWidth / 2 / setRingRadius) * 180) / Math.PI;
 
 type PopoverSnapshot = {
 	time: Time;
@@ -405,9 +403,7 @@ const SetRing = ({
 						}`,
 					}}
 					transform={`rotate(${
-						-90 +
-						setRingCapOffsetDegrees +
-						index * (360 / markerCount)
+						-90 + markerGap * 1.8 + index * (360 / markerCount)
 					} 50 50)`}
 				/>
 			))}
