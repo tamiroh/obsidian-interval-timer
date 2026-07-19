@@ -228,6 +228,8 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 				type="button"
 				className="interval-timer-popover-close"
 				aria-label="Close"
+				aria-hidden={!isPinned}
+				tabIndex={isPinned ? 0 : -1}
 				onClick={(event) => {
 					event.stopPropagation();
 					close();

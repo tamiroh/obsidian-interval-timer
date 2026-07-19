@@ -520,6 +520,39 @@ describe("StatusBarPopover", () => {
 		expect(popover).toHaveClass("interval-timer-popover-pinned");
 	});
 
+	it("keeps the hidden close button out of the tab order", async () => {
+		// Arrange
+		const el = createDiv();
+		await createPopover(el);
+
+		// Act
+		const close = el.querySelector(
+			".interval-timer-popover-close",
+		) as HTMLButtonElement;
+
+		// Assert
+		expect(close).toHaveAttribute("tabindex", "-1");
+		expect(close).toHaveAttribute("aria-hidden", "true");
+	});
+
+	it("adds the visible close button to the tab order when pinned", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		await createPopover(el);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+
+		// Act
+		await user.click(popover);
+
+		// Assert
+		const close = within(el).getByRole("button", { name: "Close" });
+		expect(close).toHaveAttribute("tabindex", "0");
+		expect(close).toHaveAttribute("aria-hidden", "false");
+	});
+
 	it("keeps a pinned popover open after the pointer leaves", async () => {
 		// Arrange
 		const user = userEvent.setup();
