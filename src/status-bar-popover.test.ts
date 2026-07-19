@@ -201,14 +201,19 @@ describe("StatusBarPopover", () => {
 				within(el).getByRole("button", { name: "Start" }),
 			).toBeEnabled(),
 		);
+		const resetSet = await within(el).findByRole("button", {
+			name: "Reset set",
+		});
 
 		// Act
-		await user.click(
-			await within(el).findByRole("button", { name: "Reset set" }),
-		);
+		await user.click(resetSet);
 
 		// Assert
 		expect(resetSpy).toHaveBeenCalledOnce();
+		expect(resetSet).not.toHaveFocus();
+		expect(el.querySelector(".interval-timer-popover")).not.toHaveClass(
+			"interval-timer-popover-pinned",
+		);
 		intervalTimer.dispose();
 	});
 
@@ -231,6 +236,10 @@ describe("StatusBarPopover", () => {
 		expect(
 			await within(el).findByRole("button", { name: "Reset" }),
 		).toBeEnabled();
+		expect(start).not.toHaveFocus();
+		expect(el.querySelector(".interval-timer-popover")).not.toHaveClass(
+			"interval-timer-popover-pinned",
+		);
 		intervalTimer.dispose();
 	});
 

@@ -454,7 +454,11 @@ const Action = ({
 		type="button"
 		className={className}
 		disabled={disabled}
-		onClick={onClick}
+		onClick={(event) => {
+			event.stopPropagation();
+			onClick(event);
+			if (event.detail > 0) event.currentTarget.blur();
+		}}
 	>
 		<Icon name={icon} className="interval-timer-popover-task-action-icon" />
 		<span>{children}</span>

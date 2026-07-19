@@ -210,6 +210,7 @@ describe("StatusBar", () => {
 
 		// Assert
 		expect(touchSpy).toHaveBeenCalledOnce();
+		expect(compact).not.toHaveFocus();
 		expect(
 			await within(el).findByRole("button", { name: "Reset" }),
 		).toBeEnabled();

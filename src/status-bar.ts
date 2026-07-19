@@ -108,6 +108,7 @@ export class StatusBar {
 		this.handleCompactClick = (event) => {
 			if (event.button === 0) {
 				intervalTimer.touch();
+				this.compact.blur();
 			}
 		};
 		this.handleCompactKeyDown = (event) => {
