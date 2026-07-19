@@ -197,7 +197,8 @@ describe("StatusBar", () => {
 		const user = userEvent.setup();
 		const el = createDiv();
 		const statusBar = await createStatusBar(el);
-		const intervalTimer = createIntervalTimer();
+		const intervalTimer =
+			createIntervalTimerWithStatusBarUpdates(statusBar);
 		const touchSpy = vi.spyOn(intervalTimer, "touch");
 		statusBar.enableClick(intervalTimer);
 		const compact = el.querySelector(
@@ -209,6 +210,10 @@ describe("StatusBar", () => {
 
 		// Assert
 		expect(touchSpy).toHaveBeenCalledOnce();
+		expect(
+			await within(el).findByRole("button", { name: "Reset" }),
+		).toBeEnabled();
+		expect(within(el).getByRole("button", { name: "25" })).toBeDisabled();
 		intervalTimer.dispose();
 	});
 
@@ -217,7 +222,8 @@ describe("StatusBar", () => {
 		const user = userEvent.setup();
 		const el = createDiv();
 		const statusBar = await createStatusBar(el);
-		const intervalTimer = createIntervalTimer();
+		const intervalTimer =
+			createIntervalTimerWithStatusBarUpdates(statusBar);
 		const touchSpy = vi.spyOn(intervalTimer, "touch");
 		statusBar.enableClick(intervalTimer);
 		const compact = el.querySelector(
@@ -232,6 +238,10 @@ describe("StatusBar", () => {
 		expect(touchSpy).toHaveBeenCalledOnce();
 		expect(compact).toHaveFocus();
 		expect(compact).toHaveAttribute("tabindex", "0");
+		expect(
+			await within(el).findByRole("button", { name: "Reset" }),
+		).toBeEnabled();
+		expect(within(el).getByRole("button", { name: "25" })).toBeDisabled();
 		intervalTimer.dispose();
 	});
 
@@ -304,6 +314,21 @@ describe("StatusBar", () => {
 	const createIntervalTimer = (): IntervalTimer =>
 		new IntervalTimer(
 			() => {},
+			settings,
+			() => {},
+		);
+
+	const createIntervalTimerWithStatusBarUpdates = (
+		statusBar: StatusBar,
+	): IntervalTimer =>
+		new IntervalTimer(
+			(timerState, intervalTimerState, time, intervals) =>
+				statusBar.update(
+					intervals,
+					time,
+					intervalTimerState,
+					timerState,
+				),
 			settings,
 			() => {},
 		);

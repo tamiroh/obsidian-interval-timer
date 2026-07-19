@@ -298,7 +298,7 @@ describe("StatusBarPopover", () => {
 		intervalTimer.dispose();
 	});
 
-	it("disables start until timer actions are connected", async () => {
+	it("disables start until an interval timer is provided", async () => {
 		// Arrange
 		const el = createDiv();
 		await createPopover(el);

@@ -351,13 +351,12 @@ describe("IntervalTimer", () => {
 
 			// Act
 			intervalTimer.start();
-			vi.advanceTimersByTime(1000);
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
+			expect(handleChangeState).toHaveBeenCalledExactlyOnceWith(
 				"running",
 				"focus",
-				{ minutes: 24, seconds: 59 },
+				{ minutes: 25, seconds: 0 },
 				{ set: 0, total: 0 },
 			);
 
@@ -602,10 +601,10 @@ describe("IntervalTimer", () => {
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
 			});
+			intervalTimer.start();
 			handleChangeState.mockClear();
 
 			// Act
-			intervalTimer.start();
 			const result = intervalTimer.retime(7);
 
 			// Assert
