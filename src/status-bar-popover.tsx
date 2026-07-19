@@ -142,6 +142,7 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 	const [isEditingTime, setIsEditingTime] = useState(false);
 	const minutesButton = useRef<HTMLButtonElement>(null);
 	const retimeInput = useRef<HTMLInputElement>(null);
+	const suppressBlurApply = useRef(false);
 	const touchActionPresentation = getTouchActionPresentation(touchAction);
 	const taskName =
 		intervalTimerState === "focus"
@@ -149,6 +150,7 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 			: "Break time";
 
 	const startEditingTime = () => {
+		suppressBlurApply.current = false;
 		setIsEditingTime(true);
 		window.requestAnimationFrame(() => {
 			if (!retimeInput.current) return;
@@ -161,7 +163,10 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 
 	const stopEditingTime = (restoreFocus: boolean) => {
 		setIsEditingTime(false);
-		if (restoreFocus) minutesButton.current?.focus();
+		if (restoreFocus) {
+			suppressBlurApply.current = true;
+			minutesButton.current?.focus();
+		}
 	};
 
 	const applyRetime = (restoreFocus = true) => {
@@ -296,6 +301,10 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 											event.currentTarget.select()
 										}
 										onBlur={() => {
+											if (suppressBlurApply.current) {
+												suppressBlurApply.current = false;
+												return;
+											}
 											if (isEditingTime)
 												applyRetime(false);
 										}}
