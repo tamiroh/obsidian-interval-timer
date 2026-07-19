@@ -548,7 +548,7 @@ describe("StatusBarPopover", () => {
 		await user.click(popover);
 
 		// Act
-		await user.click(within(el).getByRole("button", { name: "×" }));
+		await user.click(within(el).getByRole("button", { name: "Close" }));
 
 		// Assert
 		expect(popover).not.toHaveClass("interval-timer-popover-pinned");

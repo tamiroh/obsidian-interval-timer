@@ -86,16 +86,13 @@ body {
 	border: 1px solid var(--background-modifier-border);
 	border-radius: 12px;
 	background: var(--background-primary);
-	box-shadow: 0 8px 30px rgb(0 0 0 / 20%);
+	box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
 	color: var(--text-normal);
 	opacity: 0;
 	pointer-events: auto;
-	transform: translateY(6px) scale(0.98);
-	transform-origin: right bottom;
 	transition:
-		opacity 140ms ease,
-		transform 140ms ease,
-		visibility 140ms;
+		opacity 110ms ease,
+		visibility 110ms;
 	visibility: hidden;
 }
 
@@ -137,14 +134,12 @@ body {
 	.interval-timer-popover:not(.interval-timer-popover-dismissed),
 .interval-timer-popover-pinned {
 	opacity: 1;
-	transform: translateY(0) scale(1);
 	visibility: visible;
 }
 
 .interval-timer-status-bar .interval-timer-popover-dismissed {
 	opacity: 0;
 	pointer-events: none;
-	transform: translateY(6px) scale(0.98);
 	visibility: hidden;
 }
 
@@ -163,32 +158,37 @@ button.interval-timer-popover-close {
 	border-radius: 50%;
 	appearance: none;
 	background: var(--background-primary);
-	box-shadow: 0 2px 8px rgb(0 0 0 / 16%);
+	box-shadow: none;
 	color: var(--text-muted);
 	cursor: pointer;
-	font-size: 16px;
-	font-weight: 400;
 	line-height: 1;
 	opacity: 0;
 	pointer-events: none;
-	transform: scale(0.8);
-	transition:
-		opacity 120ms ease,
-		transform 120ms ease;
+	transition: opacity 120ms ease;
 }
 
 .interval-timer-popover-pinned button.interval-timer-popover-close {
 	opacity: 1;
 	pointer-events: auto;
-	transform: scale(1);
 }
 
 button.interval-timer-popover-close:hover,
 button.interval-timer-popover-close:focus-visible {
 	border-color: var(--background-modifier-border-hover);
-	background: var(--background-primary);
-	box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+	background: var(--background-modifier-hover);
 	color: var(--text-normal);
+}
+
+.interval-timer-popover-close-icon {
+	display: grid;
+	place-items: center;
+	width: 14px;
+	height: 14px;
+}
+
+.interval-timer-popover-close-icon svg {
+	width: 14px;
+	height: 14px;
 }
 
 .interval-timer-popover-body {
@@ -299,7 +299,7 @@ button.interval-timer-popover-clock-minutes:hover,
 button.interval-timer-popover-clock-minutes:focus-visible {
 	border: 0;
 	background: var(--background-modifier-form-field);
-	box-shadow: 0 0 0 2px var(--background-modifier-border-hover);
+	box-shadow: none;
 }
 
 button.interval-timer-popover-clock-minutes:focus-visible {
@@ -342,8 +342,7 @@ input[type="text"].interval-timer-popover-inline-retime-input {
 	border: 1px solid var(--interval-timer-accent);
 	border-radius: 6px;
 	background: var(--background-modifier-form-field);
-	box-shadow: 0 0 0 2px
-		color-mix(in srgb, var(--interval-timer-accent) 18%, transparent);
+	box-shadow: none;
 	color: var(--text-normal);
 	caret-color: var(--interval-timer-accent);
 	font-family: inherit;
@@ -356,8 +355,7 @@ input[type="text"].interval-timer-popover-inline-retime-input {
 
 input[type="text"].interval-timer-popover-inline-retime-input:focus {
 	border-color: var(--interval-timer-accent);
-	box-shadow: 0 0 0 2px
-		color-mix(in srgb, var(--interval-timer-accent) 18%, transparent);
+	box-shadow: none;
 }
 
 .interval-timer-popover-retime-editor-editing
@@ -455,11 +453,16 @@ button.interval-timer-popover-touch-action:disabled {
 }
 
 .interval-timer-popover-task-action-icon {
-	display: inline-block;
-	min-width: 13px;
-	font-size: 13px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	line-height: 1;
-	text-align: center;
+}
+
+.interval-timer-popover-task-action-icon svg {
+	width: 12px;
+	height: 12px;
+	stroke-width: 2.75;
 }
 
 @media (prefers-reduced-motion: reduce) {

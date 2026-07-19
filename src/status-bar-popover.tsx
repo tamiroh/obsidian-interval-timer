@@ -7,7 +7,7 @@ import {
 	useSyncExternalStore,
 } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { Notice } from "obsidian";
+import { Notice, setIcon } from "obsidian";
 import { match } from "ts-pattern";
 import { TimerType } from "./countdown-timer";
 import {
@@ -227,13 +227,14 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 			<button
 				type="button"
 				className="interval-timer-popover-close"
+				aria-label="Close"
 				onClick={(event) => {
 					event.stopPropagation();
 					close();
 					event.currentTarget.blur();
 				}}
 			>
-				×
+				<Icon name="x" className="interval-timer-popover-close-icon" />
 			</button>
 			<div className="interval-timer-popover-body">
 				<div className="interval-timer-popover-clock">
@@ -351,7 +352,7 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 						</Action>
 						<Action
 							className="interval-timer-popover-reset-set"
-							icon="↺"
+							icon="rotate-ccw"
 							onClick={() => intervalTimer?.resetIntervalsSet()}
 						>
 							Reset set
@@ -367,10 +368,10 @@ const getTouchActionPresentation = (
 	action: TouchAction,
 ): { label: string; icon: string } =>
 	match(action)
-		.with("start", () => ({ label: "Start", icon: "▶" }))
-		.with("resume", () => ({ label: "Resume", icon: "▶" }))
-		.with("reset", () => ({ label: "Reset", icon: "↺" }))
-		.with("skip", () => ({ label: "Skip", icon: "↪" }))
+		.with("start", () => ({ label: "Start", icon: "play" }))
+		.with("resume", () => ({ label: "Resume", icon: "play" }))
+		.with("reset", () => ({ label: "Reset", icon: "rotate-ccw" }))
+		.with("skip", () => ({ label: "Skip", icon: "skip-forward" }))
 		.exhaustive();
 
 type SetRingProps = Pick<
@@ -420,6 +421,16 @@ const SetRing = ({
 	);
 };
 
+const Icon = ({ name, className }: { name: string; className?: string }) => (
+	<span
+		className={className}
+		aria-hidden="true"
+		ref={(el) => {
+			if (el) setIcon(el, name);
+		}}
+	/>
+);
+
 type ActionProps = {
 	className: string;
 	icon: string;
@@ -441,12 +452,7 @@ const Action = ({
 		disabled={disabled}
 		onClick={onClick}
 	>
-		<span
-			className="interval-timer-popover-task-action-icon"
-			aria-hidden="true"
-		>
-			{icon}
-		</span>
+		<Icon name={icon} className="interval-timer-popover-task-action-icon" />
 		<span>{children}</span>
 	</button>
 );

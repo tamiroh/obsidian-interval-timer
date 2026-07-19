@@ -7,6 +7,7 @@ import type {
 	PluginManifest,
 	PluginSettingTab as RealPluginSettingTab,
 	Setting as RealSetting,
+	setIcon as RealSetIcon,
 	setTooltip as RealSetTooltip,
 } from "obsidian";
 
@@ -117,6 +118,10 @@ export class Modal implements Pick<
 
 	public onClose(): void {}
 }
+
+export const setIcon: typeof RealSetIcon = (parent, iconId) => {
+	parent.setAttribute("data-icon", iconId);
+};
 
 export const setTooltip: typeof RealSetTooltip = (el, tooltip) => {
 	el.setAttribute("aria-label", typeof tooltip === "string" ? tooltip : "");
