@@ -543,7 +543,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.dispose();
 		});
 
-		it("should allow updating timer duration only when timer is stopped", () => {
+		it("should update only the minutes when the timer is stopped", () => {
 			// Arrange
 			const handleChangeState = vi.fn();
 			const settings: IntervalTimerSetting = {
@@ -561,7 +561,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: settings.focusIntervalDuration,
-				seconds: 0,
+				seconds: 30,
 				focusIntervals: { total: 0, set: 0 },
 			});
 			handleChangeState.mockClear();
@@ -574,7 +574,7 @@ describe("IntervalTimer", () => {
 			expect(handleChangeState).toHaveBeenCalledWith(
 				"initialized",
 				"focus",
-				{ minutes: 7, seconds: 0 },
+				{ minutes: 7, seconds: 30 },
 				{ set: 0, total: 0 },
 			);
 

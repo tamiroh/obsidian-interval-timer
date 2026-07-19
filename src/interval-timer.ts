@@ -197,7 +197,7 @@ export class IntervalTimer {
 		}
 		this.enterInterval(this.currentInterval.state, {
 			minutes: parsed.value,
-			seconds: 0,
+			seconds: this.currentInterval.timer.currentTime.seconds,
 		});
 		return { ok: true, value: undefined };
 	}

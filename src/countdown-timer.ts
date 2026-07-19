@@ -156,6 +156,15 @@ export class CountdownTimer {
 		return this.state.type;
 	}
 
+	public get currentTime(): Time {
+		return this.state.type === "completed"
+			? { minutes: 0, seconds: 0 }
+			: {
+					minutes: this.state.currentTime.minutes,
+					seconds: this.state.currentTime.seconds,
+				};
+	}
+
 	private updateCurrentTime(
 		startAt: Date,
 	): "unchanged" | "subtracted" | "completed" {
