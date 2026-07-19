@@ -145,6 +145,10 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 	const minutesButton = useRef<HTMLButtonElement>(null);
 	const retimeInput = useRef<HTMLInputElement>(null);
 	const touchActionPresentation = getTouchActionPresentation(touchAction);
+	const taskName =
+		intervalTimerState === "focus"
+			? (currentTaskName ?? "No task selected")
+			: "Break time";
 
 	const startEditingTime = () => {
 		setIsEditingTime(true);
@@ -312,12 +316,15 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 				<div className="interval-timer-popover-task">
 					<div
 						className={`interval-timer-popover-task-name${
+							intervalTimerState === "focus" &&
 							currentTaskName === null
 								? " interval-timer-popover-task-name-empty"
-								: ""
+								: intervalTimerState !== "focus"
+									? " interval-timer-popover-task-name-break"
+									: ""
 						}`}
 					>
-						{currentTaskName ?? "No task selected"}
+						{taskName}
 					</div>
 					<div className="interval-timer-popover-task-actions">
 						<Action

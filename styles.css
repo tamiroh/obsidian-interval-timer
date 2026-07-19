@@ -1,3 +1,8 @@
+body {
+	--interval-timer-focus-color: #ee6152;
+	--interval-timer-break-color: #4cbd4f;
+}
+
 .cm-line.interval-timer-task-line-highlight {
 	position: relative;
 	background-color: rgb(255 230 80 / 25%);
@@ -5,7 +10,11 @@
 }
 
 .cm-line.interval-timer-task-line-highlight.interval-timer-task-line-highlight-tracking {
-	background-color: rgb(255 100 100 / 25%);
+	background-color: color-mix(
+		in srgb,
+		var(--interval-timer-focus-color) 25%,
+		transparent
+	);
 }
 
 .interval-timer-start-task-button {
@@ -44,8 +53,6 @@
 }
 
 .interval-timer-status-bar {
-	--interval-timer-focus-color: #ee6152;
-	--interval-timer-break-color: #4cbd4f;
 	--interval-timer-accent: var(--interval-timer-focus-color);
 
 	position: relative;
@@ -385,7 +392,8 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 	-webkit-line-clamp: 2;
 }
 
-.interval-timer-popover-task-name-empty {
+.interval-timer-popover-task-name-empty,
+.interval-timer-popover-task-name-break {
 	color: var(--text-muted);
 	font-weight: 400;
 }

@@ -96,6 +96,29 @@ describe("StatusBarPopover", () => {
 		expect(el).not.toHaveClass("interval-timer-status-bar-break");
 	});
 
+	it("shows the break state instead of a task during a break", async () => {
+		// Arrange
+		const el = createDiv();
+		const popover = await createPopover(el);
+		popover.updateTrackedTask("Write report");
+
+		// Act
+		popover.update({ minutes: 5, seconds: 0 }, "shortBreak", "initialized");
+
+		// Assert
+		await waitFor(() =>
+			expect(
+				within(el).queryByText("Write report"),
+			).not.toBeInTheDocument(),
+		);
+		expect(
+			within(el).queryByText("No task selected"),
+		).not.toBeInTheDocument();
+		expect(within(el).getByText("Break time")).toHaveClass(
+			"interval-timer-popover-task-name-break",
+		);
+	});
+
 	it("shows progress toward the next long break", async () => {
 		// Arrange
 		const el = createDiv();
