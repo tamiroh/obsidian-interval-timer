@@ -129,9 +129,12 @@ body {
 	transform: rotate(45deg);
 }
 
-.interval-timer-status-bar:hover .interval-timer-popover,
-.interval-timer-status-bar:focus-visible .interval-timer-popover,
-.interval-timer-status-bar:focus-within .interval-timer-popover,
+.interval-timer-status-bar:hover
+	.interval-timer-popover:not(.interval-timer-popover-dismissed),
+.interval-timer-status-bar:focus-visible
+	.interval-timer-popover:not(.interval-timer-popover-dismissed),
+.interval-timer-status-bar:focus-within
+	.interval-timer-popover:not(.interval-timer-popover-dismissed),
 .interval-timer-popover-pinned {
 	opacity: 1;
 	transform: translateY(0) scale(1);
