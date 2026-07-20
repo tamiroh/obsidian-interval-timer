@@ -15,11 +15,20 @@ export class TaskTracker {
 	}
 
 	public trackTaskFromActiveLine(): boolean {
-		const editor = this.app.workspace.activeEditor?.editor;
 		const filePath = this.app.workspace.getActiveFile()?.path;
-		if (!editor || !filePath) {
+		const taskName = this.getTaskNameFromActiveLine();
+		if (!filePath || !taskName) {
 			return false;
 		}
+
+		this.keyValueStore.set("current-task-name", taskName);
+		this.keyValueStore.set("current-task-path", filePath);
+		return true;
+	}
+
+	public getTaskNameFromActiveLine(): string | null {
+		const editor = this.app.workspace.activeEditor?.editor;
+		if (!editor) return null;
 
 		const cursor = editor.getCursor();
 		const taskLineOnCursor = TaskLine.from(editor.getLine(cursor.line));
@@ -27,12 +36,10 @@ export class TaskTracker {
 			!taskLineOnCursor ||
 			new Markdown(editor.getValue()).isLineInCodeBlock(cursor.line + 1)
 		) {
-			return false;
+			return null;
 		}
 
-		this.keyValueStore.set("current-task-name", taskLineOnCursor.taskName);
-		this.keyValueStore.set("current-task-path", filePath);
-		return true;
+		return taskLineOnCursor.taskName;
 	}
 
 	public async incrementTrackedTask(): Promise<boolean> {

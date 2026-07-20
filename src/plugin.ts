@@ -56,6 +56,7 @@ export default class Plugin extends BasePlugin {
 		this.taskLineHighlighter = new TaskLineHighlighter(
 			this.taskTracker,
 			() => this.intervalTimer.state === "focus",
+			() => this.syncCurrentTask(),
 		);
 		this.statusBar = new StatusBar(this.addStatusBarItem());
 	}
@@ -211,7 +212,10 @@ export default class Plugin extends BasePlugin {
 	}
 
 	private syncCurrentTask(): void {
-		this.statusBar.updateTrackedTask(this.taskTracker.getTrackedTaskName());
+		this.statusBar.updateTrackedTask(
+			this.taskTracker.getTrackedTaskName() ??
+				this.taskTracker.getTaskNameFromActiveLine(),
+		);
 	}
 
 	private untrackCurrentTask(): void {
