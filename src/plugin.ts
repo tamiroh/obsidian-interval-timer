@@ -56,8 +56,9 @@ export default class Plugin extends BasePlugin {
 		this.taskLineHighlighter = new TaskLineHighlighter(
 			this.taskTracker,
 			() => this.intervalTimer.state === "focus",
+			() => this.syncCurrentTask(),
 		);
-		this.statusBar = new StatusBar(this.addStatusBarItem(), this.app);
+		this.statusBar = new StatusBar(this.addStatusBarItem());
 	}
 
 	public override async onload(): Promise<void> {
@@ -76,6 +77,7 @@ export default class Plugin extends BasePlugin {
 
 	public override onunload(): void {
 		FlashOverlay.dispose();
+		this.statusBar.dispose();
 		this.intervalTimer.dispose();
 	}
 
@@ -93,6 +95,9 @@ export default class Plugin extends BasePlugin {
 
 				this.settings[key] = parsed.value;
 				this.intervalTimer.updateSettings({ [key]: parsed.value });
+				if (key === "longBreakAfter") {
+					this.statusBar.updateLongBreakAfter(parsed.value);
+				}
 				await this.saveData(this.settings);
 
 				return parsed;
@@ -131,6 +136,7 @@ export default class Plugin extends BasePlugin {
 				time,
 				intervalTimerState,
 				timerState,
+				this.settings.longBreakAfter,
 			);
 			if (timerState === "initialized") {
 				this.untrackCurrentTask();
@@ -205,15 +211,16 @@ export default class Plugin extends BasePlugin {
 		});
 	}
 
-	private syncCurrentTaskTooltip(): void {
-		this.statusBar.updateTrackedTaskTooltip(
-			this.taskTracker.getTrackedTaskName(),
+	private syncCurrentTask(): void {
+		this.statusBar.updateTrackedTask(
+			this.taskTracker.getTrackedTaskName() ??
+				this.taskTracker.getTaskNameFromActiveLine(),
 		);
 	}
 
 	private untrackCurrentTask(): void {
 		this.taskTracker.untrack();
-		this.syncCurrentTaskTooltip();
+		this.syncCurrentTask();
 		this.app.workspace.updateOptions();
 	}
 
@@ -222,7 +229,7 @@ export default class Plugin extends BasePlugin {
 		if (!tracked) {
 			this.taskTracker.untrack();
 		}
-		this.syncCurrentTaskTooltip();
+		this.syncCurrentTask();
 		this.app.workspace.updateOptions();
 		return tracked;
 	}

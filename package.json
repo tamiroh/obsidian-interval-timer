@@ -9,7 +9,7 @@
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"lint": "eslint \"src/**/*.ts\" && npm run lint:styles",
+		"lint": "eslint \"src/**/*.{ts,tsx}\" && npm run lint:styles",
 		"lint:styles": "stylelint \"**/*.css\"",
 		"prepare": "husky install",
 		"test": "vitest",
@@ -19,10 +19,10 @@
 		"*": [
 			"npx prettier --write"
 		],
-		"*.{js,ts}": [
+		"*.{js,ts,tsx}": [
 			"npx eslint --fix"
 		],
-		"*.ts": [
+		"*.{ts,tsx}": [
 			"bash -c 'npx tsc --noEmit'"
 		]
 	},
@@ -32,7 +32,12 @@
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.6",
 		"@eslint/js": "^10.0.1",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.2",
+		"@testing-library/user-event": "^14.6.1",
 		"@types/node": "^26.1.1",
+		"@types/react": "^19.2.17",
+		"@types/react-dom": "^19.2.3",
 		"@vitest/coverage-v8": "^4.1.10",
 		"@vitest/eslint-plugin": "^1.6.23",
 		"esbuild": "0.28.1",
@@ -53,6 +58,8 @@
 		"vitest": "^4.1.10"
 	},
 	"dependencies": {
+		"react": "^19.2.7",
+		"react-dom": "^19.2.7",
 		"ts-pattern": "^5.9.0"
 	}
 }

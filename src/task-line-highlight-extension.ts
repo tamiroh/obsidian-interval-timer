@@ -88,9 +88,16 @@ export class TaskLineHighlighter {
 
 	private readonly isHighlightEnabled: () => boolean;
 
-	constructor(taskTracker: TaskTracker, isHighlightEnabled: () => boolean) {
+	private readonly onEditorUpdate: () => void;
+
+	constructor(
+		taskTracker: TaskTracker,
+		isHighlightEnabled: () => boolean,
+		onEditorUpdate: () => void,
+	) {
 		this.taskTracker = taskTracker;
 		this.isHighlightEnabled = isHighlightEnabled;
+		this.onEditorUpdate = onEditorUpdate;
 	}
 
 	public createExtension(): Extension {
@@ -98,6 +105,7 @@ export class TaskLineHighlighter {
 			this.taskTracker,
 		);
 		const isHighlightEnabled = this.isHighlightEnabled.bind(this);
+		const onEditorUpdate = this.onEditorUpdate.bind(this);
 
 		return ViewPlugin.fromClass(
 			class {
@@ -109,6 +117,7 @@ export class TaskLineHighlighter {
 						getTrackedTaskName(),
 						isHighlightEnabled(),
 					);
+					onEditorUpdate();
 				}
 
 				update(update: ViewUpdate): void {
@@ -117,6 +126,9 @@ export class TaskLineHighlighter {
 						getTrackedTaskName(),
 						isHighlightEnabled(),
 					);
+					if (update.selectionSet || update.docChanged) {
+						onEditorUpdate();
+					}
 				}
 			},
 			{

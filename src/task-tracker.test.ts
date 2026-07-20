@@ -37,6 +37,26 @@ describe("TaskTracker", () => {
 		expect(keyValueStore.get("current-task-name")).toBe("example task");
 		expect(keyValueStore.get("current-task-path")).toBe("tasks.md");
 	});
+
+	it("reads the task on the active line without tracking it", () => {
+		// Arrange
+		const content = `# Tasks
+
+- [ ] example task 0/3`;
+		const keyValueStore = new KeyValueStore("task-tracker-test");
+		const taskTracker = new TaskTracker(
+			createApp(content, 2),
+			keyValueStore,
+		);
+
+		// Act
+		const taskName = taskTracker.getTaskNameFromActiveLine();
+
+		// Assert
+		expect(taskName).toBe("example task");
+		expect(keyValueStore.get("current-task-name")).toBeNull();
+		expect(keyValueStore.get("current-task-path")).toBeNull();
+	});
 });
 
 const createApp = (content: string, cursorLine: number): App => {
