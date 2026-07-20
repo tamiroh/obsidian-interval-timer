@@ -41,7 +41,6 @@ jobs:
                   cp main.js manifest.json styles.css ${{ env.PLUGIN_NAME }}
                   zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
                   ls
-                  echo "tag_name=$(git tag --sort version:refname | tail -n 1)" >> "$GITHUB_OUTPUT"
             - name: Upload zip file
               id: upload-zip
               uses: actions/upload-release-asset@v1
@@ -50,7 +49,7 @@ jobs:
               with:
                   upload_url: ${{ steps.release-drafter-publish.outputs.upload_url }}
                   asset_path: ./${{ env.PLUGIN_NAME }}.zip
-                  asset_name: ${{ env.PLUGIN_NAME }}-${{ steps.build.outputs.tag_name }}.zip
+                  asset_name: ${{ env.PLUGIN_NAME }}-${{ steps.release-drafter-prepare.outputs.tag_name }}.zip
                   asset_content_type: application/zip
             - name: Upload main.js
               id: upload-main
