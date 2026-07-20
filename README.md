@@ -1,28 +1,33 @@
-# Interval Timer for Obsidian 🕔
+<h1 align="center">Interval Timer for Obsidian 🕔</h1>
 
-[![CI](https://github.com/tamiroh/obsidian-interval-timer/actions/workflows/ci.yml/badge.svg)](https://github.com/tamiroh/obsidian-interval-timer/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/tamiroh/obsidian-interval-timer/graph/badge.svg?token=SJIYQOXPYV)](https://codecov.io/gh/tamiroh/obsidian-interval-timer)
+<p align="center">
+An interval timer for <a href="https://obsidian.md/">Obsidian</a>, mostly useful for the <a href="https://www.pomodorotechnique.com/">Pomodoro Technique</a>.
+</p>
 
-A configurable work/break cycle timer for [Obsidian](https://obsidian.md/). It works out of the box for the [Pomodoro Technique](https://www.pomodorotechnique.com/), but it is not limited to it — any minute-scale work/rest rhythm fits.
+<p align="center">
+<a href="https://github.com/tamiroh/obsidian-interval-timer/actions/workflows/ci.yml"><img src="https://github.com/tamiroh/obsidian-interval-timer/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+<a href="https://codecov.io/gh/tamiroh/obsidian-interval-timer"><img src="https://codecov.io/gh/tamiroh/obsidian-interval-timer/graph/badge.svg?token=SJIYQOXPYV" alt="Codecov"></a>
+</p>
 
-## Features
+<p align="center">
+<img src="screenshot.png" alt="Interval Timer in a daily note" width="600">
+</p>
 
-- Start, pause, and reset the timer (Of course, it's a timer!)
-- Tracks completed focus intervals and sets, always visible on your status bar
-- Configurable work and break intervals
-- Notify with system notification when the timer is done
+## Quick Start
 
-## Example configurations
+### Start from the status bar
 
-The timer follows one schema: repeat (focus → short break) and take a long break every _n_ focus intervals. By tuning the settings, it covers methods beyond the Pomodoro Technique:
+Click the timer in the status bar to start a focus interval. Hover over it to access the timer controls.
 
-| Method                       | Focus | Short break | Long break | Long break after |
-| ---------------------------- | ----- | ----------- | ---------- | ---------------- |
-| Pomodoro Technique (default) | 25    | 5           | 15         | 4                |
-| 52/17 method                 | 52    | —           | 17         | 1                |
-| Ultradian rhythm             | 90    | —           | 20         | 1                |
-| Simple 25/5, no long break   | 25    | 5           | 999        | 999              |
+### Start from a task line
 
-Setting "Long break after" to 1 turns the cycle into a simple two-phase work/break loop.
+Add completed and estimated intervals to a task:
+
+```md
+- [ ] Prepare the project proposal 0/3
+```
+
+Place the cursor on the task and click **Start task**. Each completed focus interval updates the task automatically (`0/3` → `1/3`).
 
 ## Installation
 
