@@ -1,7 +1,7 @@
 <h1 align="center">Interval Timer for Obsidian 🕔</h1>
 
 <p align="center">
-An interval timer for <a href="https://obsidian.md/">Obsidian</a>, mostly useful for the <a href="https://www.pomodorotechnique.com/">Pomodoro Technique</a>.
+Run configurable focus and break cycles for methods like the <a href="https://www.pomodorotechnique.com/">Pomodoro Technique</a>, and track completed intervals on your task lines.
 </p>
 
 <p align="center">
