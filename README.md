@@ -4,7 +4,7 @@
 
 An interval timer for [Obsidian](https://obsidian.md/) mostly useful for the [Pomodoro Technique](https://www.pomodorotechnique.com/).
 
-![Interval Timer in a daily note](screenshot.png)
+<img src="screenshot.png" alt="Interval Timer in a daily note" width="800">
 
 ## Installation
 
