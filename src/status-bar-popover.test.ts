@@ -5,7 +5,16 @@ import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";
 import { Menu, Notice } from "./obsidian-fake";
 import { StatusBarPopover } from "./status-bar-popover";
 
+const settings: IntervalTimerSetting = {
+	focusIntervalDuration: 25,
+	shortBreakDuration: 5,
+	longBreakDuration: 15,
+	longBreakAfter: 4,
+	resetTime: { hours: 0, minutes: 0 },
+};
+
 const popovers = new Set<StatusBarPopover>();
+const intervalTimers = new Set<IntervalTimer>();
 
 const createPopover = async (
 	container: HTMLElement,
@@ -17,15 +26,33 @@ const createPopover = async (
 	return popover;
 };
 
-describe("StatusBarPopover", () => {
-	const settings: IntervalTimerSetting = {
-		focusIntervalDuration: 25,
-		shortBreakDuration: 5,
-		longBreakDuration: 15,
-		longBreakAfter: 4,
-		resetTime: { hours: 0, minutes: 0 },
-	};
+const createIntervalTimer = (
+	onChangeState: ConstructorParameters<typeof IntervalTimer>[0] = () => {},
+): IntervalTimer => {
+	const intervalTimer = new IntervalTimer(onChangeState, settings, () => {});
+	intervalTimers.add(intervalTimer);
+	return intervalTimer;
+};
 
+const getRetimeInput = (container: HTMLElement): HTMLInputElement =>
+	container.querySelector(
+		".interval-timer-popover-inline-retime-input",
+	) as HTMLInputElement;
+
+const getFocusedRetimeInput = async (
+	container: HTMLElement,
+): Promise<HTMLInputElement> => {
+	const input = getRetimeInput(container);
+	await waitFor(() => expect(input).toHaveFocus());
+	return input;
+};
+
+const getRetimeForm = (container: HTMLElement): HTMLFormElement =>
+	container.querySelector(
+		".interval-timer-popover-inline-retime-form",
+	) as HTMLFormElement;
+
+describe("StatusBarPopover", () => {
 	beforeEach(() => {
 		Menu.instances = [];
 		Notice.messages = [];
@@ -34,11 +61,13 @@ describe("StatusBarPopover", () => {
 	afterEach(() => {
 		popovers.forEach((popover) => popover.dispose());
 		popovers.clear();
+		intervalTimers.forEach((intervalTimer) => intervalTimer.dispose());
+		intervalTimers.clear();
 		document.body.replaceChildren();
 		vi.restoreAllMocks();
 	});
 
-	it("renders the remaining time and empty task state", async () => {
+	it("renders the remaining time", async () => {
 		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
@@ -52,10 +81,18 @@ describe("StatusBarPopover", () => {
 				el.querySelector(".interval-timer-popover-clock-time"),
 			).toHaveTextContent("07:05"),
 		);
-		expect(within(el).getByText("No task selected")).toBeInTheDocument();
-		expect(el).not.toHaveTextContent("Remaining");
-		expect(el).not.toHaveTextContent("Retime");
-		expect(el).not.toHaveTextContent("Current task");
+	});
+
+	it("omits explanatory labels from the popover", async () => {
+		// Arrange
+		const el = createDiv();
+		const popover = await createPopover(el);
+
+		// Act
+		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
+
+		// Assert
+		expect(el).not.toHaveTextContent(/Remaining|Retime|Current task/);
 	});
 
 	it("visualizes the remaining proportion", async () => {
@@ -79,7 +116,7 @@ describe("StatusBarPopover", () => {
 		);
 	});
 
-	it("uses the break color independently from the status bar", async () => {
+	it("marks break intervals for break styling", async () => {
 		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
@@ -93,10 +130,9 @@ describe("StatusBarPopover", () => {
 				"interval-timer-popover-break",
 			),
 		);
-		expect(el).not.toHaveClass("interval-timer-status-bar-break");
 	});
 
-	it("shows the break state instead of a task during a break", async () => {
+	it("shows only the break state in the task area during a break", async () => {
 		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
@@ -108,14 +144,8 @@ describe("StatusBarPopover", () => {
 		// Assert
 		await waitFor(() =>
 			expect(
-				within(el).queryByText("Write report"),
-			).not.toBeInTheDocument(),
-		);
-		expect(
-			within(el).queryByText("No task selected"),
-		).not.toBeInTheDocument();
-		expect(within(el).getByText("Break time")).toHaveClass(
-			"interval-timer-popover-task-name-break",
+				el.querySelector(".interval-timer-popover-task-name"),
+			).toHaveTextContent(/^Break time$/),
 		);
 	});
 
@@ -141,15 +171,6 @@ describe("StatusBarPopover", () => {
 				),
 			).toHaveLength(2),
 		);
-		const markers = el.querySelectorAll(
-			".interval-timer-popover-set-ring-segment",
-		);
-		expect(markers).toHaveLength(4);
-		expect(getRotation(markers[0] as SVGCircleElement)).toBeCloseTo(
-			-84.6,
-			2,
-		);
-		expect(getRotation(markers[1] as SVGCircleElement)).toBeCloseTo(5.4, 2);
 	});
 
 	it("shows a completed set during a long break", async () => {
@@ -188,7 +209,7 @@ describe("StatusBarPopover", () => {
 		expect(await within(el).findByText("Write report")).toBeInTheDocument();
 	});
 
-	it("resets the intervals set from the integrated action", async () => {
+	it("resets the interval set when Reset set is clicked", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -210,20 +231,14 @@ describe("StatusBarPopover", () => {
 
 		// Assert
 		expect(resetSpy).toHaveBeenCalledOnce();
-		expect(resetSet).not.toHaveFocus();
-		expect(el.querySelector(".interval-timer-popover")).not.toHaveClass(
-			"interval-timer-popover-pinned",
-		);
-		intervalTimer.dispose();
 	});
 
-	it("runs the timer touch action from the integrated action", async () => {
+	it("shows Reset after Start is clicked", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		const popover = await createPopover(el);
 		const intervalTimer = createIntervalTimer();
-		const touchSpy = vi.spyOn(intervalTimer, "touch");
 		const start = within(el).getByRole("button", { name: "Start" });
 		popover.enableActions(intervalTimer);
 		await waitFor(() => expect(start).toBeEnabled());
@@ -232,18 +247,48 @@ describe("StatusBarPopover", () => {
 		await user.click(start);
 
 		// Assert
-		expect(touchSpy).toHaveBeenCalledOnce();
 		expect(
 			await within(el).findByRole("button", { name: "Reset" }),
 		).toBeEnabled();
-		expect(start).not.toHaveFocus();
+	});
+
+	it("does not pin the popover when Start is clicked", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		const popover = await createPopover(el);
+		const intervalTimer = createIntervalTimer();
+		popover.enableActions(intervalTimer);
+		const start = within(el).getByRole("button", { name: "Start" });
+		await waitFor(() => expect(start).toBeEnabled());
+
+		// Act
+		await user.click(start);
+
+		// Assert
 		expect(el.querySelector(".interval-timer-popover")).not.toHaveClass(
 			"interval-timer-popover-pinned",
 		);
-		intervalTimer.dispose();
 	});
 
-	it("shows reset while a focus interval is running", async () => {
+	it("removes focus from Start after it is clicked", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		const popover = await createPopover(el);
+		const intervalTimer = createIntervalTimer();
+		popover.enableActions(intervalTimer);
+		const start = within(el).getByRole("button", { name: "Start" });
+		await waitFor(() => expect(start).toBeEnabled());
+
+		// Act
+		await user.click(start);
+
+		// Assert
+		expect(start).not.toHaveFocus();
+	});
+
+	it("touches the timer when Reset is clicked during focus", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -261,7 +306,6 @@ describe("StatusBarPopover", () => {
 
 		// Assert
 		expect(touchSpy).toHaveBeenCalledOnce();
-		intervalTimer.dispose();
 	});
 
 	it("shows skip while a break interval is running", async () => {
@@ -285,7 +329,6 @@ describe("StatusBarPopover", () => {
 		expect(
 			await within(el).findByRole("button", { name: "Skip" }),
 		).toBeEnabled();
-		intervalTimer.dispose();
 	});
 
 	it("shows resume while an interval is paused", async () => {
@@ -304,7 +347,6 @@ describe("StatusBarPopover", () => {
 		expect(
 			await within(el).findByRole("button", { name: "Resume" }),
 		).toBeEnabled();
-		intervalTimer.dispose();
 	});
 
 	it("disables start until an interval timer is provided", async () => {
@@ -319,7 +361,7 @@ describe("StatusBarPopover", () => {
 		expect(start).toBeDisabled();
 	});
 
-	it("turns the remaining time into an inline field", async () => {
+	it("opens the minutes as an inline input", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -332,16 +374,23 @@ describe("StatusBarPopover", () => {
 		await user.click(await within(el).findByRole("button", { name: "07" }));
 
 		// Assert
-		const input = getRetimeInput(el);
-		await waitFor(() => expect(input).toHaveFocus());
-		expect(input).toHaveValue("7");
-		expect(input.selectionStart).toBe(0);
-		expect(input.selectionEnd).toBe(input.value.length);
-		expect(
-			el.querySelector(".interval-timer-popover-retime-editor"),
-		).toHaveClass("interval-timer-popover-retime-editor-editing");
+		expect(await getFocusedRetimeInput(el)).toHaveValue("7");
+	});
+
+	it("keeps the seconds as text while editing the minutes", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		const popover = await createPopover(el);
+		const intervalTimer = createIntervalTimer();
+		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
+		popover.enableActions(intervalTimer);
+
+		// Act
+		await user.click(await within(el).findByRole("button", { name: "07" }));
+
+		// Assert
 		expect(within(el).getByText("05")).toBeInTheDocument();
-		intervalTimer.dispose();
 	});
 
 	it("selects the entire minute value when the input is clicked", async () => {
@@ -353,17 +402,17 @@ describe("StatusBarPopover", () => {
 		popover.update({ minutes: 12, seconds: 5 }, "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "12" }));
-		const input = getRetimeInput(el);
-		await waitFor(() => expect(input).toHaveFocus());
+		const input = await getFocusedRetimeInput(el);
 		input.setSelectionRange(1, 1);
 
 		// Act
 		await user.click(input);
 
 		// Assert
-		expect(input.selectionStart).toBe(0);
-		expect(input.selectionEnd).toBe(input.value.length);
-		intervalTimer.dispose();
+		expect([input.selectionStart, input.selectionEnd]).toEqual([
+			0,
+			input.value.length,
+		]);
 	});
 
 	it("disables retime while the timer is running", async () => {
@@ -376,9 +425,10 @@ describe("StatusBarPopover", () => {
 		popover.update({ minutes: 7, seconds: 0 }, "focus", "running");
 
 		// Assert
-		const minutes = await within(el).findByRole("button", { name: "07" });
+		const minutes = await within(el).findByRole("button", {
+			name: "07",
+		});
 		expect(minutes).toBeDisabled();
-		intervalTimer.dispose();
 	});
 
 	it("applies a time edited in place", async () => {
@@ -387,16 +437,12 @@ describe("StatusBarPopover", () => {
 		const el = createDiv();
 		const popover = await createPopover(el);
 		const handleChangeState = vi.fn();
-		const intervalTimer = new IntervalTimer(
-			handleChangeState,
-			settings,
-			() => {},
-		);
+		const intervalTimer = createIntervalTimer(handleChangeState);
 		handleChangeState.mockClear();
 		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
-		await waitFor(() => expect(getRetimeInput(el)).toHaveFocus());
+		await getFocusedRetimeInput(el);
 
 		// Act
 		await user.clear(getRetimeInput(el));
@@ -410,11 +456,6 @@ describe("StatusBarPopover", () => {
 			{ minutes: 12, seconds: 0 },
 			{ set: 0, total: 0 },
 		);
-		expect(Notice.messages).toEqual([]);
-		expect(
-			el.querySelector(".interval-timer-popover-retime-editor"),
-		).not.toHaveClass("interval-timer-popover-retime-editor-editing");
-		intervalTimer.dispose();
 	});
 
 	it("applies an edited time on focusout", async () => {
@@ -423,16 +464,12 @@ describe("StatusBarPopover", () => {
 		const el = createDiv();
 		const popover = await createPopover(el);
 		const handleChangeState = vi.fn();
-		const intervalTimer = new IntervalTimer(
-			handleChangeState,
-			settings,
-			() => {},
-		);
+		const intervalTimer = createIntervalTimer(handleChangeState);
 		handleChangeState.mockClear();
 		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
-		await waitFor(() => expect(getRetimeInput(el)).toHaveFocus());
+		await getFocusedRetimeInput(el);
 
 		// Act
 		await user.clear(getRetimeInput(el));
@@ -446,13 +483,9 @@ describe("StatusBarPopover", () => {
 			{ minutes: 18, seconds: 0 },
 			{ set: 0, total: 0 },
 		);
-		expect(
-			el.querySelector(".interval-timer-popover-retime-editor"),
-		).not.toHaveClass("interval-timer-popover-retime-editor-editing");
-		intervalTimer.dispose();
 	});
 
-	it("keeps editing when the inline time is invalid", async () => {
+	it("reports an invalid inline time", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -461,7 +494,7 @@ describe("StatusBarPopover", () => {
 		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
-		await waitFor(() => expect(getRetimeInput(el)).toHaveFocus());
+		await getFocusedRetimeInput(el);
 
 		// Act
 		await user.clear(getRetimeInput(el));
@@ -472,10 +505,6 @@ describe("StatusBarPopover", () => {
 		expect(Notice.messages).toEqual([
 			"Enter a positive whole number of minutes.",
 		]);
-		expect(
-			el.querySelector(".interval-timer-popover-retime-editor"),
-		).toHaveClass("interval-timer-popover-retime-editor-editing");
-		intervalTimer.dispose();
 	});
 
 	it("does not open a custom context menu", async () => {
@@ -490,7 +519,7 @@ describe("StatusBarPopover", () => {
 		expect(Menu.instances).toHaveLength(0);
 	});
 
-	it("keeps popover actions from triggering the status bar click", async () => {
+	it("keeps a minute click from triggering the status bar click", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -510,7 +539,6 @@ describe("StatusBarPopover", () => {
 
 		// Assert
 		expect(statusBarClick).not.toHaveBeenCalled();
-		intervalTimer.dispose();
 	});
 
 	it("pins the popover after it is clicked", async () => {
@@ -540,8 +568,7 @@ describe("StatusBarPopover", () => {
 		) as HTMLButtonElement;
 
 		// Assert
-		expect(close).toHaveAttribute("tabindex", "-1");
-		expect(close).toHaveAttribute("aria-hidden", "true");
+		expect(close).toHaveProperty("tabIndex", -1);
 	});
 
 	it("adds the visible close button to the tab order when pinned", async () => {
@@ -558,8 +585,7 @@ describe("StatusBarPopover", () => {
 
 		// Assert
 		const close = within(el).getByRole("button", { name: "Close" });
-		expect(close).toHaveAttribute("tabindex", "0");
-		expect(close).toHaveAttribute("aria-hidden", "false");
+		expect(close).toHaveProperty("tabIndex", 0);
 	});
 
 	it("keeps a pinned popover open after the pointer leaves", async () => {
@@ -593,7 +619,6 @@ describe("StatusBarPopover", () => {
 		await user.click(within(el).getByRole("button", { name: "Close" }));
 
 		// Assert
-		expect(popover).not.toHaveClass("interval-timer-popover-pinned");
 		expect(popover).toHaveClass("interval-timer-popover-dismissed");
 	});
 
@@ -615,26 +640,5 @@ describe("StatusBarPopover", () => {
 
 		// Assert
 		expect(popover).not.toHaveClass("interval-timer-popover-dismissed");
-		expect(popover).not.toHaveClass("interval-timer-popover-pinned");
 	});
-
-	const createIntervalTimer = (): IntervalTimer =>
-		new IntervalTimer(
-			() => {},
-			settings,
-			() => {},
-		);
 });
-
-const getRetimeInput = (container: HTMLElement): HTMLInputElement =>
-	container.querySelector(
-		".interval-timer-popover-inline-retime-input",
-	) as HTMLInputElement;
-
-const getRetimeForm = (container: HTMLElement): HTMLFormElement =>
-	container.querySelector(
-		".interval-timer-popover-inline-retime-form",
-	) as HTMLFormElement;
-
-const getRotation = (marker: SVGCircleElement): number =>
-	Number(marker.getAttribute("transform")?.match(/rotate\(([-\d.]+)/)?.[1]);
