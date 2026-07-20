@@ -1,7 +1,7 @@
 {
 	"id": "interval-timer",
 	"name": "Interval Timer",
-	"version": "0.5.2",
+	"version": "0.5.3",
 	"minAppVersion": "1.8.7",
 	"description": "Run configurable focus and break cycles for methods like the Pomodoro Technique, and track completed intervals on your task lines.",
 	"author": "tamiroh",
