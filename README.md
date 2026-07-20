@@ -16,3 +16,19 @@ An interval timer for <a href="https://obsidian.md/">Obsidian</a>, mostly useful
 ## Installation
 
 Currently, you can install with [BRAT](https://github.com/TfTHacker/obsidian42-brat).
+
+## Quick Start
+
+### Start from the status bar
+
+Click the timer in the status bar to start a focus interval. Hover over it to access the timer controls.
+
+### Start from a task line
+
+Add completed and estimated intervals to a task:
+
+```md
+- [ ] Prepare the project proposal 0/3
+```
+
+Place the cursor on the task and click **Start task**. Each completed focus interval updates the task automatically (`0/3` → `1/3`).
