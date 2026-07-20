@@ -13,10 +13,6 @@ An interval timer for <a href="https://obsidian.md/">Obsidian</a>, mostly useful
 <img src="screenshot.png" alt="Interval Timer in a daily note" width="600">
 </p>
 
-## Installation
-
-Currently, you can install with [BRAT](https://github.com/TfTHacker/obsidian42-brat).
-
 ## Quick Start
 
 ### Start from the status bar
@@ -32,3 +28,7 @@ Add completed and estimated intervals to a task:
 ```
 
 Place the cursor on the task and click **Start task**. Each completed focus interval updates the task automatically (`0/3` → `1/3`).
+
+## Installation
+
+Currently, you can install with [BRAT](https://github.com/TfTHacker/obsidian42-brat).
