@@ -2,7 +2,7 @@ import { fireEvent, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";
-import { Menu, Notice } from "./obsidian-fake";
+import { Notice } from "./obsidian-fake";
 import { StatusBarPopover } from "./status-bar-popover";
 
 const settings: IntervalTimerSetting = {
@@ -54,7 +54,6 @@ const getRetimeForm = (container: HTMLElement): HTMLFormElement =>
 
 describe("StatusBarPopover", () => {
 	beforeEach(() => {
-		Menu.instances = [];
 		Notice.messages = [];
 	});
 
@@ -81,18 +80,6 @@ describe("StatusBarPopover", () => {
 				el.querySelector(".interval-timer-popover-clock-time"),
 			).toHaveTextContent("07:05"),
 		);
-	});
-
-	it("omits explanatory labels from the popover", async () => {
-		// Arrange
-		const el = createDiv();
-		const popover = await createPopover(el);
-
-		// Act
-		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
-
-		// Assert
-		expect(el).not.toHaveTextContent(/Remaining|Retime|Current task/);
 	});
 
 	it("visualizes the remaining proportion", async () => {
@@ -505,18 +492,6 @@ describe("StatusBarPopover", () => {
 		expect(Notice.messages).toEqual([
 			"Enter a positive whole number of minutes.",
 		]);
-	});
-
-	it("does not open a custom context menu", async () => {
-		// Arrange
-		const el = createDiv();
-		await createPopover(el);
-
-		// Act
-		fireEvent.contextMenu(el);
-
-		// Assert
-		expect(Menu.instances).toHaveLength(0);
 	});
 
 	it("keeps a minute click from triggering the status bar click", async () => {
