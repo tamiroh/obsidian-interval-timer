@@ -1,7 +1,7 @@
 {
 	"id": "interval-timer",
 	"name": "Interval Timer",
-	"version": "0.5.0",
+	"version": "0.5.1",
 	"minAppVersion": "1.8.7",
 	"description": "A configurable work/break cycle timer for the Pomodoro Technique and similar methods.",
 	"author": "tamiroh",
