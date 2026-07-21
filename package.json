@@ -11,20 +11,8 @@
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"lint": "eslint \"src/**/*.{ts,tsx}\" && npm run lint:styles",
 		"lint:styles": "stylelint \"**/*.css\"",
-		"prepare": "husky install",
 		"test": "vitest",
 		"coverage": "vitest run --coverage"
-	},
-	"lint-staged": {
-		"*": [
-			"npx prettier --write"
-		],
-		"*.{js,ts,tsx}": [
-			"npx eslint --fix"
-		],
-		"*.{ts,tsx}": [
-			"bash -c 'npx tsc --noEmit'"
-		]
 	},
 	"keywords": [],
 	"author": "tamiroh",
@@ -44,10 +32,8 @@
 		"eslint": "^10.7.0",
 		"eslint-plugin-obsidianmd": "^0.4.1",
 		"globals": "^17.7.0",
-		"husky": "^9.1.7",
 		"jiti": "^2.7.0",
 		"jsdom": "^29.1.1",
-		"lint-staged": "^17.0.8",
 		"obsidian": "^1.13.1",
 		"prettier": "^3.9.5",
 		"stylelint": "^17.14.0",
