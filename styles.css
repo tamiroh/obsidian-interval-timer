@@ -82,16 +82,16 @@ body {
 	background-color: var(--background-modifier-hover);
 }
 
-.interval-timer-status-bar-focus {
+.interval-timer-status-bar.interval-timer-status-bar-focus {
 	--interval-timer-accent: var(--interval-timer-focus-color);
 
-	color: var(--interval-timer-accent) !important;
+	color: var(--interval-timer-accent);
 }
 
-.interval-timer-status-bar-break {
+.interval-timer-status-bar.interval-timer-status-bar-break {
 	--interval-timer-accent: var(--interval-timer-break-color);
 
-	color: var(--interval-timer-accent) !important;
+	color: var(--interval-timer-accent);
 }
 
 /* Status bar popover */
