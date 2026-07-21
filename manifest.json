@@ -1,7 +1,7 @@
 {
 	"id": "interval-timer",
 	"name": "Interval Timer",
-	"version": "0.5.3",
+	"version": "0.5.4",
 	"minAppVersion": "1.8.7",
 	"description": "Run focus and break cycles using methods like the Pomodoro Technique, and record completed intervals on your Markdown task lines.",
 	"author": "tamiroh",
