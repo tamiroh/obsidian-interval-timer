@@ -102,7 +102,7 @@ export class StatusBar {
 	}
 
 	public enableClick(intervalTimer: IntervalTimer): void {
-		this.compact.classList.add("mod-clickable");
+		this.statusBarItem.classList.add("mod-clickable");
 		this.compact.setAttribute("role", "button");
 		this.compact.tabIndex = 0;
 		this.handleCompactClick = (event) => {

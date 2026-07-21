@@ -70,16 +70,6 @@ body {
 
 	position: relative;
 	isolation: isolate;
-	transition: background-color 100ms ease;
-}
-
-.interval-timer-status-bar:has(
-	> .interval-timer-status-bar-compact.mod-clickable:hover
-),
-.interval-timer-status-bar:has(
-	> .interval-timer-status-bar-compact.mod-clickable:focus-visible
-) {
-	background-color: var(--background-modifier-hover);
 }
 
 .interval-timer-status-bar.interval-timer-status-bar-focus {
@@ -92,6 +82,12 @@ body {
 	--interval-timer-accent: var(--interval-timer-break-color);
 
 	color: var(--interval-timer-accent);
+}
+
+@media (hover: hover) {
+	.status-bar-item.interval-timer-status-bar.mod-clickable:hover {
+		color: var(--interval-timer-accent);
+	}
 }
 
 /* Status bar popover */

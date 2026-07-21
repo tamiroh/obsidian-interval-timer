@@ -261,7 +261,9 @@ describe("StatusBar", () => {
 
 		// Assert
 		expect(el).toHaveAttribute("role", "timer");
+		expect(el).toHaveClass("mod-clickable");
 		expect(compact).toHaveAttribute("role", "button");
+		expect(compact).not.toHaveClass("mod-clickable");
 		expect(compact).not.toContainElement(reset);
 		intervalTimer.dispose();
 	});
