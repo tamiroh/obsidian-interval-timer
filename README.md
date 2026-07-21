@@ -1,7 +1,7 @@
 <h1 align="center">Interval Timer for Obsidian 🕔</h1>
 
 <p align="center">
-Run configurable focus and break cycles for methods like the <a href="https://www.pomodorotechnique.com/">Pomodoro Technique</a>, and track completed intervals on your task lines.
+Run focus and break cycles using methods like the <a href="https://www.pomodorotechnique.com/">Pomodoro Technique</a>, and record completed intervals on your Markdown task lines.
 </p>
 
 <p align="center">
