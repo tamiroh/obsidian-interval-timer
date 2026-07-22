@@ -28,7 +28,7 @@ jobs:
             - name: Install modules
               run: npm install
             - name: Run Prettier
-              run: npx prettier --check .
+              run: npm run format:check
     build:
         runs-on: ubuntu-latest
         steps:
