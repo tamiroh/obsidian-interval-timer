@@ -232,7 +232,10 @@ describe("CountdownTimer", () => {
 		const result = countdownTimer.pause();
 
 		// Assert
-		expect(result).toStrictEqual({ ok: false, reason: "timer_not_running" });
+		expect(result).toStrictEqual({
+			ok: false,
+			reason: "timer_not_running",
+		});
 		expect(handlePause).not.toHaveBeenCalled();
 	});
 
@@ -251,7 +254,10 @@ describe("CountdownTimer", () => {
 		const result = countdownTimer.pause();
 
 		// Assert
-		expect(result).toStrictEqual({ ok: false, reason: "timer_not_running" });
+		expect(result).toStrictEqual({
+			ok: false,
+			reason: "timer_not_running",
+		});
 	});
 
 	it("should report initialized timer type when created", () => {
