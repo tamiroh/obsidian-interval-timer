@@ -11,7 +11,7 @@ import { StatusBar } from "./status-bar";
 import { KeyValueStore } from "./key-value-store";
 import { NotificationStyle, Notifier, createNotifier } from "./notifier";
 import { FlashOverlay } from "./flash-overlay";
-import { TaskTracker } from "./task-tracker";
+import { TaskTracker, type TrackTaskResult } from "./task-tracker";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
 import { TaskLineHighlighter } from "./task-line-highlight-extension";
 import {
@@ -162,6 +162,11 @@ export default class Plugin extends BasePlugin {
 		const onFocusIntervalEnded = () => {
 			this.taskTracker
 				.incrementTrackedTask()
+				.then((result) => {
+					if (!result.ok) {
+						new Notice("Failed to record task completion.");
+					}
+				})
 				.catch(() => {
 					new Notice("Failed to record task completion.");
 				})
@@ -224,14 +229,14 @@ export default class Plugin extends BasePlugin {
 		this.app.workspace.updateOptions();
 	}
 
-	private trackCurrentTaskFromActiveLine(): boolean {
-		const tracked = this.taskTracker.trackTaskFromActiveLine();
-		if (!tracked) {
+	private trackCurrentTaskFromActiveLine(): TrackTaskResult {
+		const result = this.taskTracker.trackTaskFromActiveLine();
+		if (!result.ok) {
 			this.taskTracker.untrack();
 		}
 		this.syncCurrentTask();
 		this.app.workspace.updateOptions();
-		return tracked;
+		return result;
 	}
 
 	private addCommands(): void {

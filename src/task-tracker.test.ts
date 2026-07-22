@@ -18,7 +18,10 @@ describe("TaskTracker", () => {
 			keyValueStore,
 		);
 
-		expect(taskTracker.trackTaskFromActiveLine()).toBe(false);
+		expect(taskTracker.trackTaskFromActiveLine()).toStrictEqual({
+			ok: false,
+			reason: "task_not_found",
+		});
 		expect(keyValueStore.get("current-task-name")).toBeNull();
 		expect(keyValueStore.get("current-task-path")).toBeNull();
 	});
@@ -33,7 +36,10 @@ describe("TaskTracker", () => {
 			keyValueStore,
 		);
 
-		expect(taskTracker.trackTaskFromActiveLine()).toBe(true);
+		expect(taskTracker.trackTaskFromActiveLine()).toStrictEqual({
+			ok: true,
+			value: undefined,
+		});
 		expect(keyValueStore.get("current-task-name")).toBe("example task");
 		expect(keyValueStore.get("current-task-path")).toBe("tasks.md");
 	});

@@ -1,4 +1,5 @@
 import { match } from "ts-pattern";
+import type { Result } from "./result";
 import { Seconds, Time, toMilliseconds, toSeconds } from "./time";
 
 export const timerTypes = [
@@ -9,6 +10,15 @@ export const timerTypes = [
 ] as const;
 
 export type TimerType = (typeof timerTypes)[number];
+
+export type StartTimerResult = Result<
+	void,
+	"timer_running" | "timer_completed"
+>;
+
+export type PauseTimerResult = Result<void, "timer_not_running">;
+
+export type ResetTimerResult = Result<Time, never>;
 
 export type TimerState =
 	| {
@@ -61,9 +71,12 @@ export class CountdownTimer {
 		this.onSubtract = onSubtract;
 	}
 
-	public start(): { type: "succeeded" } | { type: "failed" } {
-		if (this.state.type === "completed" || this.state.type === "running") {
-			return { type: "failed" };
+	public start(): StartTimerResult {
+		if (this.state.type === "running") {
+			return { ok: false, reason: "timer_running" };
+		}
+		if (this.state.type === "completed") {
+			return { ok: false, reason: "timer_completed" };
 		}
 
 		const startAt = match(this.state)
@@ -101,11 +114,13 @@ export class CountdownTimer {
 			currentTime: this.state.currentTime,
 		};
 
-		return { type: "succeeded" };
+		return { ok: true, value: undefined };
 	}
 
-	public pause(): { type: "succeeded" } | { type: "failed" } {
-		if (this.state.type !== "running") return { type: "failed" };
+	public pause(): PauseTimerResult {
+		if (this.state.type !== "running") {
+			return { ok: false, reason: "timer_not_running" };
+		}
 
 		window.clearInterval(this.state.intervalId);
 		this.state = {
@@ -117,10 +132,10 @@ export class CountdownTimer {
 			seconds: this.state.currentTime.seconds,
 		});
 
-		return { type: "succeeded" };
+		return { ok: true, value: undefined };
 	}
 
-	public reset(): { type: "succeeded"; resetTo: Time } | { type: "failed" } {
+	public reset(): ResetTimerResult {
 		if (this.state.type === "running") {
 			window.clearInterval(this.state.intervalId);
 		}
@@ -132,8 +147,8 @@ export class CountdownTimer {
 			},
 		};
 		return {
-			type: "succeeded",
-			resetTo: {
+			ok: true,
+			value: {
 				minutes: this.initialTime.minutes,
 				seconds: this.initialTime.seconds,
 			},

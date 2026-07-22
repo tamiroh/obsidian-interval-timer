@@ -3,6 +3,17 @@ import { KeyValueStore } from "./key-value-store";
 import { TaskManagementFile } from "./task-management-file";
 import { TaskLine } from "./task-line";
 import { Markdown } from "./markdown";
+import type { Result } from "./result";
+
+export type TrackTaskResult = Result<
+	void,
+	"active_file_not_found" | "task_not_found"
+>;
+
+export type IncrementTrackedTaskResult = Result<
+	void,
+	"tracked_task_not_found" | "tracked_file_not_found" | "task_not_found"
+>;
 
 export class TaskTracker {
 	private readonly app: App;
@@ -14,16 +25,20 @@ export class TaskTracker {
 		this.keyValueStore = keyValueStore;
 	}
 
-	public trackTaskFromActiveLine(): boolean {
+	public trackTaskFromActiveLine(): TrackTaskResult {
 		const filePath = this.app.workspace.getActiveFile()?.path;
+		if (!filePath) {
+			return { ok: false, reason: "active_file_not_found" };
+		}
+
 		const taskName = this.getTaskNameFromActiveLine();
-		if (!filePath || !taskName) {
-			return false;
+		if (!taskName) {
+			return { ok: false, reason: "task_not_found" };
 		}
 
 		this.keyValueStore.set("current-task-name", taskName);
 		this.keyValueStore.set("current-task-path", filePath);
-		return true;
+		return { ok: true, value: undefined };
 	}
 
 	public getTaskNameFromActiveLine(): string | null {
@@ -42,30 +57,30 @@ export class TaskTracker {
 		return taskLineOnCursor.taskName;
 	}
 
-	public async incrementTrackedTask(): Promise<boolean> {
+	public async incrementTrackedTask(): Promise<IncrementTrackedTaskResult> {
 		const name = this.keyValueStore.get("current-task-name");
 		const filePath = this.keyValueStore.get("current-task-path");
 		if (!name || !filePath) {
-			return false;
+			return { ok: false, reason: "tracked_task_not_found" };
 		}
 
 		const file = this.app.vault.getAbstractFileByPath(filePath);
 		if (!(file instanceof TFile)) {
-			return false;
+			return { ok: false, reason: "tracked_file_not_found" };
 		}
 
 		const incrementedTaskManagementFile = new TaskManagementFile(
 			await this.app.vault.read(file),
 		).toIncremented(name);
 		if (!incrementedTaskManagementFile) {
-			return false;
+			return { ok: false, reason: "task_not_found" };
 		}
 
 		await this.app.vault.modify(
 			file,
 			incrementedTaskManagementFile.toContent(),
 		);
-		return true;
+		return { ok: true, value: undefined };
 	}
 
 	public untrack(): void {

@@ -149,7 +149,7 @@ export class IntervalTimer {
 			this.currentInterval.timer.getCurrentTimerType();
 
 		const result = this.currentInterval.timer.start();
-		if (result.type === "failed") return;
+		if (!result.ok) return;
 
 		this.onChangeState("running", this.currentInterval.timer.currentTime);
 		if (currentTimerType === "initialized") {
@@ -163,8 +163,8 @@ export class IntervalTimer {
 
 	public reset(): void {
 		const result = this.currentInterval.timer.reset();
-		if (result.type === "succeeded") {
-			this.onChangeState("initialized", result.resetTo);
+		if (result.ok) {
+			this.onChangeState("initialized", result.value);
 		}
 	}
 

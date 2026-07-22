@@ -28,7 +28,7 @@ describe("CountdownTimer", () => {
 		vi.advanceTimersByTime(1000);
 
 		// Assert
-		expect(result).toStrictEqual({ type: "succeeded" });
+		expect(result).toStrictEqual({ ok: true, value: undefined });
 		expect(handleSubtract).toHaveBeenCalledTimes(1);
 		expect(countdownTimer.getCurrentTimerType()).toBe("running");
 	});
@@ -175,7 +175,7 @@ describe("CountdownTimer", () => {
 		vi.advanceTimersByTime(1000 * 60);
 
 		// Assert
-		expect(result).toStrictEqual({ type: "succeeded" });
+		expect(result).toStrictEqual({ ok: true, value: undefined });
 		// paused so subtract should not be called anymore
 		expect(handleSubtract).toHaveBeenCalledTimes(subtractedCount);
 	});
@@ -194,8 +194,8 @@ describe("CountdownTimer", () => {
 		const result2 = countdownTimer.start();
 
 		// Assert
-		expect(result).toStrictEqual({ type: "succeeded" });
-		expect(result2).toStrictEqual({ type: "failed" });
+		expect(result).toStrictEqual({ ok: true, value: undefined });
+		expect(result2).toStrictEqual({ ok: false, reason: "timer_running" });
 	});
 
 	it("should not start when timer is already completed", () => {
@@ -215,7 +215,7 @@ describe("CountdownTimer", () => {
 
 		// Assert
 		expect(handleComplete).toHaveBeenCalledOnce();
-		expect(result).toStrictEqual({ type: "failed" });
+		expect(result).toStrictEqual({ ok: false, reason: "timer_completed" });
 	});
 
 	it("should fail to pause when not running", () => {
@@ -232,7 +232,7 @@ describe("CountdownTimer", () => {
 		const result = countdownTimer.pause();
 
 		// Assert
-		expect(result).toStrictEqual({ type: "failed" });
+		expect(result).toStrictEqual({ ok: false, reason: "timer_not_running" });
 		expect(handlePause).not.toHaveBeenCalled();
 	});
 
@@ -251,7 +251,7 @@ describe("CountdownTimer", () => {
 		const result = countdownTimer.pause();
 
 		// Assert
-		expect(result).toStrictEqual({ type: "failed" });
+		expect(result).toStrictEqual({ ok: false, reason: "timer_not_running" });
 	});
 
 	it("should report initialized timer type when created", () => {
@@ -335,8 +335,8 @@ describe("CountdownTimer", () => {
 
 		// Assert
 		expect(result).toStrictEqual({
-			type: "succeeded",
-			resetTo: { minutes: 0, seconds: 5 },
+			ok: true,
+			value: { minutes: 0, seconds: 5 },
 		});
 		expect(countdownTimer.getCurrentTimerType()).toBe("initialized");
 	});
@@ -357,7 +357,7 @@ describe("CountdownTimer", () => {
 		const result = countdownTimer.start();
 
 		// Assert
-		expect(result).toStrictEqual({ type: "succeeded" });
+		expect(result).toStrictEqual({ ok: true, value: undefined });
 		expect(countdownTimer.getCurrentTimerType()).toBe("running");
 	});
 
