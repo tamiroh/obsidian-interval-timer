@@ -28,7 +28,3 @@ Add completed and estimated intervals to a task:
 ```
 
 Place the cursor on the task and click **Start task**. Each completed focus interval updates the task automatically (`0/3` → `1/3`).
-
-## Installation
-
-Currently, you can install with [BRAT](https://github.com/TfTHacker/obsidian42-brat).
