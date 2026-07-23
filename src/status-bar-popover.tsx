@@ -3,7 +3,9 @@ import {
 	MouseEvent as ReactMouseEvent,
 	MouseEventHandler,
 	PointerEvent as ReactPointerEvent,
+	ReactNode,
 	SyntheticEvent,
+	useEffect,
 	useLayoutEffect,
 	useRef,
 	useState,
@@ -27,7 +29,7 @@ import { Time, toSeconds } from "./time";
 
 const setRingRadius = 35;
 const setRingStrokeWidth = 3.5;
-const pinnedContainerClass = "interval-timer-status-bar-popover-pinned";
+const floatingContainerClass = "interval-timer-status-bar-popover-floating";
 
 type PopoverSnapshot = {
 	time: Time;
@@ -37,21 +39,19 @@ type PopoverSnapshot = {
 	longBreakAfter: number;
 	remainingPercent: number;
 	currentTaskName: string | null;
-	isPinned: boolean;
-	isDismissed: boolean;
 	touchAction: TouchAction;
 	intervalTimer: IntervalTimer | null;
+};
+
+type Position = {
+	left: number;
+	top: number;
 };
 
 type Drag = {
 	pointerId: number;
 	offsetX: number;
 	offsetY: number;
-};
-
-type Position = {
-	left: number;
-	top: number;
 };
 
 type ClosingAnimationState =
@@ -63,6 +63,18 @@ type ClosingAnimationState =
 			restoreFocus: boolean;
 	  }
 	| { current: "completed" };
+
+type FloatingPopoverProps = {
+	anchor: HTMLElement;
+	anchorFloatingClassName: string;
+	className: string;
+	floatingAriaLabel: string;
+	anchoredAriaLabel: string;
+	focusReturnTarget: HTMLElement | null;
+	closeIcon: ReactNode;
+	onClose: () => void;
+	children: ReactNode;
+};
 
 //
 // Status bar integration
@@ -81,8 +93,6 @@ export class StatusBarPopover {
 		longBreakAfter: 4,
 		remainingPercent: 0,
 		currentTaskName: null,
-		isPinned: false,
-		isDismissed: false,
 		touchAction: "start",
 		intervalTimer: null,
 	});
@@ -94,22 +104,18 @@ export class StatusBarPopover {
 			cls: "interval-timer-popover-root",
 		});
 		this.root = createRoot(this.rootElement);
-		container.addEventListener("mouseleave", this.handleDismissalReset);
-		container.addEventListener("focusin", this.handleDismissalReset);
 		this.root.render(
-			<Popover store={this.store} container={this.container} />,
+			<Popover
+				store={this.store}
+				container={this.container}
+				focusReturnTarget={container.querySelector<HTMLElement>(
+					".interval-timer-status-bar-compact",
+				)}
+			/>,
 		);
 	}
 
 	public dispose(): void {
-		this.container.removeEventListener(
-			"mouseleave",
-			this.handleDismissalReset,
-		);
-		this.container.removeEventListener(
-			"focusin",
-			this.handleDismissalReset,
-		);
 		this.root.unmount();
 		this.rootElement.remove();
 	}
@@ -162,21 +168,6 @@ export class StatusBarPopover {
 			Math.max(0, (remainingSeconds / this.intervalTotalSeconds) * 100),
 		);
 	}
-
-	private readonly handleDismissalReset = (
-		event: MouseEvent | FocusEvent,
-	): void => {
-		if (
-			event.type === "focusin" &&
-			event.relatedTarget instanceof Element &&
-			event.relatedTarget.closest(".interval-timer-popover-close")
-		)
-			return;
-
-		if (this.store.getSnapshot().isDismissed) {
-			this.store.update({ isDismissed: false });
-		}
-	};
 }
 
 //
@@ -186,9 +177,11 @@ export class StatusBarPopover {
 const Popover = ({
 	store,
 	container,
+	focusReturnTarget,
 }: {
 	store: ObservableStore<PopoverSnapshot>;
 	container: HTMLElement;
+	focusReturnTarget: HTMLElement | null;
 }) => {
 	const {
 		intervalTimer,
@@ -199,18 +192,9 @@ const Popover = ({
 		longBreakAfter,
 		remainingPercent,
 		currentTaskName,
-		isPinned,
-		isDismissed,
 		touchAction,
 	} = useSyncExternalStore(store.subscribe, store.getSnapshot);
 	const [isEditingTime, setIsEditingTime] = useState(false);
-	const [drag, setDrag] = useState<Drag | null>(null);
-	const [popoverPosition, setPopoverPosition] = useState<Position | null>(
-		null,
-	);
-	const [returnTarget, setReturnTarget] = useState<Position | null>(null);
-	const [closingAnimationState, setClosingAnimationState] =
-		useState<ClosingAnimationState>({ current: "idle" });
 	const minutesButton = useRef<HTMLButtonElement>(null);
 	const retimeInput = useRef<HTMLInputElement>(null);
 	const suppressBlurApply = useRef(false);
@@ -219,11 +203,6 @@ const Popover = ({
 		intervalTimerState === "focus"
 			? (currentTaskName ?? "No task selected")
 			: "Break time";
-
-	useLayoutEffect(() => {
-		container.classList.toggle(pinnedContainerClass, isPinned);
-		return () => container.classList.remove(pinnedContainerClass);
-	}, [container, isPinned]);
 
 	const handleMinutesClick = () => {
 		suppressBlurApply.current = false;
@@ -276,170 +255,23 @@ const Popover = ({
 		}
 	};
 
-	const pin = (popover: HTMLDivElement) => {
-		if (isPinned) return;
-
-		const bounds = popover.getBoundingClientRect();
-		const statusBarBounds = container.getBoundingClientRect();
-		setClosingAnimationState({ current: "idle" });
-		setPopoverPosition({ left: bounds.left, top: bounds.top });
-		setReturnTarget({
-			left: statusBarBounds.left + statusBarBounds.width / 2,
-			top: statusBarBounds.top + statusBarBounds.height / 2,
-		});
-		store.update({ isPinned: true });
-	};
-
-	const dismiss = (restoreFocus: boolean) => {
-		setClosingAnimationState({ current: "completed" });
-		setReturnTarget(null);
-		setPopoverPosition(null);
-		store.update({ isPinned: false, isDismissed: true });
-		if (restoreFocus) {
-			window.requestAnimationFrame(() => {
-				container
-					.querySelector<HTMLElement>(
-						".interval-timer-status-bar-compact",
-					)
-					?.focus({ preventScroll: true });
-			});
-		}
-	};
-
-	const handleCloseClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
-		event.stopPropagation();
-		setIsEditingTime(false);
-
-		const restoreFocus = event.detail === 0;
-		if (!restoreFocus) event.currentTarget.blur();
-
-		const bounds =
-			event.currentTarget.parentElement?.getBoundingClientRect();
-		if (
-			!returnTarget ||
-			!bounds ||
-			window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-		) {
-			dismiss(restoreFocus);
-			return;
-		}
-
-		setClosingAnimationState({
-			current: "animating",
-			offsetX: returnTarget.left - (bounds.left + bounds.width / 2),
-			offsetY: returnTarget.top - (bounds.top + bounds.height / 2),
-			restoreFocus,
-		});
-	};
-
-	const handlePopoverPointerDown = (
-		event: ReactPointerEvent<HTMLDivElement>,
-	) => {
-		if (!isPinned) return;
-		if (isNonDraggableTarget(event.target)) return;
-
-		const bounds = event.currentTarget.getBoundingClientRect();
-		setDrag({
-			pointerId: event.pointerId,
-			offsetX: event.clientX - bounds.left,
-			offsetY: event.clientY - bounds.top,
-		});
-		event.currentTarget.setPointerCapture?.(event.pointerId);
-	};
-
-	const handlePopoverPointerMove = (
-		event: ReactPointerEvent<HTMLDivElement>,
-	) => {
-		if (drag?.pointerId !== event.pointerId) return;
-
-		const bounds = event.currentTarget.getBoundingClientRect();
-		setPopoverPosition({
-			left: clamp(
-				event.clientX - drag.offsetX,
-				window.innerWidth - bounds.width,
-			),
-			top: clamp(
-				event.clientY - drag.offsetY,
-				window.innerHeight - bounds.height,
-			),
-		});
-	};
-
-	const handlePopoverKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-		if (event.target !== event.currentTarget) return;
-		if (isPinned || !isPinKey(event.key)) return;
-
-		event.preventDefault();
-		pin(event.currentTarget);
-	};
-
-	const handlePopoverPointerEnd = () => {
-		setDrag(null);
-	};
-
-	const popoverClassName = [
-		"interval-timer-popover",
-		intervalTimerState === "focus"
-			? "interval-timer-popover-focus"
-			: "interval-timer-popover-break",
-		isPinned && "interval-timer-popover-pinned",
-		closingAnimationState.current === "animating" &&
-			"interval-timer-popover-returning",
-		drag && "interval-timer-popover-dragging",
-		isDismissed && "interval-timer-popover-dismissed",
-	]
-		.filter(Boolean)
-		.join(" ");
-
 	return (
-		<div
-			className={popoverClassName}
-			style={
-				closingAnimationState.current === "animating"
-					? {
-							...popoverPosition,
-							transform: `translate(${closingAnimationState.offsetX}px, ${closingAnimationState.offsetY}px) scale(0.15)`,
-						}
-					: (popoverPosition ?? undefined)
-			}
-			role="group"
-			aria-label={
-				isPinned
-					? "Floating timer"
-					: "Timer popover. Press Enter to pin."
-			}
-			tabIndex={0}
-			onPointerDown={handlePopoverPointerDown}
-			onPointerMove={handlePopoverPointerMove}
-			onPointerUp={handlePopoverPointerEnd}
-			onPointerCancel={handlePopoverPointerEnd}
-			onLostPointerCapture={handlePopoverPointerEnd}
-			onKeyDown={handlePopoverKeyDown}
-			onTransitionEnd={(event) => {
-				if (
-					event.target === event.currentTarget &&
-					event.propertyName === "transform" &&
-					closingAnimationState.current === "animating"
-				) {
-					dismiss(closingAnimationState.restoreFocus);
-				}
-			}}
-			onContextMenu={(event) => blurFocusWithin(event.currentTarget)}
-			onClick={(event) => {
-				event.stopPropagation();
-				pin(event.currentTarget);
-			}}
-		>
-			<button
-				type="button"
-				className="interval-timer-popover-close"
-				aria-label="Close"
-				aria-hidden={!isPinned}
-				tabIndex={isPinned ? 0 : -1}
-				onClick={handleCloseClick}
-			>
+		<FloatingPopover
+			anchor={container}
+			anchorFloatingClassName={floatingContainerClass}
+			className={`interval-timer-popover ${
+				intervalTimerState === "focus"
+					? "interval-timer-popover-focus"
+					: "interval-timer-popover-break"
+			}`}
+			floatingAriaLabel="Floating timer"
+			anchoredAriaLabel="Timer popover. Press Enter for floating mode."
+			focusReturnTarget={focusReturnTarget}
+			closeIcon={
 				<Icon name="x" className="interval-timer-popover-close-icon" />
-			</button>
+			}
+			onClose={() => setIsEditingTime(false)}
+		>
 			<div className="interval-timer-popover-body">
 				<div className="interval-timer-popover-clock">
 					<svg
@@ -564,7 +396,7 @@ const Popover = ({
 					</div>
 				</div>
 			</div>
-		</div>
+		</FloatingPopover>
 	);
 };
 
@@ -578,7 +410,7 @@ const clamp = (position: number, maximum: number): number =>
 const isNonDraggableTarget = (target: EventTarget | null): boolean =>
 	target instanceof Element && target.closest("button, input, form") !== null;
 
-const isPinKey = (key: string): boolean => key === "Enter" || key === " ";
+const isFloatingKey = (key: string): boolean => key === "Enter" || key === " ";
 
 const blurFocusWithin = (container: HTMLElement): void => {
 	if (
@@ -602,6 +434,205 @@ const getTouchActionPresentation = (
 //
 // Components
 //
+
+const FloatingPopover = ({
+	anchor,
+	anchorFloatingClassName,
+	className,
+	floatingAriaLabel,
+	anchoredAriaLabel,
+	focusReturnTarget,
+	closeIcon,
+	onClose,
+	children,
+}: FloatingPopoverProps) => {
+	const [isFloating, setIsFloating] = useState(false);
+	const [isDismissed, setIsDismissed] = useState(false);
+	const [drag, setDrag] = useState<Drag | null>(null);
+	const [popoverPosition, setPopoverPosition] = useState<Position | null>(
+		null,
+	);
+	const [returnTarget, setReturnTarget] = useState<Position | null>(null);
+	const [closingAnimationState, setClosingAnimationState] =
+		useState<ClosingAnimationState>({ current: "idle" });
+
+	useLayoutEffect(() => {
+		anchor.classList.toggle(anchorFloatingClassName, isFloating);
+		return () => anchor.classList.remove(anchorFloatingClassName);
+	}, [anchor, anchorFloatingClassName, isFloating]);
+
+	useEffect(() => {
+		const handleDismissalReset = (event: MouseEvent | FocusEvent) => {
+			if (
+				event.type === "focusin" &&
+				event.relatedTarget instanceof Element &&
+				event.relatedTarget.closest(".floating-popover-close")
+			)
+				return;
+
+			setIsDismissed(false);
+		};
+
+		anchor.addEventListener("mouseleave", handleDismissalReset);
+		anchor.addEventListener("focusin", handleDismissalReset);
+		return () => {
+			anchor.removeEventListener("mouseleave", handleDismissalReset);
+			anchor.removeEventListener("focusin", handleDismissalReset);
+		};
+	}, [anchor]);
+
+	const startFloating = (popover: HTMLDivElement) => {
+		if (isFloating) return;
+
+		const bounds = popover.getBoundingClientRect();
+		const anchorBounds = anchor.getBoundingClientRect();
+		setClosingAnimationState({ current: "idle" });
+		setPopoverPosition({ left: bounds.left, top: bounds.top });
+		setReturnTarget({
+			left: anchorBounds.left + anchorBounds.width / 2,
+			top: anchorBounds.top + anchorBounds.height / 2,
+		});
+		setIsFloating(true);
+	};
+
+	const dismiss = (restoreFocus: boolean) => {
+		setClosingAnimationState({ current: "completed" });
+		setReturnTarget(null);
+		setPopoverPosition(null);
+		setIsFloating(false);
+		setIsDismissed(true);
+		if (restoreFocus) {
+			window.requestAnimationFrame(() =>
+				focusReturnTarget?.focus({ preventScroll: true }),
+			);
+		}
+	};
+
+	const handleCloseClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
+		event.stopPropagation();
+		onClose();
+
+		const restoreFocus = event.detail === 0;
+		if (!restoreFocus) event.currentTarget.blur();
+
+		const bounds =
+			event.currentTarget.parentElement?.getBoundingClientRect();
+		if (
+			!returnTarget ||
+			!bounds ||
+			window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+		) {
+			dismiss(restoreFocus);
+			return;
+		}
+
+		setClosingAnimationState({
+			current: "animating",
+			offsetX: returnTarget.left - (bounds.left + bounds.width / 2),
+			offsetY: returnTarget.top - (bounds.top + bounds.height / 2),
+			restoreFocus,
+		});
+	};
+
+	const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+		if (!isFloating || isNonDraggableTarget(event.target)) return;
+
+		const bounds = event.currentTarget.getBoundingClientRect();
+		setDrag({
+			pointerId: event.pointerId,
+			offsetX: event.clientX - bounds.left,
+			offsetY: event.clientY - bounds.top,
+		});
+		event.currentTarget.setPointerCapture?.(event.pointerId);
+	};
+
+	const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+		if (drag?.pointerId !== event.pointerId) return;
+
+		const bounds = event.currentTarget.getBoundingClientRect();
+		setPopoverPosition({
+			left: clamp(
+				event.clientX - drag.offsetX,
+				window.innerWidth - bounds.width,
+			),
+			top: clamp(
+				event.clientY - drag.offsetY,
+				window.innerHeight - bounds.height,
+			),
+		});
+	};
+
+	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		if (event.target !== event.currentTarget) return;
+		if (isFloating || !isFloatingKey(event.key)) return;
+
+		event.preventDefault();
+		startFloating(event.currentTarget);
+	};
+
+	const handlePointerEnd = () => {
+		setDrag(null);
+	};
+
+	return (
+		<div
+			className={[
+				"floating-popover",
+				className,
+				isFloating && "floating-popover-floating",
+				closingAnimationState.current === "animating" &&
+					"floating-popover-returning",
+				drag && "floating-popover-dragging",
+				isDismissed && "floating-popover-dismissed",
+			]
+				.filter(Boolean)
+				.join(" ")}
+			style={
+				closingAnimationState.current === "animating"
+					? {
+							...popoverPosition,
+							transform: `translate(${closingAnimationState.offsetX}px, ${closingAnimationState.offsetY}px) scale(0.15)`,
+						}
+					: (popoverPosition ?? undefined)
+			}
+			role="group"
+			aria-label={isFloating ? floatingAriaLabel : anchoredAriaLabel}
+			tabIndex={0}
+			onPointerDown={handlePointerDown}
+			onPointerMove={handlePointerMove}
+			onPointerUp={handlePointerEnd}
+			onPointerCancel={handlePointerEnd}
+			onLostPointerCapture={handlePointerEnd}
+			onKeyDown={handleKeyDown}
+			onTransitionEnd={(event) => {
+				if (
+					event.target === event.currentTarget &&
+					event.propertyName === "transform" &&
+					closingAnimationState.current === "animating"
+				) {
+					dismiss(closingAnimationState.restoreFocus);
+				}
+			}}
+			onContextMenu={(event) => blurFocusWithin(event.currentTarget)}
+			onClick={(event) => {
+				event.stopPropagation();
+				startFloating(event.currentTarget);
+			}}
+		>
+			<button
+				type="button"
+				className="floating-popover-close"
+				aria-label="Close"
+				aria-hidden={!isFloating}
+				tabIndex={isFloating ? 0 : -1}
+				onClick={handleCloseClick}
+			>
+				{closeIcon}
+			</button>
+			{children}
+		</div>
+	);
+};
 
 type SetRingProps = Pick<
 	PopoverSnapshot,
