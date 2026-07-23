@@ -92,6 +92,10 @@ body {
 
 /* Status bar popover */
 
+.interval-timer-popover-root {
+	display: contents;
+}
+
 .interval-timer-popover {
 	--interval-timer-popover-clock-size: 96px;
 	--interval-timer-popover-clock-ring-diameter: 91.2px;
@@ -115,6 +119,26 @@ body {
 	visibility: hidden;
 }
 
+.interval-timer-status-bar.interval-timer-status-bar-popover-pinned {
+	display: contents;
+}
+
+.interval-timer-status-bar-popover-pinned > .interval-timer-status-bar-compact {
+	display: none;
+}
+
+.interval-timer-popover.interval-timer-popover-pinned {
+	position: fixed;
+	inset: auto;
+	cursor: grab;
+	touch-action: none;
+}
+
+.interval-timer-popover.interval-timer-popover-dragging {
+	cursor: grabbing;
+	user-select: none;
+}
+
 .interval-timer-popover-focus {
 	--interval-timer-accent: var(--interval-timer-focus-color);
 }
@@ -132,7 +156,7 @@ body {
 	content: "";
 }
 
-.interval-timer-popover::after {
+.interval-timer-popover:not(.interval-timer-popover-pinned)::after {
 	position: absolute;
 	right: 25px;
 	bottom: -6px;
@@ -159,6 +183,7 @@ body {
 .interval-timer-status-bar .interval-timer-popover-dismissed {
 	opacity: 0;
 	pointer-events: none;
+	transition: none;
 	visibility: hidden;
 }
 

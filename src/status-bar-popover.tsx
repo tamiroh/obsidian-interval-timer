@@ -1,7 +1,9 @@
 import {
 	KeyboardEvent,
 	MouseEventHandler,
+	PointerEvent as ReactPointerEvent,
 	SyntheticEvent,
+	useLayoutEffect,
 	useRef,
 	useState,
 	useSyncExternalStore,
@@ -18,8 +20,13 @@ import {
 import { ObservableStore } from "./observable-store";
 import { Time, toSeconds } from "./time";
 
+//
+// Constants and types
+//
+
 const setRingRadius = 35;
 const setRingStrokeWidth = 3.5;
+const pinnedContainerClass = "interval-timer-status-bar-popover-pinned";
 
 type PopoverSnapshot = {
 	time: Time;
@@ -34,6 +41,21 @@ type PopoverSnapshot = {
 	touchAction: TouchAction;
 	intervalTimer: IntervalTimer | null;
 };
+
+type Drag = {
+	pointerId: number;
+	offsetX: number;
+	offsetY: number;
+};
+
+type Position = {
+	left: number;
+	top: number;
+};
+
+//
+// Status bar integration
+//
 
 export class StatusBarPopover {
 	private readonly root: Root;
@@ -57,16 +79,26 @@ export class StatusBarPopover {
 	private intervalTotalSeconds = 0;
 
 	constructor(private readonly container: HTMLElement) {
-		this.rootElement = container.createSpan();
+		this.rootElement = container.createSpan({
+			cls: "interval-timer-popover-root",
+		});
 		this.root = createRoot(this.rootElement);
-		container.addEventListener("mouseleave", this.clearDismissal);
-		container.addEventListener("focusin", this.clearDismissal);
-		this.root.render(<Popover store={this.store} />);
+		container.addEventListener("mouseleave", this.handleDismissalReset);
+		container.addEventListener("focusin", this.handleDismissalReset);
+		this.root.render(
+			<Popover store={this.store} container={this.container} />,
+		);
 	}
 
 	public dispose(): void {
-		this.container.removeEventListener("mouseleave", this.clearDismissal);
-		this.container.removeEventListener("focusin", this.clearDismissal);
+		this.container.removeEventListener(
+			"mouseleave",
+			this.handleDismissalReset,
+		);
+		this.container.removeEventListener(
+			"focusin",
+			this.handleDismissalReset,
+		);
 		this.root.unmount();
 		this.rootElement.remove();
 	}
@@ -120,14 +152,33 @@ export class StatusBarPopover {
 		);
 	}
 
-	private readonly clearDismissal = (): void => {
+	private readonly handleDismissalReset = (
+		event: MouseEvent | FocusEvent,
+	): void => {
+		if (
+			event.type === "focusin" &&
+			event.relatedTarget instanceof Element &&
+			event.relatedTarget.closest(".interval-timer-popover-close")
+		)
+			return;
+
 		if (this.store.getSnapshot().isDismissed) {
 			this.store.update({ isDismissed: false });
 		}
 	};
 }
 
-const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
+//
+// Main component
+//
+
+const Popover = ({
+	store,
+	container,
+}: {
+	store: ObservableStore<PopoverSnapshot>;
+	container: HTMLElement;
+}) => {
 	const {
 		intervalTimer,
 		time,
@@ -142,6 +193,10 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 		touchAction,
 	} = useSyncExternalStore(store.subscribe, store.getSnapshot);
 	const [isEditingTime, setIsEditingTime] = useState(false);
+	const [drag, setDrag] = useState<Drag | null>(null);
+	const [popoverPosition, setPopoverPosition] = useState<Position | null>(
+		null,
+	);
 	const minutesButton = useRef<HTMLButtonElement>(null);
 	const retimeInput = useRef<HTMLInputElement>(null);
 	const suppressBlurApply = useRef(false);
@@ -151,7 +206,12 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 			? (currentTaskName ?? "No task selected")
 			: "Break time";
 
-	const startEditingTime = () => {
+	useLayoutEffect(() => {
+		container.classList.toggle(pinnedContainerClass, isPinned);
+		return () => container.classList.remove(pinnedContainerClass);
+	}, [container, isPinned]);
+
+	const handleMinutesClick = () => {
 		suppressBlurApply.current = false;
 		setIsEditingTime(true);
 		window.requestAnimationFrame(() => {
@@ -188,23 +248,83 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 		stopEditingTime(restoreFocus);
 	};
 
-	const submitRetime = (
+	const handleRetimeSubmit = (
 		event: SyntheticEvent<HTMLFormElement, SubmitEvent>,
 	) => {
 		event.preventDefault();
 		applyRetime();
 	};
 
-	const handleRetimeKeyDown = (event: KeyboardEvent) => {
+	const handleRetimeInputKeyDown = (event: KeyboardEvent) => {
 		if (event.key === "Escape") {
 			event.preventDefault();
 			stopEditingTime(true);
 		}
 	};
 
-	const close = () => {
-		setIsEditingTime(false);
+	const pin = (popover: HTMLDivElement) => {
+		if (isPinned) return;
+
+		const bounds = popover.getBoundingClientRect();
+		setPopoverPosition({ left: bounds.left, top: bounds.top });
+		store.update({ isPinned: true });
+	};
+
+	const dismiss = (restoreFocus: boolean) => {
+		setPopoverPosition(null);
 		store.update({ isPinned: false, isDismissed: true });
+		if (restoreFocus) {
+			container
+				.querySelector<HTMLElement>(
+					".interval-timer-status-bar-compact",
+				)
+				?.focus({ preventScroll: true });
+		}
+	};
+
+	const handlePopoverPointerDown = (
+		event: ReactPointerEvent<HTMLDivElement>,
+	) => {
+		if (!isPinned) return;
+		if (isNonDraggableTarget(event.target)) return;
+
+		const bounds = event.currentTarget.getBoundingClientRect();
+		setDrag({
+			pointerId: event.pointerId,
+			offsetX: event.clientX - bounds.left,
+			offsetY: event.clientY - bounds.top,
+		});
+		event.currentTarget.setPointerCapture?.(event.pointerId);
+	};
+
+	const handlePopoverPointerMove = (
+		event: ReactPointerEvent<HTMLDivElement>,
+	) => {
+		if (drag?.pointerId !== event.pointerId) return;
+
+		const bounds = event.currentTarget.getBoundingClientRect();
+		setPopoverPosition({
+			left: clamp(
+				event.clientX - drag.offsetX,
+				window.innerWidth - bounds.width,
+			),
+			top: clamp(
+				event.clientY - drag.offsetY,
+				window.innerHeight - bounds.height,
+			),
+		});
+	};
+
+	const handlePopoverKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		if (event.target !== event.currentTarget) return;
+		if (isPinned || !isPinKey(event.key)) return;
+
+		event.preventDefault();
+		pin(event.currentTarget);
+	};
+
+	const handlePopoverPointerEnd = () => {
+		setDrag(null);
 	};
 
 	const popoverClassName = [
@@ -213,6 +333,7 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 			? "interval-timer-popover-focus"
 			: "interval-timer-popover-break",
 		isPinned && "interval-timer-popover-pinned",
+		drag && "interval-timer-popover-dragging",
 		isDismissed && "interval-timer-popover-dismissed",
 	]
 		.filter(Boolean)
@@ -221,9 +342,23 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 	return (
 		<div
 			className={popoverClassName}
+			style={popoverPosition ?? undefined}
+			role="group"
+			aria-label={
+				isPinned
+					? "Floating timer"
+					: "Timer popover. Press Enter to pin."
+			}
+			tabIndex={0}
+			onPointerDown={handlePopoverPointerDown}
+			onPointerMove={handlePopoverPointerMove}
+			onPointerUp={handlePopoverPointerEnd}
+			onPointerCancel={handlePopoverPointerEnd}
+			onLostPointerCapture={handlePopoverPointerEnd}
+			onKeyDown={handlePopoverKeyDown}
 			onClick={(event) => {
 				event.stopPropagation();
-				store.update({ isPinned: true });
+				pin(event.currentTarget);
 			}}
 		>
 			<button
@@ -234,7 +369,8 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 				tabIndex={isPinned ? 0 : -1}
 				onClick={(event) => {
 					event.stopPropagation();
-					close();
+					setIsEditingTime(false);
+					dismiss(event.detail === 0);
 					event.currentTarget.blur();
 				}}
 			>
@@ -284,13 +420,13 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 										!intervalTimer ||
 										timerState === "running"
 									}
-									onClick={startEditingTime}
+									onClick={handleMinutesClick}
 								>
 									{String(time.minutes).padStart(2, "0")}
 								</button>
 								<form
 									className="interval-timer-popover-inline-retime-form"
-									onSubmit={submitRetime}
+									onSubmit={handleRetimeSubmit}
 								>
 									<input
 										ref={retimeInput}
@@ -301,7 +437,7 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 										autoComplete="off"
 										spellCheck={false}
 										defaultValue={time.minutes}
-										onKeyDown={handleRetimeKeyDown}
+										onKeyDown={handleRetimeInputKeyDown}
 										onClick={(event) =>
 											event.currentTarget.select()
 										}
@@ -368,6 +504,18 @@ const Popover = ({ store }: { store: ObservableStore<PopoverSnapshot> }) => {
 	);
 };
 
+//
+// Utils
+//
+
+const clamp = (position: number, maximum: number): number =>
+	Math.min(Math.max(0, position), Math.max(0, maximum));
+
+const isNonDraggableTarget = (target: EventTarget | null): boolean =>
+	target instanceof Element && target.closest("button, input, form") !== null;
+
+const isPinKey = (key: string): boolean => key === "Enter" || key === " ";
+
 const getTouchActionPresentation = (
 	action: TouchAction,
 ): { label: string; icon: string } =>
@@ -377,6 +525,10 @@ const getTouchActionPresentation = (
 		.with("reset", () => ({ label: "Reset", icon: "rotate-ccw" }))
 		.with("skip", () => ({ label: "Skip", icon: "skip-forward" }))
 		.exhaustive();
+
+//
+// Components
+//
 
 type SetRingProps = Pick<
 	PopoverSnapshot,
