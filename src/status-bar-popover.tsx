@@ -403,11 +403,6 @@ const Popover = ({
 					: (popoverPosition ?? undefined)
 			}
 			role="group"
-			aria-label={
-				isFloating
-					? "Floating timer"
-					: "Timer popover. Press Enter for floating mode."
-			}
 			tabIndex={0}
 			onPointerDown={handlePopoverPointerDown}
 			onPointerMove={handlePopoverPointerMove}
