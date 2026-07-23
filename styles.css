@@ -96,21 +96,12 @@ body {
 	display: contents;
 }
 
-.floating-popover {
-	position: absolute;
-	z-index: var(--layer-popover, 100);
-	opacity: 0;
-	pointer-events: auto;
-	transition:
-		opacity 110ms ease,
-		visibility 110ms;
-	visibility: hidden;
-}
-
 .interval-timer-popover {
 	--interval-timer-popover-clock-size: 96px;
 	--interval-timer-popover-clock-ring-diameter: 91.2px;
 
+	position: absolute;
+	z-index: var(--layer-popover, 100);
 	right: 10px;
 	bottom: calc(100% + 11px);
 	width: min(250px, calc(100vw - 24px));
@@ -120,25 +111,30 @@ body {
 	background: var(--background-primary);
 	box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
 	color: var(--text-normal);
+	opacity: 0;
+	pointer-events: auto;
+	transition:
+		opacity 110ms ease,
+		visibility 110ms;
+	visibility: hidden;
 }
 
-.interval-timer-status-bar.interval-timer-status-bar-popover-floating {
+.interval-timer-status-bar.interval-timer-status-bar-popover-pinned {
 	display: contents;
 }
 
-.interval-timer-status-bar-popover-floating
-	> .interval-timer-status-bar-compact {
+.interval-timer-status-bar-popover-pinned > .interval-timer-status-bar-compact {
 	display: none;
 }
 
-.floating-popover-floating {
+.interval-timer-popover.interval-timer-popover-pinned {
 	position: fixed;
 	inset: auto;
 	cursor: grab;
 	touch-action: none;
 }
 
-.floating-popover-dragging {
+.interval-timer-popover.interval-timer-popover-dragging {
 	cursor: grabbing;
 	user-select: none;
 }
@@ -160,7 +156,7 @@ body {
 	content: "";
 }
 
-.interval-timer-popover:not(.floating-popover-floating)::after {
+.interval-timer-popover:not(.interval-timer-popover-pinned)::after {
 	position: absolute;
 	right: 25px;
 	bottom: -6px;
@@ -174,17 +170,17 @@ body {
 }
 
 .interval-timer-status-bar:hover
-	.interval-timer-popover:not(.floating-popover-dismissed),
+	.interval-timer-popover:not(.interval-timer-popover-dismissed),
 .interval-timer-status-bar:focus-visible
-	.interval-timer-popover:not(.floating-popover-dismissed),
+	.interval-timer-popover:not(.interval-timer-popover-dismissed),
 .interval-timer-status-bar:focus-within
-	.interval-timer-popover:not(.floating-popover-dismissed),
-.floating-popover-floating {
+	.interval-timer-popover:not(.interval-timer-popover-dismissed),
+.interval-timer-popover-pinned {
 	opacity: 1;
 	visibility: visible;
 }
 
-.floating-popover-floating.floating-popover-returning {
+.interval-timer-popover-pinned.interval-timer-popover-returning {
 	opacity: 0;
 	pointer-events: none;
 	transition:
@@ -192,14 +188,14 @@ body {
 		opacity 200ms ease;
 }
 
-.interval-timer-status-bar .floating-popover-dismissed {
+.interval-timer-status-bar .interval-timer-popover-dismissed {
 	opacity: 0;
 	pointer-events: none;
 	transition: none;
 	visibility: hidden;
 }
 
-button.floating-popover-close {
+button.interval-timer-popover-close {
 	position: absolute;
 	z-index: 1;
 	top: -9px;
@@ -223,13 +219,13 @@ button.floating-popover-close {
 	transition: opacity 120ms ease;
 }
 
-.floating-popover-floating button.floating-popover-close {
+.interval-timer-popover-pinned button.interval-timer-popover-close {
 	opacity: 1;
 	pointer-events: auto;
 }
 
-button.floating-popover-close:hover,
-button.floating-popover-close:focus-visible {
+button.interval-timer-popover-close:hover,
+button.interval-timer-popover-close:focus-visible {
 	border-color: var(--background-modifier-border-hover);
 	background: var(--background-modifier-hover);
 	color: var(--text-normal);
@@ -523,7 +519,7 @@ button.interval-timer-popover-touch-action:disabled {
 
 @media (prefers-reduced-motion: reduce) {
 	.interval-timer-popover,
-	.floating-popover-close,
+	.interval-timer-popover-close,
 	.interval-timer-popover-clock-value,
 	.interval-timer-popover-clock-minutes,
 	.interval-timer-popover-inline-retime-form {

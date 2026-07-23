@@ -239,7 +239,7 @@ describe("StatusBarPopover", () => {
 		).toBeEnabled();
 	});
 
-	it("does not float the popover when Start is clicked", async () => {
+	it("does not pin the popover when Start is clicked", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -254,7 +254,7 @@ describe("StatusBarPopover", () => {
 
 		// Assert
 		expect(el.querySelector(".interval-timer-popover")).not.toHaveClass(
-			"floating-popover-floating",
+			"interval-timer-popover-pinned",
 		);
 	});
 
@@ -516,7 +516,7 @@ describe("StatusBarPopover", () => {
 		expect(statusBarClick).not.toHaveBeenCalled();
 	});
 
-	it("floats the popover after it is clicked", async () => {
+	it("pins the popover after it is clicked", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -533,8 +533,8 @@ describe("StatusBarPopover", () => {
 		await user.click(popover);
 
 		// Assert
-		expect(popover).toHaveClass("floating-popover-floating");
-		expect(el).toHaveClass("interval-timer-status-bar-popover-floating");
+		expect(popover).toHaveClass("interval-timer-popover-pinned");
+		expect(el).toHaveClass("interval-timer-status-bar-popover-pinned");
 		expect(popover).toHaveStyle({
 			left: "24px",
 			top: "36px",
@@ -544,7 +544,7 @@ describe("StatusBarPopover", () => {
 		).toContainElement(popover);
 	});
 
-	it("floats the focused popover from the keyboard", async () => {
+	it("pins the focused popover from the keyboard", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -558,10 +558,10 @@ describe("StatusBarPopover", () => {
 		await user.keyboard("{Enter}");
 
 		// Assert
-		expect(popover).toHaveClass("floating-popover-floating");
+		expect(popover).toHaveClass("interval-timer-popover-pinned");
 	});
 
-	it("moves a floating popover by dragging it", async () => {
+	it("moves a pinned popover by dragging it", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -583,7 +583,7 @@ describe("StatusBarPopover", () => {
 			clientX: 120,
 			clientY: 230,
 		});
-		expect(popover).toHaveClass("floating-popover-dragging");
+		expect(popover).toHaveClass("interval-timer-popover-dragging");
 		fireEvent.pointerMove(popover, {
 			pointerId: 1,
 			clientX: 320,
@@ -596,7 +596,7 @@ describe("StatusBarPopover", () => {
 			left: "300px",
 			top: "300px",
 		});
-		expect(popover).not.toHaveClass("floating-popover-dragging");
+		expect(popover).not.toHaveClass("interval-timer-popover-dragging");
 	});
 
 	it("does not start dragging from a popover control", async () => {
@@ -631,7 +631,7 @@ describe("StatusBarPopover", () => {
 		});
 
 		// Assert
-		expect(popover).not.toHaveClass("floating-popover-dragging");
+		expect(popover).not.toHaveClass("interval-timer-popover-dragging");
 		expect(popover).toHaveStyle({
 			left: "100px",
 			top: "200px",
@@ -645,14 +645,14 @@ describe("StatusBarPopover", () => {
 
 		// Act
 		const close = el.querySelector(
-			".floating-popover-close",
+			".interval-timer-popover-close",
 		) as HTMLButtonElement;
 
 		// Assert
 		expect(close).toHaveProperty("tabIndex", -1);
 	});
 
-	it("adds the visible close button to the tab order when floating", async () => {
+	it("adds the visible close button to the tab order when pinned", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -669,7 +669,7 @@ describe("StatusBarPopover", () => {
 		expect(close).toHaveProperty("tabIndex", 0);
 	});
 
-	it("keeps a floating popover open after the pointer leaves", async () => {
+	it("keeps a pinned popover open after the pointer leaves", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -683,10 +683,10 @@ describe("StatusBarPopover", () => {
 		fireEvent.mouseLeave(el);
 
 		// Assert
-		expect(popover).toHaveClass("floating-popover-floating");
+		expect(popover).toHaveClass("interval-timer-popover-pinned");
 	});
 
-	it("dismisses a floating popover from its close button", async () => {
+	it("dismisses a pinned popover from its close button", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -714,20 +714,18 @@ describe("StatusBarPopover", () => {
 		await user.click(within(el).getByRole("button", { name: "Close" }));
 
 		// Assert
-		expect(popover).toHaveClass("floating-popover-returning");
+		expect(popover).toHaveClass("interval-timer-popover-returning");
 		expect(popover).toHaveStyle({
 			transform: "translate(700px, 435px) scale(0.15)",
 		});
-		expect(el).toHaveClass("interval-timer-status-bar-popover-floating");
+		expect(el).toHaveClass("interval-timer-status-bar-popover-pinned");
 
 		// Act
 		fireEvent.transitionEnd(popover, { propertyName: "transform" });
 
 		// Assert
-		expect(popover).toHaveClass("floating-popover-dismissed");
-		expect(el).not.toHaveClass(
-			"interval-timer-status-bar-popover-floating",
-		);
+		expect(popover).toHaveClass("interval-timer-popover-dismissed");
+		expect(el).not.toHaveClass("interval-timer-status-bar-popover-pinned");
 		expect(popover.style.left).toBe("");
 		expect(popover.style.top).toBe("");
 	});
@@ -752,13 +750,13 @@ describe("StatusBarPopover", () => {
 		await user.keyboard("{Enter}");
 
 		// Assert
-		expect(popover).toHaveClass("floating-popover-returning");
+		expect(popover).toHaveClass("interval-timer-popover-returning");
 
 		// Act
 		fireEvent.transitionEnd(popover, { propertyName: "transform" });
 
 		// Assert
-		expect(popover).toHaveClass("floating-popover-dismissed");
+		expect(popover).toHaveClass("interval-timer-popover-dismissed");
 		await waitFor(() => expect(compact).toHaveFocus());
 	});
 
@@ -779,6 +777,6 @@ describe("StatusBarPopover", () => {
 		await user.click(focusTarget);
 
 		// Assert
-		expect(popover).not.toHaveClass("floating-popover-dismissed");
+		expect(popover).not.toHaveClass("interval-timer-popover-dismissed");
 	});
 });
