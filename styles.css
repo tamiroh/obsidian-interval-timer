@@ -92,6 +92,10 @@ body {
 
 /* Status bar popover */
 
+.interval-timer-popover-root {
+	display: contents;
+}
+
 .interval-timer-popover {
 	--interval-timer-popover-clock-size: 96px;
 	--interval-timer-popover-clock-ring-diameter: 91.2px;
@@ -115,6 +119,27 @@ body {
 	visibility: hidden;
 }
 
+.interval-timer-status-bar.interval-timer-status-bar-popover-floating {
+	display: contents;
+}
+
+.interval-timer-status-bar-popover-floating
+	> .interval-timer-status-bar-compact {
+	display: none;
+}
+
+.interval-timer-popover.interval-timer-popover-floating {
+	position: fixed;
+	inset: auto;
+	cursor: grab;
+	touch-action: none;
+}
+
+.interval-timer-popover.interval-timer-popover-dragging {
+	cursor: grabbing;
+	user-select: none;
+}
+
 .interval-timer-popover-focus {
 	--interval-timer-accent: var(--interval-timer-focus-color);
 }
@@ -132,7 +157,7 @@ body {
 	content: "";
 }
 
-.interval-timer-popover::after {
+.interval-timer-popover:not(.interval-timer-popover-floating)::after {
 	position: absolute;
 	right: 25px;
 	bottom: -6px;
@@ -151,14 +176,23 @@ body {
 	.interval-timer-popover:not(.interval-timer-popover-dismissed),
 .interval-timer-status-bar:focus-within
 	.interval-timer-popover:not(.interval-timer-popover-dismissed),
-.interval-timer-popover-pinned {
+.interval-timer-popover-floating {
 	opacity: 1;
 	visibility: visible;
+}
+
+.interval-timer-popover-floating.interval-timer-popover-returning {
+	opacity: 0;
+	pointer-events: none;
+	transition:
+		transform 260ms cubic-bezier(0.4, 0, 0.2, 1),
+		opacity 200ms ease;
 }
 
 .interval-timer-status-bar .interval-timer-popover-dismissed {
 	opacity: 0;
 	pointer-events: none;
+	transition: none;
 	visibility: hidden;
 }
 
@@ -186,7 +220,7 @@ button.interval-timer-popover-close {
 	transition: opacity 120ms ease;
 }
 
-.interval-timer-popover-pinned button.interval-timer-popover-close {
+.interval-timer-popover-floating button.interval-timer-popover-close {
 	opacity: 1;
 	pointer-events: auto;
 }

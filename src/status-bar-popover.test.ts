@@ -239,7 +239,7 @@ describe("StatusBarPopover", () => {
 		).toBeEnabled();
 	});
 
-	it("does not pin the popover when Start is clicked", async () => {
+	it("does not enter floating mode when Start is clicked", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -254,7 +254,7 @@ describe("StatusBarPopover", () => {
 
 		// Assert
 		expect(el.querySelector(".interval-timer-popover")).not.toHaveClass(
-			"interval-timer-popover-pinned",
+			"interval-timer-popover-floating",
 		);
 	});
 
@@ -516,7 +516,7 @@ describe("StatusBarPopover", () => {
 		expect(statusBarClick).not.toHaveBeenCalled();
 	});
 
-	it("pins the popover after it is clicked", async () => {
+	it("enters floating mode after the popover is clicked", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -524,12 +524,118 @@ describe("StatusBarPopover", () => {
 		const popover = el.querySelector(
 			".interval-timer-popover",
 		) as HTMLElement;
+		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
+			left: 24,
+			top: 36,
+		} as DOMRect);
 
 		// Act
 		await user.click(popover);
 
 		// Assert
-		expect(popover).toHaveClass("interval-timer-popover-pinned");
+		expect(popover).toHaveClass("interval-timer-popover-floating");
+		expect(el).toHaveClass("interval-timer-status-bar-popover-floating");
+		expect(popover).toHaveStyle({
+			left: "24px",
+			top: "36px",
+		});
+		expect(
+			el.querySelector(".interval-timer-popover-root"),
+		).toContainElement(popover);
+	});
+
+	it("enters floating mode from the keyboard", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		await createPopover(el);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+		popover.focus();
+
+		// Act
+		await user.keyboard("{Enter}");
+
+		// Assert
+		expect(popover).toHaveClass("interval-timer-popover-floating");
+	});
+
+	it("moves a floating popover by dragging it", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		await createPopover(el);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
+			left: 100,
+			top: 200,
+			width: 250,
+			height: 150,
+		} as DOMRect);
+		await user.click(popover);
+
+		// Act
+		fireEvent.pointerDown(popover, {
+			pointerId: 1,
+			clientX: 120,
+			clientY: 230,
+		});
+		expect(popover).toHaveClass("interval-timer-popover-dragging");
+		fireEvent.pointerMove(popover, {
+			pointerId: 1,
+			clientX: 320,
+			clientY: 330,
+		});
+		fireEvent.pointerUp(popover, { pointerId: 1 });
+
+		// Assert
+		expect(popover).toHaveStyle({
+			left: "300px",
+			top: "300px",
+		});
+		expect(popover).not.toHaveClass("interval-timer-popover-dragging");
+	});
+
+	it("does not start dragging from a popover control", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		await createPopover(el);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
+			left: 100,
+			top: 200,
+			width: 250,
+			height: 150,
+		} as DOMRect);
+		await user.click(popover);
+
+		// Act
+		fireEvent.pointerDown(
+			within(el).getByRole("button", { name: "Close" }),
+			{
+				pointerId: 1,
+				clientX: 120,
+				clientY: 230,
+			},
+		);
+		fireEvent.pointerMove(popover, {
+			pointerId: 1,
+			clientX: 320,
+			clientY: 330,
+		});
+
+		// Assert
+		expect(popover).not.toHaveClass("interval-timer-popover-dragging");
+		expect(popover).toHaveStyle({
+			left: "100px",
+			top: "200px",
+		});
 	});
 
 	it("keeps the hidden close button out of the tab order", async () => {
@@ -546,7 +652,7 @@ describe("StatusBarPopover", () => {
 		expect(close).toHaveProperty("tabIndex", -1);
 	});
 
-	it("adds the visible close button to the tab order when pinned", async () => {
+	it("adds the visible close button to the tab order when floating", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -563,7 +669,7 @@ describe("StatusBarPopover", () => {
 		expect(close).toHaveProperty("tabIndex", 0);
 	});
 
-	it("keeps a pinned popover open after the pointer leaves", async () => {
+	it("keeps a floating popover open after the pointer leaves", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -577,24 +683,83 @@ describe("StatusBarPopover", () => {
 		fireEvent.mouseLeave(el);
 
 		// Assert
-		expect(popover).toHaveClass("interval-timer-popover-pinned");
+		expect(popover).toHaveClass("interval-timer-popover-floating");
 	});
 
-	it("dismisses a pinned popover from its close button", async () => {
+	it("dismisses a floating popover from its close button", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
+		el.createSpan({ cls: "interval-timer-status-bar-compact" }).tabIndex =
+			0;
+		vi.spyOn(el, "getBoundingClientRect").mockReturnValue({
+			left: 900,
+			top: 700,
+			width: 50,
+			height: 20,
+		} as DOMRect);
 		await createPopover(el);
 		const popover = el.querySelector(
 			".interval-timer-popover",
 		) as HTMLElement;
+		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
+			left: 100,
+			top: 200,
+			width: 250,
+			height: 150,
+		} as DOMRect);
 		await user.click(popover);
 
 		// Act
 		await user.click(within(el).getByRole("button", { name: "Close" }));
 
 		// Assert
+		expect(popover).toHaveClass("interval-timer-popover-returning");
+		expect(popover).toHaveStyle({
+			transform: "translate(700px, 435px) scale(0.15)",
+		});
+		expect(el).toHaveClass("interval-timer-status-bar-popover-floating");
+
+		// Act
+		fireEvent.transitionEnd(popover, { propertyName: "transform" });
+
+		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-dismissed");
+		expect(el).not.toHaveClass(
+			"interval-timer-status-bar-popover-floating",
+		);
+		expect(popover.style.left).toBe("");
+		expect(popover.style.top).toBe("");
+	});
+
+	it("restores compact focus after closing from the keyboard", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		const compact = el.createSpan({
+			cls: "interval-timer-status-bar-compact",
+		});
+		compact.tabIndex = 0;
+		await createPopover(el);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+		await user.click(popover);
+		const close = within(el).getByRole("button", { name: "Close" });
+		close.focus();
+
+		// Act
+		await user.keyboard("{Enter}");
+
+		// Assert
+		expect(popover).toHaveClass("interval-timer-popover-returning");
+
+		// Act
+		fireEvent.transitionEnd(popover, { propertyName: "transform" });
+
+		// Assert
+		expect(popover).toHaveClass("interval-timer-popover-dismissed");
+		await waitFor(() => expect(compact).toHaveFocus());
 	});
 
 	it("clears dismissal when focus returns to the status item", async () => {
