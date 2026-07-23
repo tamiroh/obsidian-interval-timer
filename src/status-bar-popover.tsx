@@ -356,6 +356,7 @@ const Popover = ({
 			onPointerCancel={handlePopoverPointerEnd}
 			onLostPointerCapture={handlePopoverPointerEnd}
 			onKeyDown={handlePopoverKeyDown}
+			onContextMenu={(event) => blurFocusWithin(event.currentTarget)}
 			onClick={(event) => {
 				event.stopPropagation();
 				pin(event.currentTarget);
@@ -515,6 +516,15 @@ const isNonDraggableTarget = (target: EventTarget | null): boolean =>
 	target instanceof Element && target.closest("button, input, form") !== null;
 
 const isPinKey = (key: string): boolean => key === "Enter" || key === " ";
+
+const blurFocusWithin = (container: HTMLElement): void => {
+	if (
+		document.activeElement instanceof HTMLElement &&
+		container.contains(document.activeElement)
+	) {
+		document.activeElement.blur();
+	}
+};
 
 const getTouchActionPresentation = (
 	action: TouchAction,
