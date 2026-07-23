@@ -692,14 +692,36 @@ describe("StatusBarPopover", () => {
 		const el = createDiv();
 		el.createSpan({ cls: "interval-timer-status-bar-compact" }).tabIndex =
 			0;
+		vi.spyOn(el, "getBoundingClientRect").mockReturnValue({
+			left: 900,
+			top: 700,
+			width: 50,
+			height: 20,
+		} as DOMRect);
 		await createPopover(el);
 		const popover = el.querySelector(
 			".interval-timer-popover",
 		) as HTMLElement;
+		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
+			left: 100,
+			top: 200,
+			width: 250,
+			height: 150,
+		} as DOMRect);
 		await user.click(popover);
 
 		// Act
 		await user.click(within(el).getByRole("button", { name: "Close" }));
+
+		// Assert
+		expect(popover).toHaveClass("interval-timer-popover-returning");
+		expect(popover).toHaveStyle({
+			transform: "translate(700px, 435px) scale(0.15)",
+		});
+		expect(el).toHaveClass("interval-timer-status-bar-popover-pinned");
+
+		// Act
+		fireEvent.transitionEnd(popover, { propertyName: "transform" });
 
 		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-dismissed");
@@ -728,8 +750,14 @@ describe("StatusBarPopover", () => {
 		await user.keyboard("{Enter}");
 
 		// Assert
+		expect(popover).toHaveClass("interval-timer-popover-returning");
+
+		// Act
+		fireEvent.transitionEnd(popover, { propertyName: "transform" });
+
+		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-dismissed");
-		expect(compact).toHaveFocus();
+		await waitFor(() => expect(compact).toHaveFocus());
 	});
 
 	it("clears dismissal when focus returns to the status item", async () => {

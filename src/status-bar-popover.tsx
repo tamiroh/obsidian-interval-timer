@@ -1,5 +1,6 @@
 import {
 	KeyboardEvent,
+	MouseEvent as ReactMouseEvent,
 	MouseEventHandler,
 	PointerEvent as ReactPointerEvent,
 	SyntheticEvent,
@@ -52,6 +53,16 @@ type Position = {
 	left: number;
 	top: number;
 };
+
+type ClosingAnimationState =
+	| { current: "idle" }
+	| {
+			current: "animating";
+			offsetX: number;
+			offsetY: number;
+			restoreFocus: boolean;
+	  }
+	| { current: "completed" };
 
 //
 // Status bar integration
@@ -197,6 +208,9 @@ const Popover = ({
 	const [popoverPosition, setPopoverPosition] = useState<Position | null>(
 		null,
 	);
+	const [returnTarget, setReturnTarget] = useState<Position | null>(null);
+	const [closingAnimationState, setClosingAnimationState] =
+		useState<ClosingAnimationState>({ current: "idle" });
 	const minutesButton = useRef<HTMLButtonElement>(null);
 	const retimeInput = useRef<HTMLInputElement>(null);
 	const suppressBlurApply = useRef(false);
@@ -266,20 +280,56 @@ const Popover = ({
 		if (isPinned) return;
 
 		const bounds = popover.getBoundingClientRect();
+		const statusBarBounds = container.getBoundingClientRect();
+		setClosingAnimationState({ current: "idle" });
 		setPopoverPosition({ left: bounds.left, top: bounds.top });
+		setReturnTarget({
+			left: statusBarBounds.left + statusBarBounds.width / 2,
+			top: statusBarBounds.top + statusBarBounds.height / 2,
+		});
 		store.update({ isPinned: true });
 	};
 
 	const dismiss = (restoreFocus: boolean) => {
+		setClosingAnimationState({ current: "completed" });
+		setReturnTarget(null);
 		setPopoverPosition(null);
 		store.update({ isPinned: false, isDismissed: true });
 		if (restoreFocus) {
-			container
-				.querySelector<HTMLElement>(
-					".interval-timer-status-bar-compact",
-				)
-				?.focus({ preventScroll: true });
+			window.requestAnimationFrame(() => {
+				container
+					.querySelector<HTMLElement>(
+						".interval-timer-status-bar-compact",
+					)
+					?.focus({ preventScroll: true });
+			});
 		}
+	};
+
+	const handleCloseClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
+		event.stopPropagation();
+		setIsEditingTime(false);
+
+		const restoreFocus = event.detail === 0;
+		if (!restoreFocus) event.currentTarget.blur();
+
+		const bounds =
+			event.currentTarget.parentElement?.getBoundingClientRect();
+		if (
+			!returnTarget ||
+			!bounds ||
+			window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+		) {
+			dismiss(restoreFocus);
+			return;
+		}
+
+		setClosingAnimationState({
+			current: "animating",
+			offsetX: returnTarget.left - (bounds.left + bounds.width / 2),
+			offsetY: returnTarget.top - (bounds.top + bounds.height / 2),
+			restoreFocus,
+		});
 	};
 
 	const handlePopoverPointerDown = (
@@ -333,6 +383,8 @@ const Popover = ({
 			? "interval-timer-popover-focus"
 			: "interval-timer-popover-break",
 		isPinned && "interval-timer-popover-pinned",
+		closingAnimationState.current === "animating" &&
+			"interval-timer-popover-returning",
 		drag && "interval-timer-popover-dragging",
 		isDismissed && "interval-timer-popover-dismissed",
 	]
@@ -342,7 +394,14 @@ const Popover = ({
 	return (
 		<div
 			className={popoverClassName}
-			style={popoverPosition ?? undefined}
+			style={
+				closingAnimationState.current === "animating"
+					? {
+							...popoverPosition,
+							transform: `translate(${closingAnimationState.offsetX}px, ${closingAnimationState.offsetY}px) scale(0.15)`,
+						}
+					: (popoverPosition ?? undefined)
+			}
 			role="group"
 			aria-label={
 				isPinned
@@ -356,6 +415,15 @@ const Popover = ({
 			onPointerCancel={handlePopoverPointerEnd}
 			onLostPointerCapture={handlePopoverPointerEnd}
 			onKeyDown={handlePopoverKeyDown}
+			onTransitionEnd={(event) => {
+				if (
+					event.target === event.currentTarget &&
+					event.propertyName === "transform" &&
+					closingAnimationState.current === "animating"
+				) {
+					dismiss(closingAnimationState.restoreFocus);
+				}
+			}}
 			onContextMenu={(event) => blurFocusWithin(event.currentTarget)}
 			onClick={(event) => {
 				event.stopPropagation();
@@ -368,12 +436,7 @@ const Popover = ({
 				aria-label="Close"
 				aria-hidden={!isPinned}
 				tabIndex={isPinned ? 0 : -1}
-				onClick={(event) => {
-					event.stopPropagation();
-					setIsEditingTime(false);
-					dismiss(event.detail === 0);
-					event.currentTarget.blur();
-				}}
+				onClick={handleCloseClick}
 			>
 				<Icon name="x" className="interval-timer-popover-close-icon" />
 			</button>
