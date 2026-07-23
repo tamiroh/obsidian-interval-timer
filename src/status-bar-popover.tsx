@@ -27,7 +27,7 @@ import { Time, toSeconds } from "./time";
 
 const setRingRadius = 35;
 const setRingStrokeWidth = 3.5;
-const pinnedContainerClass = "interval-timer-status-bar-popover-pinned";
+const floatingContainerClass = "interval-timer-status-bar-popover-floating";
 
 type PopoverSnapshot = {
 	time: Time;
@@ -37,7 +37,7 @@ type PopoverSnapshot = {
 	longBreakAfter: number;
 	remainingPercent: number;
 	currentTaskName: string | null;
-	isPinned: boolean;
+	isFloating: boolean;
 	isDismissed: boolean;
 	touchAction: TouchAction;
 	intervalTimer: IntervalTimer | null;
@@ -81,7 +81,7 @@ export class StatusBarPopover {
 		longBreakAfter: 4,
 		remainingPercent: 0,
 		currentTaskName: null,
-		isPinned: false,
+		isFloating: false,
 		isDismissed: false,
 		touchAction: "start",
 		intervalTimer: null,
@@ -199,7 +199,7 @@ const Popover = ({
 		longBreakAfter,
 		remainingPercent,
 		currentTaskName,
-		isPinned,
+		isFloating,
 		isDismissed,
 		touchAction,
 	} = useSyncExternalStore(store.subscribe, store.getSnapshot);
@@ -221,9 +221,9 @@ const Popover = ({
 			: "Break time";
 
 	useLayoutEffect(() => {
-		container.classList.toggle(pinnedContainerClass, isPinned);
-		return () => container.classList.remove(pinnedContainerClass);
-	}, [container, isPinned]);
+		container.classList.toggle(floatingContainerClass, isFloating);
+		return () => container.classList.remove(floatingContainerClass);
+	}, [container, isFloating]);
 
 	const handleMinutesClick = () => {
 		suppressBlurApply.current = false;
@@ -276,8 +276,8 @@ const Popover = ({
 		}
 	};
 
-	const pin = (popover: HTMLDivElement) => {
-		if (isPinned) return;
+	const startFloating = (popover: HTMLDivElement) => {
+		if (isFloating) return;
 
 		const bounds = popover.getBoundingClientRect();
 		const statusBarBounds = container.getBoundingClientRect();
@@ -287,14 +287,14 @@ const Popover = ({
 			left: statusBarBounds.left + statusBarBounds.width / 2,
 			top: statusBarBounds.top + statusBarBounds.height / 2,
 		});
-		store.update({ isPinned: true });
+		store.update({ isFloating: true });
 	};
 
 	const dismiss = (restoreFocus: boolean) => {
 		setClosingAnimationState({ current: "completed" });
 		setReturnTarget(null);
 		setPopoverPosition(null);
-		store.update({ isPinned: false, isDismissed: true });
+		store.update({ isFloating: false, isDismissed: true });
 		if (restoreFocus) {
 			window.requestAnimationFrame(() => {
 				container
@@ -335,7 +335,7 @@ const Popover = ({
 	const handlePopoverPointerDown = (
 		event: ReactPointerEvent<HTMLDivElement>,
 	) => {
-		if (!isPinned) return;
+		if (!isFloating) return;
 		if (isNonDraggableTarget(event.target)) return;
 
 		const bounds = event.currentTarget.getBoundingClientRect();
@@ -367,10 +367,10 @@ const Popover = ({
 
 	const handlePopoverKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		if (event.target !== event.currentTarget) return;
-		if (isPinned || !isPinKey(event.key)) return;
+		if (isFloating || !isFloatingKey(event.key)) return;
 
 		event.preventDefault();
-		pin(event.currentTarget);
+		startFloating(event.currentTarget);
 	};
 
 	const handlePopoverPointerEnd = () => {
@@ -382,7 +382,7 @@ const Popover = ({
 		intervalTimerState === "focus"
 			? "interval-timer-popover-focus"
 			: "interval-timer-popover-break",
-		isPinned && "interval-timer-popover-pinned",
+		isFloating && "interval-timer-popover-floating",
 		closingAnimationState.current === "animating" &&
 			"interval-timer-popover-returning",
 		drag && "interval-timer-popover-dragging",
@@ -404,9 +404,9 @@ const Popover = ({
 			}
 			role="group"
 			aria-label={
-				isPinned
+				isFloating
 					? "Floating timer"
-					: "Timer popover. Press Enter to pin."
+					: "Timer popover. Press Enter for floating mode."
 			}
 			tabIndex={0}
 			onPointerDown={handlePopoverPointerDown}
@@ -427,15 +427,15 @@ const Popover = ({
 			onContextMenu={(event) => blurFocusWithin(event.currentTarget)}
 			onClick={(event) => {
 				event.stopPropagation();
-				pin(event.currentTarget);
+				startFloating(event.currentTarget);
 			}}
 		>
 			<button
 				type="button"
 				className="interval-timer-popover-close"
 				aria-label="Close"
-				aria-hidden={!isPinned}
-				tabIndex={isPinned ? 0 : -1}
+				aria-hidden={!isFloating}
+				tabIndex={isFloating ? 0 : -1}
 				onClick={handleCloseClick}
 			>
 				<Icon name="x" className="interval-timer-popover-close-icon" />
@@ -578,7 +578,7 @@ const clamp = (position: number, maximum: number): number =>
 const isNonDraggableTarget = (target: EventTarget | null): boolean =>
 	target instanceof Element && target.closest("button, input, form") !== null;
 
-const isPinKey = (key: string): boolean => key === "Enter" || key === " ";
+const isFloatingKey = (key: string): boolean => key === "Enter" || key === " ";
 
 const blurFocusWithin = (container: HTMLElement): void => {
 	if (
