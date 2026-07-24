@@ -7,6 +7,7 @@ export type PluginSetting = {
 	longBreakDuration: number;
 	longBreakAfter: number;
 	notificationStyle: NotificationStyle;
+	flashOverlayEnabled: boolean;
 };
 
 export const defaultPluginSetting = {
@@ -15,6 +16,7 @@ export const defaultPluginSetting = {
 	longBreakDuration: 15,
 	longBreakAfter: 4,
 	notificationStyle: "simple",
+	flashOverlayEnabled: false,
 } satisfies PluginSetting;
 
 export const parsePluginSetting = (value: unknown): PluginSetting => {
@@ -40,6 +42,10 @@ export const parsePluginSetting = (value: unknown): PluginSetting => {
 		notificationStyle: isNotificationStyle(stored.notificationStyle)
 			? stored.notificationStyle
 			: defaultPluginSetting.notificationStyle,
+		flashOverlayEnabled:
+			typeof stored.flashOverlayEnabled === "boolean"
+				? stored.flashOverlayEnabled
+				: defaultPluginSetting.flashOverlayEnabled,
 	};
 };
 

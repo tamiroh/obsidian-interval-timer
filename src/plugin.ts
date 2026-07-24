@@ -28,6 +28,8 @@ type ParseNotificationStyleResult = Result<
 	"invalid_notification_style"
 >;
 
+type ParseBooleanResult = Result<boolean, "invalid_boolean">;
+
 export default class Plugin extends BasePlugin {
 	public override settings!: PluginSetting;
 
@@ -84,7 +86,11 @@ export default class Plugin extends BasePlugin {
 	public async updateSetting(
 		key: keyof PluginSetting,
 		value: unknown,
-	): Promise<ParsePositiveIntegerResult | ParseNotificationStyleResult> {
+	): Promise<
+		| ParsePositiveIntegerResult
+		| ParseNotificationStyleResult
+		| ParseBooleanResult
+	> {
 		switch (key) {
 			case "focusIntervalDuration":
 			case "shortBreakDuration":
@@ -116,6 +122,21 @@ export default class Plugin extends BasePlugin {
 
 				return parsed;
 			}
+			case "flashOverlayEnabled": {
+				const parsed: ParseBooleanResult =
+					typeof value === "boolean"
+						? { ok: true, value }
+						: { ok: false, reason: "invalid_boolean" };
+				if (!parsed.ok) return parsed;
+
+				this.settings.flashOverlayEnabled = parsed.value;
+				if (!parsed.value) {
+					FlashOverlay.getInstance().hide();
+				}
+				await this.saveData(this.settings);
+
+				return parsed;
+			}
 		}
 	}
 
@@ -143,15 +164,17 @@ export default class Plugin extends BasePlugin {
 			}
 		};
 		const onNotify = (message: string, context: NotifierContext) => {
-			const overlayColor = match(context.state)
-				.with("focus", () => ({ r: 255, g: 100, b: 100 }))
-				.with("shortBreak", "longBreak", () => ({
-					r: 100,
-					g: 255,
-					b: 100,
-				}))
-				.exhaustive();
-			FlashOverlay.getInstance().show(overlayColor);
+			if (this.settings.flashOverlayEnabled) {
+				const overlayColor = match(context.state)
+					.with("focus", () => ({ r: 255, g: 100, b: 100 }))
+					.with("shortBreak", "longBreak", () => ({
+						r: 100,
+						g: 255,
+						b: 100,
+					}))
+					.exhaustive();
+				FlashOverlay.getInstance().show(overlayColor);
+			}
 			this.notifier.notify(message);
 		};
 		const onStartedFreshly = (state: IntervalTimerState) => {

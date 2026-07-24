@@ -100,6 +100,22 @@ export class SettingTab extends PluginSettingTab {
 					);
 				});
 		});
+
+		new Setting(containerEl)
+			.setName("Flash overlay")
+			.setDesc("Flash the screen with a color when an interval ends.")
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.flashOverlayEnabled)
+					.onChange(async (value) => {
+						await this.updateSettingOrShowValidationError(
+							"flashOverlayEnabled",
+							value,
+							toggle.toggleEl,
+							"Flash overlay",
+						);
+					});
+			});
 	}
 
 	private async updateSettingOrShowValidationError(
@@ -143,6 +159,8 @@ export class SettingTab extends PluginSettingTab {
 			case "non_positive_integer":
 				return `${settingLabel}: please enter a positive integer.`;
 			case "invalid_notification_style":
+				return `${settingLabel}: invalid option selected.`;
+			case "invalid_boolean":
 				return `${settingLabel}: invalid option selected.`;
 		}
 	}
