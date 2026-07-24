@@ -599,6 +599,71 @@ describe("StatusBarPopover", () => {
 		expect(popover).not.toHaveClass("interval-timer-popover-dragging");
 	});
 
+	it("hides the return button until the popover is moved", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		await createPopover(el);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
+			left: 100,
+			top: 200,
+			width: 250,
+			height: 150,
+		} as DOMRect);
+
+		// Act
+		await user.click(popover);
+
+		// Assert
+		expect(
+			el.querySelector(".interval-timer-popover-return"),
+		).toHaveProperty("tabIndex", -1);
+		expect(popover).not.toHaveClass("interval-timer-popover-moved");
+	});
+
+	it("returns a moved popover to its original position", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		await createPopover(el);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
+			left: 100,
+			top: 200,
+			width: 250,
+			height: 150,
+		} as DOMRect);
+		await user.click(popover);
+		fireEvent.pointerDown(popover, {
+			pointerId: 1,
+			clientX: 120,
+			clientY: 230,
+		});
+		fireEvent.pointerMove(popover, {
+			pointerId: 1,
+			clientX: 320,
+			clientY: 330,
+		});
+		fireEvent.pointerUp(popover, { pointerId: 1 });
+		expect(popover).toHaveClass("interval-timer-popover-moved");
+
+		// Act
+		await user.click(
+			within(el).getByRole("button", {
+				name: "Return to original position",
+			}),
+		);
+
+		// Assert
+		expect(popover).toHaveStyle({ left: "100px", top: "200px" });
+		expect(popover).not.toHaveClass("interval-timer-popover-moved");
+	});
+
 	it("does not start dragging from a popover control", async () => {
 		// Arrange
 		const user = userEvent.setup();

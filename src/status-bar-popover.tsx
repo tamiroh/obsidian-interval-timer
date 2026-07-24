@@ -209,6 +209,7 @@ const Popover = ({
 		null,
 	);
 	const [returnTarget, setReturnTarget] = useState<Position | null>(null);
+	const [floatingOrigin, setFloatingOrigin] = useState<Position | null>(null);
 	const [closingAnimationState, setClosingAnimationState] =
 		useState<ClosingAnimationState>({ current: "idle" });
 	const minutesButton = useRef<HTMLButtonElement>(null);
@@ -283,6 +284,7 @@ const Popover = ({
 		const statusBarBounds = container.getBoundingClientRect();
 		setClosingAnimationState({ current: "idle" });
 		setPopoverPosition({ left: bounds.left, top: bounds.top });
+		setFloatingOrigin({ left: bounds.left, top: bounds.top });
 		setReturnTarget({
 			left: statusBarBounds.left + statusBarBounds.width / 2,
 			top: statusBarBounds.top + statusBarBounds.height / 2,
@@ -294,6 +296,7 @@ const Popover = ({
 		setClosingAnimationState({ current: "completed" });
 		setReturnTarget(null);
 		setPopoverPosition(null);
+		setFloatingOrigin(null);
 		store.update({ isFloating: false, isDismissed: true });
 		if (restoreFocus) {
 			window.requestAnimationFrame(() => {
@@ -330,6 +333,14 @@ const Popover = ({
 			offsetY: returnTarget.top - (bounds.top + bounds.height / 2),
 			restoreFocus,
 		});
+	};
+
+	const handleReturnToOrigin = (
+		event: ReactMouseEvent<HTMLButtonElement>,
+	) => {
+		event.stopPropagation();
+		if (floatingOrigin) setPopoverPosition(floatingOrigin);
+		if (event.detail > 0) event.currentTarget.blur();
 	};
 
 	const handlePopoverPointerDown = (
@@ -377,12 +388,20 @@ const Popover = ({
 		setDrag(null);
 	};
 
+	const hasMovedFromOrigin =
+		isFloating &&
+		floatingOrigin !== null &&
+		popoverPosition !== null &&
+		(popoverPosition.left !== floatingOrigin.left ||
+			popoverPosition.top !== floatingOrigin.top);
+
 	const popoverClassName = [
 		"interval-timer-popover",
 		intervalTimerState === "focus"
 			? "interval-timer-popover-focus"
 			: "interval-timer-popover-break",
 		isFloating && "interval-timer-popover-floating",
+		hasMovedFromOrigin && "interval-timer-popover-moved",
 		closingAnimationState.current === "animating" &&
 			"interval-timer-popover-returning",
 		drag && "interval-timer-popover-dragging",
@@ -434,6 +453,19 @@ const Popover = ({
 				onClick={handleCloseClick}
 			>
 				<Icon name="x" className="interval-timer-popover-close-icon" />
+			</button>
+			<button
+				type="button"
+				className="interval-timer-popover-return"
+				aria-label="Return to original position"
+				aria-hidden={!hasMovedFromOrigin}
+				tabIndex={hasMovedFromOrigin ? 0 : -1}
+				onClick={handleReturnToOrigin}
+			>
+				<Icon
+					name="undo-2"
+					className="interval-timer-popover-return-icon"
+				/>
 			</button>
 			<div className="interval-timer-popover-body">
 				<div className="interval-timer-popover-clock">
