@@ -14,6 +14,7 @@ describe("parsePluginSetting", () => {
 				longBreakDuration: 30,
 				longBreakAfter: 3,
 				notificationStyle: "system",
+				flashOverlayEnabled: true,
 			}),
 		).toEqual({
 			focusIntervalDuration: 50,
@@ -21,6 +22,7 @@ describe("parsePluginSetting", () => {
 			longBreakDuration: 30,
 			longBreakAfter: 3,
 			notificationStyle: "system",
+			flashOverlayEnabled: true,
 		});
 	});
 
@@ -32,6 +34,7 @@ describe("parsePluginSetting", () => {
 				longBreakDuration: 7.5,
 				longBreakAfter: "invalid",
 				notificationStyle: "unknown",
+				flashOverlayEnabled: "yes",
 			}),
 		).toEqual(defaultPluginSetting);
 	});

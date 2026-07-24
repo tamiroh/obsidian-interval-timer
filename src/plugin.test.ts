@@ -64,6 +64,28 @@ describe("Plugin", () => {
 			reason: "invalid_notification_style",
 		});
 	});
+
+	it("updates the flash overlay setting", async () => {
+		const plugin = createPlugin();
+		await plugin.onload();
+
+		const result = await plugin.updateSetting("flashOverlayEnabled", true);
+
+		expect(result).toEqual({ ok: true, value: true });
+		expect(plugin.settings.flashOverlayEnabled).toBe(true);
+	});
+
+	it("rejects a non-boolean flash overlay setting", async () => {
+		const plugin = createPlugin();
+		await plugin.onload();
+
+		const result = await plugin.updateSetting("flashOverlayEnabled", "yes");
+
+		expect(result).toEqual({ ok: false, reason: "invalid_boolean" });
+		expect(plugin.settings.flashOverlayEnabled).toBe(
+			defaultPluginSetting.flashOverlayEnabled,
+		);
+	});
 });
 
 const createPlugin = (): Plugin => {
