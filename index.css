@@ -1,0 +1,8 @@
+@import url("./src/task-line-highlight-extension.css");
+@import url("./src/status-bar.css");
+@import url("./src/status-bar-popover.css");
+
+body {
+	--interval-timer-focus-color: #ee6152;
+	--interval-timer-break-color: #4cbd4f;
+}
