@@ -1,0 +1,34 @@
+.interval-timer-time-separator-running {
+	animation: interval-timer-blink 1s steps(1, end) infinite;
+}
+
+@keyframes interval-timer-blink {
+	50% {
+		visibility: hidden;
+	}
+}
+
+.interval-timer-status-bar {
+	--interval-timer-accent: var(--interval-timer-focus-color);
+
+	position: relative;
+	isolation: isolate;
+}
+
+.interval-timer-status-bar.interval-timer-status-bar-focus {
+	--interval-timer-accent: var(--interval-timer-focus-color);
+
+	color: var(--interval-timer-accent);
+}
+
+.interval-timer-status-bar.interval-timer-status-bar-break {
+	--interval-timer-accent: var(--interval-timer-break-color);
+
+	color: var(--interval-timer-accent);
+}
+
+@media (hover: hover) {
+	.status-bar-item.interval-timer-status-bar.mod-clickable:hover {
+		color: var(--interval-timer-accent);
+	}
+}
