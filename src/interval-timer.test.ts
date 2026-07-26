@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";
+import { minutesUpperBound } from "./time";
 
 describe("IntervalTimer", () => {
 	beforeEach(() => {
@@ -651,6 +652,44 @@ describe("IntervalTimer", () => {
 				reason: "invalid_minutes",
 			});
 			expect(handleChangeState).not.toHaveBeenCalled();
+
+			intervalTimer.dispose();
+		});
+
+		it("should reject minutes at or beyond the upper bound", () => {
+			// Arrange
+			const handleChangeState = vi.fn();
+			const settings: IntervalTimerSetting = {
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			};
+			const intervalTimer = new IntervalTimer(
+				handleChangeState,
+				settings,
+				() => {},
+			);
+			intervalTimer.applySnapshot({
+				state: "focus",
+				minutes: settings.focusIntervalDuration,
+				seconds: 0,
+				focusIntervals: { total: 0, set: 0 },
+			});
+			handleChangeState.mockClear();
+
+			// Act & Assert
+			expect(intervalTimer.retime(minutesUpperBound)).toEqual({
+				ok: false,
+				reason: "out_of_range_minutes",
+			});
+			expect(handleChangeState).not.toHaveBeenCalled();
+
+			expect(intervalTimer.retime(minutesUpperBound - 1)).toEqual({
+				ok: true,
+				value: undefined,
+			});
 
 			intervalTimer.dispose();
 		});
