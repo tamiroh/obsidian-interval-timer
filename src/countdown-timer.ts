@@ -200,17 +200,19 @@ export class CountdownTimer {
 
 		const remainingMinutes = Math.floor(remainingSeconds / 60);
 		this.state.currentTime = {
-			minutes: isMinutes(remainingMinutes) ? remainingMinutes : 0,
+			minutes: isMinutes(remainingMinutes)
+				? remainingMinutes
+				: this.state.currentTime.minutes,
 			seconds: (remainingSeconds % 60) as Seconds,
 		};
 		return "subtracted";
 	}
 
 	private computeRemainingSeconds(startAt: Date): number {
-		const elapsedSeconds = Math.floor(
-			(Date.now() - startAt.getTime()) / 1000,
+		const elapsedSeconds = Math.max(
+			0,
+			Math.floor((Date.now() - startAt.getTime()) / 1000),
 		);
-		const initialSeconds = toSeconds(this.initialTime);
-		return initialSeconds - elapsedSeconds;
+		return toSeconds(this.initialTime) - elapsedSeconds;
 	}
 }
