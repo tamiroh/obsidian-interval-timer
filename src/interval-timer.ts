@@ -44,7 +44,10 @@ export type NotifierContext = {
 	state: IntervalTimerState;
 };
 
-export type RetimeResult = Result<void, "invalid_minutes" | "timer_running">;
+export type RetimeResult = Result<
+	void,
+	"invalid_minutes" | "out_of_range_minutes" | "timer_running"
+>;
 
 export type TouchAction = "start" | "resume" | "reset" | "skip";
 
@@ -191,8 +194,11 @@ export class IntervalTimer {
 
 	public retime(minutes: number): RetimeResult {
 		const parsed = parsePositiveInteger(minutes);
-		if (!parsed.ok || !isMinutes(parsed.value)) {
+		if (!parsed.ok) {
 			return { ok: false, reason: "invalid_minutes" };
+		}
+		if (!isMinutes(parsed.value)) {
+			return { ok: false, reason: "out_of_range_minutes" };
 		}
 		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
 			return { ok: false, reason: "timer_running" };
