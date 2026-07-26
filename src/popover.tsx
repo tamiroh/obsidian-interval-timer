@@ -374,9 +374,11 @@ const PopoverView = ({
 		const popover = event.currentTarget;
 		const bounds = popover.getBoundingClientRect();
 		const computedStyle = getComputedStyle(popover);
+		const computedLeft = parseFloat(computedStyle.left);
+		const computedTop = parseFloat(computedStyle.top);
 		const cssPosition = {
-			left: parseFloat(computedStyle.left),
-			top: parseFloat(computedStyle.top),
+			left: Number.isFinite(computedLeft) ? computedLeft : bounds.left,
+			top: Number.isFinite(computedTop) ? computedTop : bounds.top,
 		};
 		if (!floatingOrigin) {
 			setFloatingOrigin(cssPosition);
