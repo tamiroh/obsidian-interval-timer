@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import type { Result } from "./result";
-import { Seconds, Time, toMilliseconds, toSeconds } from "./time";
+import { isMinutes, Seconds, Time, toMilliseconds, toSeconds } from "./time";
 
 export const timerTypes = [
 	"initialized",
@@ -198,18 +198,21 @@ export class CountdownTimer {
 			return "completed";
 		}
 
+		const remainingMinutes = Math.floor(remainingSeconds / 60);
 		this.state.currentTime = {
-			minutes: Math.floor(remainingSeconds / 60),
+			minutes: isMinutes(remainingMinutes)
+				? remainingMinutes
+				: this.state.currentTime.minutes,
 			seconds: (remainingSeconds % 60) as Seconds,
 		};
 		return "subtracted";
 	}
 
 	private computeRemainingSeconds(startAt: Date): number {
-		const elapsedSeconds = Math.floor(
-			(Date.now() - startAt.getTime()) / 1000,
+		const elapsedSeconds = Math.max(
+			0,
+			Math.floor((Date.now() - startAt.getTime()) / 1000),
 		);
-		const initialSeconds = toSeconds(this.initialTime);
-		return initialSeconds - elapsedSeconds;
+		return toSeconds(this.initialTime) - elapsedSeconds;
 	}
 }

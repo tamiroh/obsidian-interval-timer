@@ -1,14 +1,14 @@
 import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "./countdown-timer";
-import { Minutes, Seconds, Time } from "./time";
+import { isMinutes, Minutes, Seconds, Time } from "./time";
 import { DailyScheduler } from "./daily-scheduler";
 import { parsePositiveInteger } from "./value-parser";
 import type { Result } from "./result";
 
 export type IntervalTimerSetting = {
-	focusIntervalDuration: number;
-	shortBreakDuration: number;
-	longBreakDuration: number;
+	focusIntervalDuration: Minutes;
+	shortBreakDuration: Minutes;
+	longBreakDuration: Minutes;
 	longBreakAfter: number;
 	resetTime: { hours: number; minutes: number };
 };
@@ -44,7 +44,10 @@ export type NotifierContext = {
 	state: IntervalTimerState;
 };
 
-export type RetimeResult = Result<void, "invalid_minutes" | "timer_running">;
+export type RetimeResult = Result<
+	void,
+	"invalid_minutes" | "out_of_range_minutes" | "timer_running"
+>;
 
 export type TouchAction = "start" | "resume" | "reset" | "skip";
 
@@ -194,6 +197,9 @@ export class IntervalTimer {
 		if (!parsed.ok) {
 			return { ok: false, reason: "invalid_minutes" };
 		}
+		if (!isMinutes(parsed.value)) {
+			return { ok: false, reason: "out_of_range_minutes" };
+		}
 		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
 			return { ok: false, reason: "timer_running" };
 		}
@@ -285,7 +291,7 @@ export class IntervalTimer {
 		}
 	}
 
-	private createTimer(minutes: number, seconds: Seconds): CountdownTimer {
+	private createTimer(minutes: Minutes, seconds: Seconds): CountdownTimer {
 		const handlePause = (current: Time): void => {
 			this.onChangeState("paused", current);
 		};

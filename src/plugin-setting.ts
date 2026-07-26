@@ -1,10 +1,11 @@
 import { parsePositiveInteger } from "./value-parser";
+import { isMinutes, type Minutes } from "./time";
 import type { NotificationStyle } from "./notifier";
 
 export type PluginSetting = {
-	focusIntervalDuration: number;
-	shortBreakDuration: number;
-	longBreakDuration: number;
+	focusIntervalDuration: Minutes;
+	shortBreakDuration: Minutes;
+	longBreakDuration: Minutes;
 	longBreakAfter: number;
 	notificationStyle: NotificationStyle;
 	flashOverlayEnabled: boolean;
@@ -23,15 +24,15 @@ export const parsePluginSetting = (value: unknown): PluginSetting => {
 	const stored = isRecord(value) ? value : {};
 
 	return {
-		focusIntervalDuration: parsePositiveIntegerOrDefault(
+		focusIntervalDuration: parseDurationOrDefault(
 			stored.focusIntervalDuration,
 			defaultPluginSetting.focusIntervalDuration,
 		),
-		shortBreakDuration: parsePositiveIntegerOrDefault(
+		shortBreakDuration: parseDurationOrDefault(
 			stored.shortBreakDuration,
 			defaultPluginSetting.shortBreakDuration,
 		),
-		longBreakDuration: parsePositiveIntegerOrDefault(
+		longBreakDuration: parseDurationOrDefault(
 			stored.longBreakDuration,
 			defaultPluginSetting.longBreakDuration,
 		),
@@ -58,6 +59,11 @@ const parsePositiveIntegerOrDefault = (
 ): number => {
 	const parsed = parsePositiveInteger(value);
 	return parsed.ok ? parsed.value : fallback;
+};
+
+const parseDurationOrDefault = (value: unknown, fallback: Minutes): Minutes => {
+	const parsed = parsePositiveInteger(value);
+	return parsed.ok && isMinutes(parsed.value) ? parsed.value : fallback;
 };
 
 const isNotificationStyle = (value: unknown): value is NotificationStyle =>

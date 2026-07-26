@@ -19,6 +19,7 @@ import {
 	ParsePositiveIntegerResult,
 } from "./value-parser";
 import { parsePluginSetting, PluginSetting } from "./plugin-setting";
+import { isMinutes, type Minutes } from "./time";
 import type { Result } from "./result";
 
 export type { PluginSetting } from "./plugin-setting";
@@ -88,22 +89,33 @@ export default class Plugin extends BasePlugin {
 		value: unknown,
 	): Promise<
 		| ParsePositiveIntegerResult
+		| Result<Minutes, "out_of_range_minutes">
 		| ParseNotificationStyleResult
 		| ParseBooleanResult
 	> {
 		switch (key) {
 			case "focusIntervalDuration":
 			case "shortBreakDuration":
-			case "longBreakDuration":
+			case "longBreakDuration": {
+				const parsed = parsePositiveInteger(value);
+				if (!parsed.ok) return parsed;
+				if (!isMinutes(parsed.value)) {
+					return { ok: false, reason: "out_of_range_minutes" };
+				}
+
+				this.settings[key] = parsed.value;
+				this.intervalTimer.updateSettings({ [key]: parsed.value });
+				await this.saveData(this.settings);
+
+				return parsed;
+			}
 			case "longBreakAfter": {
 				const parsed = parsePositiveInteger(value);
 				if (!parsed.ok) return parsed;
 
 				this.settings[key] = parsed.value;
 				this.intervalTimer.updateSettings({ [key]: parsed.value });
-				if (key === "longBreakAfter") {
-					this.statusBar.updateLongBreakAfter(parsed.value);
-				}
+				this.statusBar.updateLongBreakAfter(parsed.value);
 				await this.saveData(this.settings);
 
 				return parsed;

@@ -1,4 +1,4 @@
-import { isSeconds, type Minutes, type Seconds } from "./time";
+import { isMinutes, isSeconds, type Minutes, type Seconds } from "./time";
 import type { Result, ResultFailureReason } from "./result";
 
 //
@@ -65,11 +65,18 @@ export function parseNonNegativeInteger(
 
 export type ParseMinutesResult = Result<
 	Minutes,
-	ResultFailureReason<ParseNonNegativeIntegerResult>
+	ResultFailureReason<ParseNonNegativeIntegerResult> | "out_of_range_minutes"
 >;
 
 export function parseMinutes(value: unknown): ParseMinutesResult {
-	return parseNonNegativeInteger(value);
+	const parsed = parseNonNegativeInteger(value);
+	if (!parsed.ok) {
+		return parsed;
+	}
+	if (!isMinutes(parsed.value)) {
+		return { ok: false, reason: "out_of_range_minutes" };
+	}
+	return { ok: true, value: parsed.value };
 }
 
 export type ParseSecondsResult = Result<
