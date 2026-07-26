@@ -1,14 +1,14 @@
 import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "./countdown-timer";
-import { Minutes, Seconds, Time } from "./time";
+import { isMinutes, Minutes, Seconds, Time } from "./time";
 import { DailyScheduler } from "./daily-scheduler";
 import { parsePositiveInteger } from "./value-parser";
 import type { Result } from "./result";
 
 export type IntervalTimerSetting = {
-	focusIntervalDuration: number;
-	shortBreakDuration: number;
-	longBreakDuration: number;
+	focusIntervalDuration: Minutes;
+	shortBreakDuration: Minutes;
+	longBreakDuration: Minutes;
 	longBreakAfter: number;
 	resetTime: { hours: number; minutes: number };
 };
@@ -191,7 +191,7 @@ export class IntervalTimer {
 
 	public retime(minutes: number): RetimeResult {
 		const parsed = parsePositiveInteger(minutes);
-		if (!parsed.ok) {
+		if (!parsed.ok || !isMinutes(parsed.value)) {
 			return { ok: false, reason: "invalid_minutes" };
 		}
 		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
@@ -285,7 +285,7 @@ export class IntervalTimer {
 		}
 	}
 
-	private createTimer(minutes: number, seconds: Seconds): CountdownTimer {
+	private createTimer(minutes: Minutes, seconds: Seconds): CountdownTimer {
 		const handlePause = (current: Time): void => {
 			this.onChangeState("paused", current);
 		};

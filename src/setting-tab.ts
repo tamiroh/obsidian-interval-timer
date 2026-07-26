@@ -1,5 +1,6 @@
 import { App, displayTooltip, PluginSettingTab, Setting } from "obsidian";
 import Plugin, { PluginSetting } from "./plugin";
+import { minutesUpperBound } from "./time";
 
 const VALIDATION_TOOLTIP_CLASS = "interval-timer-validation-tooltip";
 
@@ -158,6 +159,8 @@ export class SettingTab extends PluginSettingTab {
 				return `${settingLabel}: please enter a number.`;
 			case "non_positive_integer":
 				return `${settingLabel}: please enter a positive integer.`;
+			case "out_of_range_minutes":
+				return `${settingLabel}: please enter fewer than ${minutesUpperBound} minutes.`;
 			case "invalid_notification_style":
 				return `${settingLabel}: invalid option selected.`;
 			case "invalid_boolean":

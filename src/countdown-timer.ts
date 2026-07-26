@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import type { Result } from "./result";
-import { Seconds, Time, toMilliseconds, toSeconds } from "./time";
+import { isMinutes, Seconds, Time, toMilliseconds, toSeconds } from "./time";
 
 export const timerTypes = [
 	"initialized",
@@ -198,8 +198,9 @@ export class CountdownTimer {
 			return "completed";
 		}
 
+		const remainingMinutes = Math.floor(remainingSeconds / 60);
 		this.state.currentTime = {
-			minutes: Math.floor(remainingSeconds / 60),
+			minutes: isMinutes(remainingMinutes) ? remainingMinutes : 0,
 			seconds: (remainingSeconds % 60) as Seconds,
 		};
 		return "subtracted";

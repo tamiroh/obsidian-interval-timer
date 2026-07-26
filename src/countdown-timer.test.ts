@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CountdownTimer } from "./countdown-timer";
-import { Seconds, Time } from "./time";
+import { Time } from "./time";
 
 describe("CountdownTimer", () => {
 	beforeEach(() => {
@@ -434,7 +434,7 @@ describe("CountdownTimer", () => {
 	it("should not be affected by external mutation of initialTime", () => {
 		// Arrange
 		const handlePause = vi.fn();
-		const initialTime = { minutes: 1, seconds: 0 as Seconds };
+		const initialTime: Time = { minutes: 1, seconds: 0 };
 		const countdownTimer = new CountdownTimer(
 			initialTime,
 			vi.fn(),

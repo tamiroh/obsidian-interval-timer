@@ -1,71 +1,25 @@
-export type Minutes = number;
+type Enumerate<
+	N extends number,
+	Acc extends number[] = [],
+> = Acc["length"] extends N
+	? Acc[number]
+	: Enumerate<N, [...Acc, Acc["length"]]>;
 
-export type Seconds =
-	| 0
-	| 1
-	| 2
-	| 3
-	| 4
-	| 5
-	| 6
-	| 7
-	| 8
-	| 9
-	| 10
-	| 11
-	| 12
-	| 13
-	| 14
-	| 15
-	| 16
-	| 17
-	| 18
-	| 19
-	| 20
-	| 21
-	| 22
-	| 23
-	| 24
-	| 25
-	| 26
-	| 27
-	| 28
-	| 29
-	| 30
-	| 31
-	| 32
-	| 33
-	| 34
-	| 35
-	| 36
-	| 37
-	| 38
-	| 39
-	| 40
-	| 41
-	| 42
-	| 43
-	| 44
-	| 45
-	| 46
-	| 47
-	| 48
-	| 49
-	| 50
-	| 51
-	| 52
-	| 53
-	| 54
-	| 55
-	| 56
-	| 57
-	| 58
-	| 59;
+export const minutesUpperBound = 600;
+
+export const secondsUpperBound = 60;
+
+export type Minutes = Enumerate<typeof minutesUpperBound>;
+
+export type Seconds = Enumerate<typeof secondsUpperBound>;
 
 export type Time = { minutes: Minutes; seconds: Seconds };
 
+export const isMinutes = (value: number): value is Minutes =>
+	Number.isInteger(value) && value >= 0 && value < minutesUpperBound;
+
 export const isSeconds = (value: number): value is Seconds =>
-	Number.isInteger(value) && value >= 0 && value < 60;
+	Number.isInteger(value) && value >= 0 && value < secondsUpperBound;
 
 export const toSeconds = (time: Time): number =>
 	time.minutes * 60 + time.seconds;
