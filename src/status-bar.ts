@@ -1,7 +1,9 @@
 import { Time } from "./time";
 import { IntervalTimer, IntervalTimerState } from "./interval-timer";
 import { TimerType } from "./countdown-timer";
-import { StatusBarPopover } from "./status-bar-popover";
+import { Popover } from "./popover";
+
+const popoverFloatingClass = "interval-timer-status-bar-popover-floating";
 
 export class StatusBar {
 	private readonly statusBarItem: HTMLElement;
@@ -16,7 +18,7 @@ export class StatusBar {
 
 	private readonly compactSeconds: Text;
 
-	private readonly popover: StatusBarPopover;
+	private readonly popover: Popover;
 
 	private handleCompactClick: ((event: MouseEvent) => void) | null = null;
 
@@ -46,7 +48,21 @@ export class StatusBar {
 		this.compactSeconds = document.createTextNode("");
 		compactTime.append(this.compactSeconds);
 
-		this.popover = new StatusBarPopover(this.statusBarItem);
+		this.popover = new Popover(this.statusBarItem, {
+			getReturnTarget: () => {
+				const bounds = this.statusBarItem.getBoundingClientRect();
+				return {
+					left: bounds.left + bounds.width / 2,
+					top: bounds.top + bounds.height / 2,
+				};
+			},
+			onFloatingChange: (floating) =>
+				this.statusBarItem.classList.toggle(
+					popoverFloatingClass,
+					floating,
+				),
+			onRestoreFocus: () => this.compact.focus({ preventScroll: true }),
+		});
 	}
 
 	public update(
@@ -99,6 +115,7 @@ export class StatusBar {
 			);
 		}
 		this.popover.dispose();
+		this.statusBarItem.classList.remove(popoverFloatingClass);
 	}
 
 	public enableClick(intervalTimer: IntervalTimer): void {

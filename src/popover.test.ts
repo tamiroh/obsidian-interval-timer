@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";
 import { Notice } from "./obsidian-fake";
-import { StatusBarPopover } from "./status-bar-popover";
+import { Popover } from "./popover";
 
 const settings: IntervalTimerSetting = {
 	focusIntervalDuration: 25,
@@ -13,14 +13,21 @@ const settings: IntervalTimerSetting = {
 	resetTime: { hours: 0, minutes: 0 },
 };
 
-const popovers = new Set<StatusBarPopover>();
+const popovers = new Set<Popover>();
 const intervalTimers = new Set<IntervalTimer>();
+
+const createOptions = (returnTarget = { left: 0, top: 0 }) => ({
+	getReturnTarget: vi.fn(() => returnTarget),
+	onFloatingChange: vi.fn(),
+	onRestoreFocus: vi.fn(),
+});
 
 const createPopover = async (
 	container: HTMLElement,
-): Promise<StatusBarPopover> => {
+	options = createOptions(),
+): Promise<Popover> => {
 	document.body.append(container);
-	const popover = new StatusBarPopover(container);
+	const popover = new Popover(container, options);
 	popovers.add(popover);
 	await within(container).findByText("No task selected");
 	return popover;
@@ -52,7 +59,7 @@ const getRetimeForm = (container: HTMLElement): HTMLFormElement =>
 		".interval-timer-popover-inline-retime-form",
 	) as HTMLFormElement;
 
-describe("StatusBarPopover", () => {
+describe("Popover", () => {
 	beforeEach(() => {
 		Notice.messages = [];
 	});
@@ -520,7 +527,8 @@ describe("StatusBarPopover", () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
-		await createPopover(el);
+		const options = createOptions();
+		await createPopover(el, options);
 		const popover = el.querySelector(
 			".interval-timer-popover",
 		) as HTMLElement;
@@ -534,7 +542,7 @@ describe("StatusBarPopover", () => {
 
 		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-floating");
-		expect(el).toHaveClass("interval-timer-status-bar-popover-floating");
+		expect(options.onFloatingChange).toHaveBeenLastCalledWith(true);
 		expect(popover).toHaveStyle({
 			left: "24px",
 			top: "36px",
@@ -755,15 +763,8 @@ describe("StatusBarPopover", () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
-		el.createSpan({ cls: "interval-timer-status-bar-compact" }).tabIndex =
-			0;
-		vi.spyOn(el, "getBoundingClientRect").mockReturnValue({
-			left: 900,
-			top: 700,
-			width: 50,
-			height: 20,
-		} as DOMRect);
-		await createPopover(el);
+		const options = createOptions({ left: 925, top: 710 });
+		await createPopover(el, options);
 		const popover = el.querySelector(
 			".interval-timer-popover",
 		) as HTMLElement;
@@ -783,16 +784,14 @@ describe("StatusBarPopover", () => {
 		expect(popover).toHaveStyle({
 			transform: "translate(700px, 435px) scale(0.15)",
 		});
-		expect(el).toHaveClass("interval-timer-status-bar-popover-floating");
+		expect(options.onFloatingChange).toHaveBeenLastCalledWith(true);
 
 		// Act
 		fireEvent.transitionEnd(popover, { propertyName: "transform" });
 
 		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-dismissed");
-		expect(el).not.toHaveClass(
-			"interval-timer-status-bar-popover-floating",
-		);
+		expect(options.onFloatingChange).toHaveBeenLastCalledWith(false);
 		expect(popover.style.left).toBe("");
 		expect(popover.style.top).toBe("");
 	});
@@ -801,11 +800,8 @@ describe("StatusBarPopover", () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
-		const compact = el.createSpan({
-			cls: "interval-timer-status-bar-compact",
-		});
-		compact.tabIndex = 0;
-		await createPopover(el);
+		const options = createOptions();
+		await createPopover(el, options);
 		const popover = el.querySelector(
 			".interval-timer-popover",
 		) as HTMLElement;
@@ -824,7 +820,7 @@ describe("StatusBarPopover", () => {
 
 		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-dismissed");
-		await waitFor(() => expect(compact).toHaveFocus());
+		await waitFor(() => expect(options.onRestoreFocus).toHaveBeenCalled());
 	});
 
 	it("clears dismissal when focus returns to the status item", async () => {

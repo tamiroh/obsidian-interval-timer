@@ -4,7 +4,6 @@ import {
 	MouseEventHandler,
 	PointerEvent as ReactPointerEvent,
 	SyntheticEvent,
-	useLayoutEffect,
 	useRef,
 	useState,
 	useSyncExternalStore,
@@ -27,7 +26,6 @@ import { Time, toSeconds } from "./time";
 
 const setRingRadius = 35;
 const setRingStrokeWidth = 3.5;
-const floatingContainerClass = "interval-timer-status-bar-popover-floating";
 
 type PopoverSnapshot = {
 	time: Time;
@@ -65,10 +63,10 @@ type ClosingAnimationState =
 	| { current: "completed" };
 
 //
-// Status bar integration
+// Mounting
 //
 
-export class StatusBarPopover {
+export class Popover {
 	private readonly root: Root;
 
 	private readonly rootElement: HTMLSpanElement;
@@ -89,16 +87,21 @@ export class StatusBarPopover {
 
 	private intervalTotalSeconds = 0;
 
-	constructor(private readonly container: HTMLElement) {
+	constructor(
+		private readonly container: HTMLElement,
+		options: {
+			getReturnTarget: () => Position;
+			onFloatingChange: (floating: boolean) => void;
+			onRestoreFocus: () => void;
+		},
+	) {
 		this.rootElement = container.createSpan({
 			cls: "interval-timer-popover-root",
 		});
 		this.root = createRoot(this.rootElement);
 		container.addEventListener("mouseleave", this.handleDismissalReset);
 		container.addEventListener("focusin", this.handleDismissalReset);
-		this.root.render(
-			<Popover store={this.store} container={this.container} />,
-		);
+		this.root.render(<PopoverView store={this.store} {...options} />);
 	}
 
 	public dispose(): void {
@@ -183,12 +186,16 @@ export class StatusBarPopover {
 // Main component
 //
 
-const Popover = ({
+const PopoverView = ({
 	store,
-	container,
+	getReturnTarget,
+	onFloatingChange,
+	onRestoreFocus,
 }: {
 	store: ObservableStore<PopoverSnapshot>;
-	container: HTMLElement;
+	getReturnTarget: () => Position;
+	onFloatingChange: (floating: boolean) => void;
+	onRestoreFocus: () => void;
 }) => {
 	const {
 		intervalTimer,
@@ -220,11 +227,6 @@ const Popover = ({
 		intervalTimerState === "focus"
 			? (currentTaskName ?? "No task selected")
 			: "Break time";
-
-	useLayoutEffect(() => {
-		container.classList.toggle(floatingContainerClass, isFloating);
-		return () => container.classList.remove(floatingContainerClass);
-	}, [container, isFloating]);
 
 	const handleMinutesClick = () => {
 		suppressBlurApply.current = false;
@@ -281,15 +283,12 @@ const Popover = ({
 		if (isFloating) return;
 
 		const bounds = popover.getBoundingClientRect();
-		const statusBarBounds = container.getBoundingClientRect();
 		setClosingAnimationState({ current: "idle" });
 		setPopoverPosition({ left: bounds.left, top: bounds.top });
 		setFloatingOrigin({ left: bounds.left, top: bounds.top });
-		setReturnTarget({
-			left: statusBarBounds.left + statusBarBounds.width / 2,
-			top: statusBarBounds.top + statusBarBounds.height / 2,
-		});
+		setReturnTarget(getReturnTarget());
 		store.update({ isFloating: true });
+		onFloatingChange(true);
 	};
 
 	const dismiss = (restoreFocus: boolean) => {
@@ -298,14 +297,9 @@ const Popover = ({
 		setPopoverPosition(null);
 		setFloatingOrigin(null);
 		store.update({ isFloating: false, isDismissed: true });
+		onFloatingChange(false);
 		if (restoreFocus) {
-			window.requestAnimationFrame(() => {
-				container
-					.querySelector<HTMLElement>(
-						".interval-timer-status-bar-compact",
-					)
-					?.focus({ preventScroll: true });
-			});
+			window.requestAnimationFrame(() => onRestoreFocus());
 		}
 	};
 
