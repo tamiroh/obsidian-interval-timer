@@ -2,6 +2,7 @@ import { Time } from "./time";
 import { IntervalTimer, IntervalTimerState } from "./interval-timer";
 import { TimerType } from "./countdown-timer";
 import { Popover } from "./popover";
+import { defaultPluginSetting } from "./plugin-setting";
 
 const popoverFloatingClass = "interval-timer-status-bar-popover-floating";
 
@@ -70,7 +71,7 @@ export class StatusBar {
 		time: Time,
 		intervalTimerState: IntervalTimerState,
 		timerState: TimerType,
-		longBreakAfter = 4,
+		longBreakAfter = defaultPluginSetting.longBreakAfter,
 	): void {
 		this.compactIntervalCount.textContent = `${intervals.set}/${intervals.total} `;
 		this.compactMinutes.textContent = String(time.minutes).padStart(2, "0");

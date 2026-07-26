@@ -569,6 +569,37 @@ describe("Popover", () => {
 		expect(popover).toHaveClass("interval-timer-popover-floating");
 	});
 
+	it("starts floating immediately when floatOnMount is set", async () => {
+		// Arrange
+		const el = createDiv();
+		const options = { ...createOptions(), floatOnMount: true };
+
+		// Act
+		await createPopover(el, options);
+
+		// Assert
+		const popover = el.querySelector(".interval-timer-popover");
+		expect(popover).toHaveClass("interval-timer-popover-floating");
+	});
+
+	it("hides the close button when dismissible is false", async () => {
+		// Arrange
+		const el = createDiv();
+		const options = {
+			...createOptions(),
+			floatOnMount: true,
+			dismissible: false,
+		};
+
+		// Act
+		await createPopover(el, options);
+
+		// Assert
+		expect(
+			within(el).queryByRole("button", { name: "Close" }),
+		).not.toBeInTheDocument();
+	});
+
 	it("moves a floating popover by dragging it", async () => {
 		// Arrange
 		const user = userEvent.setup();
@@ -605,6 +636,48 @@ describe("Popover", () => {
 			top: "300px",
 		});
 		expect(popover).not.toHaveClass("interval-timer-popover-dragging");
+	});
+
+	it("accounts for a fixed-position origin offset when dragging", async () => {
+		// Arrange
+		const el = createDiv();
+		const options = { ...createOptions(), floatOnMount: true };
+		await createPopover(el, options);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+		const realGetComputedStyle = window.getComputedStyle;
+		vi.spyOn(window, "getComputedStyle").mockImplementation((target) =>
+			target === popover
+				? ({ left: "50px", top: "60px" } as CSSStyleDeclaration)
+				: realGetComputedStyle(target),
+		);
+		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
+			left: 90,
+			top: 100,
+			width: 250,
+			height: 150,
+		} as DOMRect);
+
+		// Act
+		fireEvent.pointerDown(popover, {
+			pointerId: 1,
+			clientX: 110,
+			clientY: 140,
+		});
+		vi.mocked(window.getComputedStyle).mockRestore();
+		fireEvent.pointerMove(popover, {
+			pointerId: 1,
+			clientX: 210,
+			clientY: 240,
+		});
+		fireEvent.pointerUp(popover, { pointerId: 1 });
+
+		// Assert
+		expect(popover).toHaveStyle({
+			left: "150px",
+			top: "160px",
+		});
 	});
 
 	it("hides the return button until the popover is moved", async () => {
@@ -669,6 +742,53 @@ describe("Popover", () => {
 
 		// Assert
 		expect(popover).toHaveStyle({ left: "100px", top: "200px" });
+		expect(popover).not.toHaveClass("interval-timer-popover-moved");
+	});
+
+	it("records the resting position as the return target when floating from mount", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		const options = { ...createOptions(), floatOnMount: true };
+		await createPopover(el, options);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+		const realGetComputedStyle = window.getComputedStyle;
+		vi.spyOn(window, "getComputedStyle").mockImplementation((target) =>
+			target === popover
+				? ({ left: "50px", top: "60px" } as CSSStyleDeclaration)
+				: realGetComputedStyle(target),
+		);
+		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
+			left: 90,
+			top: 100,
+			width: 250,
+			height: 150,
+		} as DOMRect);
+
+		// Act
+		fireEvent.pointerDown(popover, {
+			pointerId: 1,
+			clientX: 110,
+			clientY: 140,
+		});
+		vi.mocked(window.getComputedStyle).mockRestore();
+		fireEvent.pointerMove(popover, {
+			pointerId: 1,
+			clientX: 210,
+			clientY: 240,
+		});
+		fireEvent.pointerUp(popover, { pointerId: 1 });
+		expect(popover).toHaveClass("interval-timer-popover-moved");
+		await user.click(
+			within(el).getByRole("button", {
+				name: "Return to original position",
+			}),
+		);
+
+		// Assert
+		expect(popover).toHaveStyle({ left: "50px", top: "60px" });
 		expect(popover).not.toHaveClass("interval-timer-popover-moved");
 	});
 

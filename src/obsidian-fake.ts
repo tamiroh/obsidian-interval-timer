@@ -13,6 +13,10 @@ import type {
 
 export class TFile {}
 
+export const Platform = {
+	isMobile: false,
+};
+
 export class Plugin implements Pick<
 	RealPlugin,
 	| "app"
