@@ -1,6 +1,14 @@
 import { fireEvent, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+	type MockInstance,
+} from "vitest";
 import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";
 import { Notice } from "./obsidian-fake";
 import { Popover } from "./popover";
@@ -58,6 +66,22 @@ const getRetimeForm = (container: HTMLElement): HTMLFormElement =>
 	container.querySelector(
 		".interval-timer-popover-inline-retime-form",
 	) as HTMLFormElement;
+
+const mockComputedStyleFor = (
+	target: HTMLElement,
+	style: Partial<CSSStyleDeclaration>,
+): MockInstance<typeof window.getComputedStyle> => {
+	const realGetComputedStyle = (element: Element): CSSStyleDeclaration =>
+		window.getComputedStyle(element);
+
+	return vi
+		.spyOn(window, "getComputedStyle")
+		.mockImplementation((element) =>
+			element === target
+				? (style as CSSStyleDeclaration)
+				: realGetComputedStyle(element),
+		);
+};
 
 describe("Popover", () => {
 	beforeEach(() => {
@@ -646,12 +670,10 @@ describe("Popover", () => {
 		const popover = el.querySelector(
 			".interval-timer-popover",
 		) as HTMLElement;
-		const realGetComputedStyle = window.getComputedStyle;
-		vi.spyOn(window, "getComputedStyle").mockImplementation((target) =>
-			target === popover
-				? ({ left: "50px", top: "60px" } as CSSStyleDeclaration)
-				: realGetComputedStyle(target),
-		);
+		const computedStyleSpy = mockComputedStyleFor(popover, {
+			left: "50px",
+			top: "60px",
+		});
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 90,
 			top: 100,
@@ -665,7 +687,7 @@ describe("Popover", () => {
 			clientX: 110,
 			clientY: 140,
 		});
-		vi.mocked(window.getComputedStyle).mockRestore();
+		computedStyleSpy.mockRestore();
 		fireEvent.pointerMove(popover, {
 			pointerId: 1,
 			clientX: 210,
@@ -754,12 +776,10 @@ describe("Popover", () => {
 		const popover = el.querySelector(
 			".interval-timer-popover",
 		) as HTMLElement;
-		const realGetComputedStyle = window.getComputedStyle;
-		vi.spyOn(window, "getComputedStyle").mockImplementation((target) =>
-			target === popover
-				? ({ left: "50px", top: "60px" } as CSSStyleDeclaration)
-				: realGetComputedStyle(target),
-		);
+		const computedStyleSpy = mockComputedStyleFor(popover, {
+			left: "50px",
+			top: "60px",
+		});
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 90,
 			top: 100,
@@ -773,7 +793,7 @@ describe("Popover", () => {
 			clientX: 110,
 			clientY: 140,
 		});
-		vi.mocked(window.getComputedStyle).mockRestore();
+		computedStyleSpy.mockRestore();
 		fireEvent.pointerMove(popover, {
 			pointerId: 1,
 			clientX: 210,
