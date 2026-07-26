@@ -1,4 +1,10 @@
-import { App, Notice, Plugin as BasePlugin, PluginManifest } from "obsidian";
+import {
+	App,
+	Notice,
+	Platform,
+	Plugin as BasePlugin,
+	PluginManifest,
+} from "obsidian";
 import { match } from "ts-pattern";
 import { SettingTab } from "./setting-tab";
 import {
@@ -8,6 +14,7 @@ import {
 	onChangeStateFunction,
 } from "./interval-timer";
 import { StatusBar } from "./status-bar";
+import { FloatingTimer } from "./floating-timer";
 import { KeyValueStore } from "./key-value-store";
 import { NotificationStyle, Notifier, createNotifier } from "./notifier";
 import { FlashOverlay } from "./flash-overlay";
@@ -34,7 +41,7 @@ type ParseBooleanResult = Result<boolean, "invalid_boolean">;
 export default class Plugin extends BasePlugin {
 	public override settings!: PluginSetting;
 
-	private statusBar: StatusBar;
+	private timerDisplay: StatusBar | FloatingTimer;
 
 	private intervalTimer!: IntervalTimer;
 
@@ -61,7 +68,9 @@ export default class Plugin extends BasePlugin {
 			() => this.intervalTimer.state === "focus",
 			() => this.syncCurrentTask(),
 		);
-		this.statusBar = new StatusBar(this.addStatusBarItem());
+		this.timerDisplay = Platform.isMobile
+			? new FloatingTimer(this.app)
+			: new StatusBar(this.addStatusBarItem());
 	}
 
 	public override async onload(): Promise<void> {
@@ -72,7 +81,7 @@ export default class Plugin extends BasePlugin {
 		this.addCommands();
 		this.addSettingTab(new SettingTab(this.app, this));
 
-		this.statusBar.enableClick(this.intervalTimer);
+		this.timerDisplay.enableClick(this.intervalTimer);
 		this.registerDomEvent(window, "focus", () =>
 			this.notifier.clearNotification(),
 		);
@@ -80,7 +89,7 @@ export default class Plugin extends BasePlugin {
 
 	public override onunload(): void {
 		FlashOverlay.dispose();
-		this.statusBar.dispose();
+		this.timerDisplay.dispose();
 		this.intervalTimer.dispose();
 	}
 
@@ -115,7 +124,7 @@ export default class Plugin extends BasePlugin {
 
 				this.settings[key] = parsed.value;
 				this.intervalTimer.updateSettings({ [key]: parsed.value });
-				this.statusBar.updateLongBreakAfter(parsed.value);
+				this.timerDisplay.updateLongBreakAfter(parsed.value);
 				await this.saveData(this.settings);
 
 				return parsed;
@@ -164,7 +173,7 @@ export default class Plugin extends BasePlugin {
 				time,
 				intervals,
 			);
-			this.statusBar.update(
+			this.timerDisplay.update(
 				intervals,
 				time,
 				intervalTimerState,
@@ -252,7 +261,7 @@ export default class Plugin extends BasePlugin {
 	}
 
 	private syncCurrentTask(): void {
-		this.statusBar.updateTrackedTask(
+		this.timerDisplay.updateTrackedTask(
 			this.taskTracker.getTrackedTaskName() ??
 				this.taskTracker.getTaskNameFromActiveLine(),
 		);

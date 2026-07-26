@@ -19,6 +19,7 @@ import {
 } from "./interval-timer";
 import { ObservableStore } from "./observable-store";
 import { minutesUpperBound, Time, toSeconds } from "./time";
+import { defaultPluginSetting } from "./plugin-setting";
 
 //
 // Constants and types
@@ -45,6 +46,8 @@ type Drag = {
 	pointerId: number;
 	offsetX: number;
 	offsetY: number;
+	originX: number;
+	originY: number;
 };
 
 type Position = {
@@ -71,19 +74,7 @@ export class Popover {
 
 	private readonly rootElement: HTMLSpanElement;
 
-	private readonly store = new ObservableStore<PopoverSnapshot>({
-		time: { minutes: 0, seconds: 0 },
-		intervalTimerState: "focus",
-		timerState: "initialized",
-		intervalsSet: 0,
-		longBreakAfter: 4,
-		remainingPercent: 0,
-		currentTaskName: null,
-		isFloating: false,
-		isDismissed: false,
-		touchAction: "start",
-		intervalTimer: null,
-	});
+	private readonly store: ObservableStore<PopoverSnapshot>;
 
 	private intervalTotalSeconds = 0;
 
@@ -93,15 +84,38 @@ export class Popover {
 			getReturnTarget: () => Position;
 			onFloatingChange: (floating: boolean) => void;
 			onRestoreFocus: () => void;
+			floatOnMount?: boolean;
+			dismissible?: boolean;
 		},
 	) {
+		this.store = new ObservableStore<PopoverSnapshot>({
+			time: { minutes: 0, seconds: 0 },
+			intervalTimerState: "focus",
+			timerState: "initialized",
+			intervalsSet: 0,
+			longBreakAfter: defaultPluginSetting.longBreakAfter,
+			remainingPercent: 0,
+			currentTaskName: null,
+			isFloating: options.floatOnMount ?? false,
+			isDismissed: false,
+			touchAction: "start",
+			intervalTimer: null,
+		});
 		this.rootElement = container.createSpan({
 			cls: "interval-timer-popover-root",
 		});
 		this.root = createRoot(this.rootElement);
 		container.addEventListener("mouseleave", this.handleDismissalReset);
 		container.addEventListener("focusin", this.handleDismissalReset);
-		this.root.render(<PopoverView store={this.store} {...options} />);
+		this.root.render(
+			<PopoverView
+				store={this.store}
+				getReturnTarget={options.getReturnTarget}
+				onFloatingChange={options.onFloatingChange}
+				onRestoreFocus={options.onRestoreFocus}
+				dismissible={options.dismissible ?? true}
+			/>,
+		);
 	}
 
 	public dispose(): void {
@@ -122,7 +136,7 @@ export class Popover {
 		intervalTimerState: IntervalTimerState,
 		timerState: TimerType,
 		intervalsSet = 0,
-		longBreakAfter = 4,
+		longBreakAfter = defaultPluginSetting.longBreakAfter,
 	): void {
 		const remainingSeconds = toSeconds(time);
 		if (timerState === "initialized" || this.intervalTotalSeconds === 0) {
@@ -191,11 +205,13 @@ const PopoverView = ({
 	getReturnTarget,
 	onFloatingChange,
 	onRestoreFocus,
+	dismissible = true,
 }: {
 	store: ObservableStore<PopoverSnapshot>;
 	getReturnTarget: () => Position;
 	onFloatingChange: (floating: boolean) => void;
 	onRestoreFocus: () => void;
+	dismissible?: boolean;
 }) => {
 	const {
 		intervalTimer,
@@ -291,7 +307,7 @@ const PopoverView = ({
 		}
 	};
 
-	const startFloating = (popover: HTMLDivElement) => {
+	const enterFloatingMode = (popover: HTMLDivElement) => {
 		if (isFloating) return;
 
 		const bounds = popover.getBoundingClientRect();
@@ -355,13 +371,26 @@ const PopoverView = ({
 		if (!isFloating) return;
 		if (isNonDraggableTarget(event.target)) return;
 
-		const bounds = event.currentTarget.getBoundingClientRect();
+		const popover = event.currentTarget;
+		const bounds = popover.getBoundingClientRect();
+		const computedStyle = getComputedStyle(popover);
+		const computedLeft = parseFloat(computedStyle.left);
+		const computedTop = parseFloat(computedStyle.top);
+		const cssPosition = {
+			left: Number.isFinite(computedLeft) ? computedLeft : bounds.left,
+			top: Number.isFinite(computedTop) ? computedTop : bounds.top,
+		};
+		if (!floatingOrigin) {
+			setFloatingOrigin(cssPosition);
+		}
 		setDrag({
 			pointerId: event.pointerId,
 			offsetX: event.clientX - bounds.left,
 			offsetY: event.clientY - bounds.top,
+			originX: bounds.left - cssPosition.left,
+			originY: bounds.top - cssPosition.top,
 		});
-		event.currentTarget.setPointerCapture?.(event.pointerId);
+		popover.setPointerCapture?.(event.pointerId);
 	};
 
 	const handlePopoverPointerMove = (
@@ -370,15 +399,17 @@ const PopoverView = ({
 		if (drag?.pointerId !== event.pointerId) return;
 
 		const bounds = event.currentTarget.getBoundingClientRect();
+		const left = clamp(
+			event.clientX - drag.offsetX,
+			window.innerWidth - bounds.width,
+		);
+		const top = clamp(
+			event.clientY - drag.offsetY,
+			window.innerHeight - bounds.height,
+		);
 		setPopoverPosition({
-			left: clamp(
-				event.clientX - drag.offsetX,
-				window.innerWidth - bounds.width,
-			),
-			top: clamp(
-				event.clientY - drag.offsetY,
-				window.innerHeight - bounds.height,
-			),
+			left: left - drag.originX,
+			top: top - drag.originY,
 		});
 	};
 
@@ -387,7 +418,7 @@ const PopoverView = ({
 		if (isFloating || !isFloatingKey(event.key)) return;
 
 		event.preventDefault();
-		startFloating(event.currentTarget);
+		enterFloatingMode(event.currentTarget);
 	};
 
 	const handlePopoverPointerEnd = () => {
@@ -412,6 +443,7 @@ const PopoverView = ({
 			"interval-timer-popover-returning",
 		drag && "interval-timer-popover-dragging",
 		isDismissed && "interval-timer-popover-dismissed",
+		!dismissible && "interval-timer-popover-no-close",
 	]
 		.filter(Boolean)
 		.join(" ");
@@ -447,19 +479,24 @@ const PopoverView = ({
 			onContextMenu={(event) => blurFocusWithin(event.currentTarget)}
 			onClick={(event) => {
 				event.stopPropagation();
-				startFloating(event.currentTarget);
+				enterFloatingMode(event.currentTarget);
 			}}
 		>
-			<button
-				type="button"
-				className="interval-timer-popover-close"
-				aria-label="Close"
-				aria-hidden={!isFloating}
-				tabIndex={isFloating ? 0 : -1}
-				onClick={handleCloseClick}
-			>
-				<Icon name="x" className="interval-timer-popover-close-icon" />
-			</button>
+			{dismissible && (
+				<button
+					type="button"
+					className="interval-timer-popover-close"
+					aria-label="Close"
+					aria-hidden={!isFloating}
+					tabIndex={isFloating ? 0 : -1}
+					onClick={handleCloseClick}
+				>
+					<Icon
+						name="x"
+						className="interval-timer-popover-close-icon"
+					/>
+				</button>
+			)}
 			<button
 				type="button"
 				className="interval-timer-popover-return"

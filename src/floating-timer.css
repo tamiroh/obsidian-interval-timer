@@ -1,0 +1,10 @@
+.interval-timer-floating-timer {
+	position: absolute;
+	z-index: var(--layer-popover, 100);
+}
+
+.interval-timer-floating-timer
+	.interval-timer-popover.interval-timer-popover-floating {
+	top: calc(var(--header-height, 40px) + 32px);
+	right: 32px;
+}

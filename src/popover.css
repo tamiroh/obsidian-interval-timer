@@ -106,7 +106,7 @@
 	visibility: hidden;
 }
 
-button.interval-timer-popover-close {
+.interval-timer-popover button.interval-timer-popover-close {
 	position: absolute;
 	z-index: 1;
 	top: -9px;
@@ -154,7 +154,7 @@ button.interval-timer-popover-close:focus-visible {
 	height: 14px;
 }
 
-button.interval-timer-popover-return {
+.interval-timer-popover button.interval-timer-popover-return {
 	position: absolute;
 	z-index: 1;
 	top: -9px;
@@ -181,6 +181,10 @@ button.interval-timer-popover-return {
 .interval-timer-popover-moved button.interval-timer-popover-return {
 	opacity: 1;
 	pointer-events: auto;
+}
+
+.interval-timer-popover-no-close button.interval-timer-popover-return {
+	right: -9px;
 }
 
 button.interval-timer-popover-return:hover,
@@ -280,7 +284,7 @@ button.interval-timer-popover-return:focus-visible {
 	line-height: 22px;
 }
 
-button.interval-timer-popover-clock-minutes {
+.interval-timer-popover button.interval-timer-popover-clock-minutes {
 	position: relative;
 	min-height: 0;
 	min-width: 0;
@@ -418,8 +422,8 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 	margin-top: auto;
 }
 
-button.interval-timer-popover-touch-action,
-button.interval-timer-popover-reset-set {
+.interval-timer-popover button.interval-timer-popover-touch-action,
+.interval-timer-popover button.interval-timer-popover-reset-set {
 	display: inline-flex;
 	gap: 4px;
 	align-items: center;
