@@ -92,7 +92,9 @@ describe("FloatingTimer", () => {
 		document.body.append(leafContainer);
 
 		// Act
-		const floatingTimer = new FloatingTimer(createAppWithLeaf(leafContainer));
+		const floatingTimer = new FloatingTimer(
+			createAppWithLeaf(leafContainer),
+		);
 
 		// Assert
 		expect(
