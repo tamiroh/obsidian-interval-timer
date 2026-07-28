@@ -10,8 +10,8 @@ import { SettingTab } from "./setting-tab";
 import {
 	IntervalTimer,
 	IntervalTimerState,
+	type IntervalTimerStatus,
 	NotifierContext,
-	onChangeStateFunction,
 } from "./interval-timer";
 import { StatusBar } from "./status-bar";
 import { FloatingTimer } from "./floating-timer";
@@ -37,6 +37,12 @@ type ParseNotificationStyleResult = Result<
 >;
 
 type ParseBooleanResult = Result<boolean, "invalid_boolean">;
+
+const intervalNotificationMessages = {
+	focus: "⏰  Now it's time to focus",
+	shortBreak: "☕️  Time for a short break",
+	longBreak: "🏖️  Time for a long break",
+};
 
 export default class Plugin extends BasePlugin {
 	public override settings!: PluginSetting;
@@ -162,21 +168,19 @@ export default class Plugin extends BasePlugin {
 	}
 
 	private setupIntervalTimer(): void {
-		const onChangeState: onChangeStateFunction = (
+		const updateTimerState = ({
 			timerState,
-			intervalTimerState,
-			time,
-			intervals,
-		) => {
+			snapshot,
+		}: IntervalTimerStatus) => {
 			this.intervalTimerSnapshotStore.save(
-				intervalTimerState,
-				time,
-				intervals,
+				snapshot.state,
+				snapshot,
+				snapshot.focusIntervals,
 			);
 			this.timerDisplay.update(
-				intervals,
-				time,
-				intervalTimerState,
+				snapshot.focusIntervals,
+				snapshot,
+				snapshot.state,
 				timerState,
 				this.settings.longBreakAfter,
 			);
@@ -221,7 +225,7 @@ export default class Plugin extends BasePlugin {
 		const snapshot = this.intervalTimerSnapshotStore.load();
 
 		this.intervalTimer = new IntervalTimer(
-			onChangeState,
+			() => {},
 			{
 				focusIntervalDuration: this.settings.focusIntervalDuration,
 				shortBreakDuration: this.settings.shortBreakDuration,
@@ -229,10 +233,29 @@ export default class Plugin extends BasePlugin {
 				longBreakAfter: this.settings.longBreakAfter,
 				resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
 			},
-			onNotify,
-			onStartedFreshly,
-			onFocusIntervalEnded,
+			() => {},
 		);
+		this.intervalTimer.subscribe((event) => {
+			switch (event.type) {
+				case "state-changed":
+					updateTimerState(event);
+					break;
+				case "timer-started":
+					if (event.mode === "fresh") {
+						onStartedFreshly(event.snapshot.state);
+					}
+					break;
+				case "focus-interval-ended":
+					onFocusIntervalEnded();
+					break;
+				case "interval-completed":
+					onNotify(intervalNotificationMessages[event.to], {
+						state: event.to,
+					});
+					break;
+			}
+		});
+		updateTimerState(this.intervalTimer.status);
 		if (snapshot !== null) {
 			this.intervalTimer.applySnapshot(snapshot);
 		}

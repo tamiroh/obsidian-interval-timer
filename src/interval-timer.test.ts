@@ -1,5 +1,9 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";
+import {
+	IntervalTimer,
+	type IntervalTimerEvent,
+	IntervalTimerSetting,
+} from "./interval-timer";
 import { minutesUpperBound } from "./time";
 
 describe("IntervalTimer", () => {
@@ -1354,6 +1358,84 @@ describe("IntervalTimer", () => {
 				{ minutes: 25, seconds: 0 },
 				{ set: 0, total: 0 },
 			);
+
+			intervalTimer.dispose();
+		});
+	});
+
+	describe("Events", () => {
+		const settings: IntervalTimerSetting = {
+			focusIntervalDuration: 1,
+			shortBreakDuration: 1,
+			longBreakDuration: 1,
+			longBreakAfter: 4,
+			resetTime: { hours: 0, minutes: 0 },
+		};
+
+		const createTimer = (): IntervalTimer =>
+			new IntervalTimer(
+				() => {},
+				settings,
+				() => {},
+			);
+
+		it("should publish state and operation events with a snapshot", () => {
+			const intervalTimer = createTimer();
+			const events: IntervalTimerEvent[] = [];
+			intervalTimer.subscribe((event) => events.push(event));
+
+			intervalTimer.start();
+
+			expect(events.map((event) => event.type)).toStrictEqual([
+				"state-changed",
+				"timer-started",
+			]);
+			expect(events[1]).toMatchObject({
+				type: "timer-started",
+				mode: "fresh",
+				snapshot: {
+					minutes: 1,
+					seconds: 0,
+					state: "focus",
+					focusIntervals: { total: 0, set: 0 },
+				},
+			});
+			expect(events[1]?.occurredAt).toBeInstanceOf(Date);
+
+			intervalTimer.dispose();
+		});
+
+		it("should distinguish skipped and completed intervals", () => {
+			const intervalTimer = createTimer();
+			const events: IntervalTimerEvent[] = [];
+			intervalTimer.subscribe((event) => events.push(event));
+
+			intervalTimer.skipInterval();
+			intervalTimer.start();
+			vi.advanceTimersByTime(60_000);
+
+			expect(
+				events.find((event) => event.type === "focus-interval-ended"),
+			).toMatchObject({ reason: "skipped" });
+			expect(
+				events.find((event) => event.type === "interval-skipped"),
+			).toMatchObject({ from: "focus", to: "shortBreak" });
+			expect(
+				events.find((event) => event.type === "interval-completed"),
+			).toMatchObject({ from: "shortBreak", to: "focus" });
+
+			intervalTimer.dispose();
+		});
+
+		it("should stop publishing to an unsubscribed listener", () => {
+			const intervalTimer = createTimer();
+			const listener = vi.fn();
+			const unsubscribe = intervalTimer.subscribe(listener);
+
+			unsubscribe();
+			intervalTimer.start();
+
+			expect(listener).not.toHaveBeenCalled();
 
 			intervalTimer.dispose();
 		});
