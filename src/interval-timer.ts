@@ -55,7 +55,13 @@ type IntervalTimerEventDetails =
 			reason: "completed" | "skipped";
 	  }
 	| {
-			type: "interval-completed" | "interval-skipped";
+			type: "interval-completed";
+			from: IntervalTimerState;
+			to: IntervalTimerState;
+			notificationMessage: string;
+	  }
+	| {
+			type: "interval-skipped";
 			from: IntervalTimerState;
 			to: IntervalTimerState;
 	  };
@@ -231,11 +237,8 @@ export class IntervalTimer {
 	}
 
 	public skipInterval(): void {
-		this.currentInterval.timer.pause();
-		this.enterNextInterval({
-			reason: "skipped",
-			shouldNotify: false,
-		});
+		this.currentInterval.timer.dispose();
+		this.enterNextInterval({ reason: "skipped" });
 	}
 
 	public retime(minutes: number): RetimeResult {
@@ -304,10 +307,8 @@ export class IntervalTimer {
 
 	private enterNextInterval({
 		reason,
-		shouldNotify = true,
 	}: {
 		reason: "completed" | "skipped";
-		shouldNotify?: boolean;
 	}): void {
 		const previousState = this.currentInterval.state;
 		if (previousState === "focus") {
@@ -341,23 +342,27 @@ export class IntervalTimer {
 			})
 			.exhaustive();
 
-		if (shouldNotify) {
-			this.notifier(
-				match(this.currentInterval.state)
-					.with("focus", () => "⏰  Now it's time to focus")
-					.with("shortBreak", () => "☕️  Time for a short break")
-					.with("longBreak", () => "🏖️  Time for a long break")
-					.exhaustive(),
-				{ state: this.currentInterval.state },
-			);
+		if (reason === "skipped") {
+			this.emit({
+				type: "interval-skipped",
+				from: previousState,
+				to: this.currentInterval.state,
+			});
+			return;
 		}
+		const notificationMessage = match(this.currentInterval.state)
+			.with("focus", () => "⏰  Now it's time to focus")
+			.with("shortBreak", () => "☕️  Time for a short break")
+			.with("longBreak", () => "🏖️  Time for a long break")
+			.exhaustive();
+		this.notifier(notificationMessage, {
+			state: this.currentInterval.state,
+		});
 		this.emit({
-			type:
-				reason === "completed"
-					? "interval-completed"
-					: "interval-skipped",
+			type: "interval-completed",
 			from: previousState,
 			to: this.currentInterval.state,
+			notificationMessage,
 		});
 	}
 

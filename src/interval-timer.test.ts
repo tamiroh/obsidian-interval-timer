@@ -1410,10 +1410,17 @@ describe("IntervalTimer", () => {
 			const events: IntervalTimerEvent[] = [];
 			intervalTimer.subscribe((event) => events.push(event));
 
+			intervalTimer.start();
 			intervalTimer.skipInterval();
 			intervalTimer.start();
 			vi.advanceTimersByTime(60_000);
 
+			expect(events).not.toContainEqual(
+				expect.objectContaining({
+					type: "state-changed",
+					timerState: "paused",
+				}),
+			);
 			expect(
 				events.find((event) => event.type === "focus-interval-ended"),
 			).toMatchObject({ reason: "skipped" });
@@ -1422,7 +1429,11 @@ describe("IntervalTimer", () => {
 			).toMatchObject({ from: "focus", to: "shortBreak" });
 			expect(
 				events.find((event) => event.type === "interval-completed"),
-			).toMatchObject({ from: "shortBreak", to: "focus" });
+			).toMatchObject({
+				from: "shortBreak",
+				to: "focus",
+				notificationMessage: "⏰  Now it's time to focus",
+			});
 
 			intervalTimer.dispose();
 		});

@@ -38,12 +38,6 @@ type ParseNotificationStyleResult = Result<
 
 type ParseBooleanResult = Result<boolean, "invalid_boolean">;
 
-const intervalNotificationMessages = {
-	focus: "⏰  Now it's time to focus",
-	shortBreak: "☕️  Time for a short break",
-	longBreak: "🏖️  Time for a long break",
-};
-
 export default class Plugin extends BasePlugin {
 	public override settings!: PluginSetting;
 
@@ -249,7 +243,7 @@ export default class Plugin extends BasePlugin {
 					onFocusIntervalEnded();
 					break;
 				case "interval-completed":
-					onNotify(intervalNotificationMessages[event.to], {
+					onNotify(event.notificationMessage, {
 						state: event.to,
 					});
 					break;
