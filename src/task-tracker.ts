@@ -15,6 +15,11 @@ export type IncrementTrackedTaskResult = Result<
 	"tracked_task_not_found" | "tracked_file_not_found" | "task_not_found"
 >;
 
+export type TaskReference = {
+	name: string;
+	path: string;
+};
+
 export class TaskTracker {
 	private readonly app: App;
 
@@ -57,6 +62,12 @@ export class TaskTracker {
 		return taskLineOnCursor.taskName;
 	}
 
+	public getTaskFromActiveLine(): TaskReference | null {
+		const path = this.app.workspace.getActiveFile()?.path;
+		const name = this.getTaskNameFromActiveLine();
+		return path && name ? { name, path } : null;
+	}
+
 	public async incrementTrackedTask(): Promise<IncrementTrackedTaskResult> {
 		const name = this.keyValueStore.get("current-task-name");
 		const filePath = this.keyValueStore.get("current-task-path");
@@ -90,5 +101,11 @@ export class TaskTracker {
 
 	public getTrackedTaskName(): string | null {
 		return this.keyValueStore.get("current-task-name");
+	}
+
+	public getTrackedTask(): TaskReference | null {
+		const name = this.keyValueStore.get("current-task-name");
+		const path = this.keyValueStore.get("current-task-path");
+		return name && path ? { name, path } : null;
 	}
 }

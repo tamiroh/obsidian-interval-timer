@@ -50,6 +50,7 @@ type IntervalTimerEventDetails =
 	| { type: "timer-started"; mode: "fresh" | "resumed" }
 	| { type: "timer-paused" }
 	| { type: "timer-reset" }
+	| { type: "intervals-reset"; scope: "set" | "total" }
 	| {
 			type: "focus-interval-ended";
 			reason: "completed" | "skipped";
@@ -226,6 +227,7 @@ export class IntervalTimer {
 			minutes: this.settings.longBreakDuration,
 			seconds: 0,
 		});
+		this.emit({ type: "intervals-reset", scope: "set" });
 	}
 
 	public resetTotalIntervals(): void {
@@ -234,6 +236,7 @@ export class IntervalTimer {
 			minutes: this.settings.focusIntervalDuration,
 			seconds: 0,
 		});
+		this.emit({ type: "intervals-reset", scope: "total" });
 	}
 
 	public skipInterval(): void {
