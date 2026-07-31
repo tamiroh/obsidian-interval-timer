@@ -1,5 +1,5 @@
 import { App, displayTooltip, PluginSettingTab, Setting } from "obsidian";
-import Plugin, { PluginSetting } from "./plugin";
+import Plugin, { PluginSetting } from "./obsidian-plugin";
 import { minutesUpperBound } from "./time";
 
 const VALIDATION_TOOLTIP_CLASS = "interval-timer-validation-tooltip";

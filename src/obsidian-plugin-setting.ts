@@ -1,6 +1,7 @@
 import { parsePositiveInteger } from "./value-parser";
 import { isMinutes, type Minutes } from "./time";
-import type { NotificationStyle } from "./notifier";
+import { defaultLongBreakAfter } from "./interval-timer";
+import type { NotificationStyle } from "./obsidian-notifier";
 
 export type PluginSetting = {
 	focusIntervalDuration: Minutes;
@@ -15,7 +16,7 @@ export const defaultPluginSetting = {
 	focusIntervalDuration: 25,
 	shortBreakDuration: 5,
 	longBreakDuration: 15,
-	longBreakAfter: 4,
+	longBreakAfter: defaultLongBreakAfter,
 	notificationStyle: "simple",
 	flashOverlayEnabled: false,
 } satisfies PluginSetting;

@@ -1,7 +1,7 @@
-@import url("./src/task-line-highlight-extension.css");
+@import url("./src/obsidian-task-line-highlight-extension.css");
 @import url("./src/status-bar.css");
 @import url("./src/popover.css");
-@import url("./src/floating-timer.css");
+@import url("./src/obsidian-floating-timer.css");
 
 body {
 	--interval-timer-focus-color: #ee6152;

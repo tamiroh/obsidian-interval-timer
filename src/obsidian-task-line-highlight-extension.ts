@@ -10,7 +10,7 @@ import {
 	WidgetType,
 } from "@codemirror/view";
 import { TaskLine } from "./task-line";
-import { TaskTracker } from "./task-tracker";
+import { TaskTracker } from "./obsidian-task-tracker";
 import { Markdown } from "./markdown";
 
 const createTaskLineHighlightDecoration = (isTracking: boolean): Decoration =>

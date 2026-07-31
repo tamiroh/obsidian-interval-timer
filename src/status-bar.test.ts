@@ -8,7 +8,10 @@ const statusBars = new Set<StatusBar>();
 
 const createStatusBar = async (container: HTMLElement): Promise<StatusBar> => {
 	document.body.append(container);
-	const statusBar = new StatusBar(container);
+	const statusBar = new StatusBar(container, {
+		notify: vi.fn(),
+		renderIcon: vi.fn(),
+	});
 	statusBars.add(statusBar);
 	await within(container).findByText("No task selected");
 	return statusBar;

@@ -1,8 +1,11 @@
 import { Time } from "./time";
-import { IntervalTimer, IntervalTimerState } from "./interval-timer";
+import {
+	defaultLongBreakAfter,
+	IntervalTimer,
+	IntervalTimerState,
+} from "./interval-timer";
 import { TimerType } from "./countdown-timer";
 import { Popover } from "./popover";
-import { defaultPluginSetting } from "./plugin-setting";
 
 const popoverFloatingClass = "interval-timer-status-bar-popover-floating";
 
@@ -26,7 +29,13 @@ export class StatusBar {
 	private handleCompactKeyDown: ((event: KeyboardEvent) => void) | null =
 		null;
 
-	constructor(statusBarElement: HTMLElement) {
+	constructor(
+		statusBarElement: HTMLElement,
+		callbacks: {
+			notify: (message: string) => void;
+			renderIcon: (element: HTMLElement, iconId: string) => void;
+		},
+	) {
 		this.statusBarItem = statusBarElement;
 		this.statusBarItem.classList.add("interval-timer-status-bar");
 		this.statusBarItem.setAttribute("role", "timer");
@@ -63,6 +72,7 @@ export class StatusBar {
 					floating,
 				),
 			onRestoreFocus: () => this.compact.focus({ preventScroll: true }),
+			...callbacks,
 		});
 	}
 
@@ -71,7 +81,7 @@ export class StatusBar {
 		time: Time,
 		intervalTimerState: IntervalTimerState,
 		timerState: TimerType,
-		longBreakAfter = defaultPluginSetting.longBreakAfter,
+		longBreakAfter = defaultLongBreakAfter,
 	): void {
 		this.compactIntervalCount.textContent = `${intervals.set}/${intervals.total} `;
 		this.compactMinutes.textContent = String(time.minutes).padStart(2, "0");

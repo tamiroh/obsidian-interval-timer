@@ -1,16 +1,7 @@
 import { fireEvent, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import {
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	it,
-	vi,
-	type MockInstance,
-} from "vitest";
+import { afterEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";
-import { Notice } from "./obsidian-fake";
 import { Popover } from "./popover";
 
 const settings: IntervalTimerSetting = {
@@ -28,6 +19,8 @@ const createOptions = (returnTarget = { left: 0, top: 0 }) => ({
 	getReturnTarget: vi.fn(() => returnTarget),
 	onFloatingChange: vi.fn(),
 	onRestoreFocus: vi.fn(),
+	notify: vi.fn(),
+	renderIcon: vi.fn(),
 });
 
 const createPopover = async (
@@ -84,10 +77,6 @@ const mockComputedStyleFor = (
 };
 
 describe("Popover", () => {
-	beforeEach(() => {
-		Notice.messages = [];
-	});
-
 	afterEach(() => {
 		popovers.forEach((popover) => popover.dispose());
 		popovers.clear();
@@ -507,7 +496,8 @@ describe("Popover", () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
-		const popover = await createPopover(el);
+		const notify = vi.fn();
+		const popover = await createPopover(el, { ...createOptions(), notify });
 		const intervalTimer = createIntervalTimer();
 		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
 		popover.enableActions(intervalTimer);
@@ -520,9 +510,9 @@ describe("Popover", () => {
 		fireEvent.submit(getRetimeForm(el));
 
 		// Assert
-		expect(Notice.messages).toEqual([
+		expect(notify).toHaveBeenCalledWith(
 			"Enter a positive whole number of minutes.",
-		]);
+		);
 	});
 
 	it("keeps a minute click from triggering the status bar click", async () => {

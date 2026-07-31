@@ -9,17 +9,16 @@ import {
 	useSyncExternalStore,
 } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { Notice, setIcon } from "obsidian";
 import { match } from "ts-pattern";
 import { TimerType } from "./countdown-timer";
 import {
+	defaultLongBreakAfter,
 	IntervalTimer,
 	IntervalTimerState,
 	TouchAction,
 } from "./interval-timer";
 import { ObservableStore } from "./observable-store";
 import { minutesUpperBound, Time, toSeconds } from "./time";
-import { defaultPluginSetting } from "./plugin-setting";
 
 //
 // Constants and types
@@ -84,6 +83,8 @@ export class Popover {
 			getReturnTarget: () => Position;
 			onFloatingChange: (floating: boolean) => void;
 			onRestoreFocus: () => void;
+			notify: (message: string) => void;
+			renderIcon: (element: HTMLElement, iconId: string) => void;
 			floatOnMount?: boolean;
 			dismissible?: boolean;
 		},
@@ -93,7 +94,7 @@ export class Popover {
 			intervalTimerState: "focus",
 			timerState: "initialized",
 			intervalsSet: 0,
-			longBreakAfter: defaultPluginSetting.longBreakAfter,
+			longBreakAfter: defaultLongBreakAfter,
 			remainingPercent: 0,
 			currentTaskName: null,
 			isFloating: options.floatOnMount ?? false,
@@ -113,6 +114,8 @@ export class Popover {
 				getReturnTarget={options.getReturnTarget}
 				onFloatingChange={options.onFloatingChange}
 				onRestoreFocus={options.onRestoreFocus}
+				notify={options.notify}
+				renderIcon={options.renderIcon}
 				dismissible={options.dismissible ?? true}
 			/>,
 		);
@@ -136,7 +139,7 @@ export class Popover {
 		intervalTimerState: IntervalTimerState,
 		timerState: TimerType,
 		intervalsSet = 0,
-		longBreakAfter = defaultPluginSetting.longBreakAfter,
+		longBreakAfter = defaultLongBreakAfter,
 	): void {
 		const remainingSeconds = toSeconds(time);
 		if (timerState === "initialized" || this.intervalTotalSeconds === 0) {
@@ -205,12 +208,16 @@ const PopoverView = ({
 	getReturnTarget,
 	onFloatingChange,
 	onRestoreFocus,
+	notify,
+	renderIcon,
 	dismissible = true,
 }: {
 	store: ObservableStore<PopoverSnapshot>;
 	getReturnTarget: () => Position;
 	onFloatingChange: (floating: boolean) => void;
 	onRestoreFocus: () => void;
+	notify: (message: string) => void;
+	renderIcon: (element: HTMLElement, iconId: string) => void;
 	dismissible?: boolean;
 }) => {
 	const {
@@ -269,7 +276,7 @@ const PopoverView = ({
 
 		const result = intervalTimer.retime(Number(retimeInput.current.value));
 		if (!result.ok) {
-			new Notice(
+			notify(
 				match(result.reason)
 					.with(
 						"timer_running",
@@ -494,6 +501,7 @@ const PopoverView = ({
 					<Icon
 						name="x"
 						className="interval-timer-popover-close-icon"
+						renderIcon={renderIcon}
 					/>
 				</button>
 			)}
@@ -508,6 +516,7 @@ const PopoverView = ({
 				<Icon
 					name="undo-2"
 					className="interval-timer-popover-return-icon"
+					renderIcon={renderIcon}
 				/>
 			</button>
 			<div className="interval-timer-popover-body">
@@ -613,6 +622,7 @@ const PopoverView = ({
 							className="interval-timer-popover-touch-action"
 							icon={touchActionPresentation.icon}
 							disabled={!intervalTimer}
+							renderIcon={renderIcon}
 							onClick={() => {
 								if (!intervalTimer) return;
 
@@ -627,6 +637,7 @@ const PopoverView = ({
 						<Action
 							className="interval-timer-popover-reset-set"
 							icon="rotate-ccw"
+							renderIcon={renderIcon}
 							onClick={() => intervalTimer?.resetIntervalsSet()}
 						>
 							Reset set
@@ -720,12 +731,20 @@ const SetRing = ({
 	);
 };
 
-const Icon = ({ name, className }: { name: string; className?: string }) => (
+const Icon = ({
+	name,
+	className,
+	renderIcon,
+}: {
+	name: string;
+	className?: string;
+	renderIcon: (element: HTMLElement, iconId: string) => void;
+}) => (
 	<span
 		className={className}
 		aria-hidden="true"
 		ref={(el) => {
-			if (el) setIcon(el, name);
+			if (el) renderIcon(el, name);
 		}}
 	/>
 );
@@ -734,6 +753,7 @@ type ActionProps = {
 	className: string;
 	icon: string;
 	disabled?: boolean;
+	renderIcon: (element: HTMLElement, iconId: string) => void;
 	onClick: MouseEventHandler<HTMLButtonElement>;
 	children: string;
 };
@@ -742,6 +762,7 @@ const Action = ({
 	className,
 	icon,
 	disabled = false,
+	renderIcon,
 	onClick,
 	children,
 }: ActionProps) => (
@@ -755,7 +776,11 @@ const Action = ({
 			if (event.detail > 0) event.currentTarget.blur();
 		}}
 	>
-		<Icon name={icon} className="interval-timer-popover-task-action-icon" />
+		<Icon
+			name={icon}
+			className="interval-timer-popover-task-action-icon"
+			renderIcon={renderIcon}
+		/>
 		<span>{children}</span>
 	</button>
 );
