@@ -12,6 +12,9 @@ const settings: IntervalTimerSetting = {
 	resetTime: { hours: 0, minutes: 0 },
 };
 
+const createFloatingTimer = (app: App): FloatingTimer =>
+	new FloatingTimer(app, { notify: () => {}, renderIcon: () => {} });
+
 describe("FloatingTimer", () => {
 	afterEach(() => {
 		document.body.replaceChildren();
@@ -19,7 +22,7 @@ describe("FloatingTimer", () => {
 
 	it("mounts a permanently floating popover onto the document body", async () => {
 		// Act
-		const floatingTimer = new FloatingTimer(createApp());
+		const floatingTimer = createFloatingTimer(createApp());
 
 		// Assert
 		await within(document.body).findByText("No task selected");
@@ -31,7 +34,7 @@ describe("FloatingTimer", () => {
 
 	it("does not offer a close button, since there is no status bar to return to", async () => {
 		// Act
-		const floatingTimer = new FloatingTimer(createApp());
+		const floatingTimer = createFloatingTimer(createApp());
 
 		// Assert
 		await within(document.body).findByText("No task selected");
@@ -43,7 +46,7 @@ describe("FloatingTimer", () => {
 
 	it("updates the popover and enables timer actions", async () => {
 		// Arrange
-		const floatingTimer = new FloatingTimer(createApp());
+		const floatingTimer = createFloatingTimer(createApp());
 		await within(document.body).findByText("No task selected");
 		const intervalTimer = new IntervalTimer(
 			() => {},
@@ -74,7 +77,7 @@ describe("FloatingTimer", () => {
 
 	it("removes its container from the document on dispose", async () => {
 		// Arrange
-		const floatingTimer = new FloatingTimer(createApp());
+		const floatingTimer = createFloatingTimer(createApp());
 		await within(document.body).findByText("No task selected");
 
 		// Act
@@ -92,7 +95,7 @@ describe("FloatingTimer", () => {
 		document.body.append(leafContainer);
 
 		// Act
-		const floatingTimer = new FloatingTimer(
+		const floatingTimer = createFloatingTimer(
 			createAppWithLeaf(leafContainer),
 		);
 
@@ -109,7 +112,7 @@ describe("FloatingTimer", () => {
 		const secondLeaf = createDiv();
 		document.body.append(firstLeaf, secondLeaf);
 		const app = createAppWithLeaf(firstLeaf);
-		const floatingTimer = new FloatingTimer(app);
+		const floatingTimer = createFloatingTimer(app);
 
 		// Act
 		app.setActiveLeafContainer(secondLeaf);

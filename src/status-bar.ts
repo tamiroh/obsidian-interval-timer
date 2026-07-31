@@ -26,7 +26,13 @@ export class StatusBar {
 	private handleCompactKeyDown: ((event: KeyboardEvent) => void) | null =
 		null;
 
-	constructor(statusBarElement: HTMLElement) {
+	constructor(
+		statusBarElement: HTMLElement,
+		callbacks: {
+			notify: (message: string) => void;
+			renderIcon: (element: HTMLElement, iconId: string) => void;
+		},
+	) {
 		this.statusBarItem = statusBarElement;
 		this.statusBarItem.classList.add("interval-timer-status-bar");
 		this.statusBarItem.setAttribute("role", "timer");
@@ -63,6 +69,7 @@ export class StatusBar {
 					floating,
 				),
 			onRestoreFocus: () => this.compact.focus({ preventScroll: true }),
+			...callbacks,
 		});
 	}
 

@@ -12,7 +12,13 @@ export class FloatingTimer {
 
 	private readonly activeLeafChangeRef: EventRef;
 
-	constructor(private readonly app: App) {
+	constructor(
+		private readonly app: App,
+		callbacks: {
+			notify: (message: string) => void;
+			renderIcon: (element: HTMLElement, iconId: string) => void;
+		},
+	) {
 		this.containerEl = createDiv({ cls: "interval-timer-floating-timer" });
 		this.mountToActiveLeaf();
 
@@ -31,6 +37,7 @@ export class FloatingTimer {
 			},
 			onFloatingChange: () => {},
 			onRestoreFocus: () => {},
+			...callbacks,
 			floatOnMount: true,
 			dismissible: false,
 		});

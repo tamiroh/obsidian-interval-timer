@@ -4,6 +4,7 @@ import {
 	Platform,
 	Plugin as BasePlugin,
 	PluginManifest,
+	setIcon,
 } from "obsidian";
 import { match } from "ts-pattern";
 import { SettingTab } from "./setting-tab";
@@ -68,9 +69,13 @@ export default class Plugin extends BasePlugin {
 			() => this.intervalTimer.state === "focus",
 			() => this.syncCurrentTask(),
 		);
+		const callbacks = {
+			notify: (message: string) => new Notice(message),
+			renderIcon: setIcon,
+		};
 		this.timerDisplay = Platform.isMobile
-			? new FloatingTimer(this.app)
-			: new StatusBar(this.addStatusBarItem());
+			? new FloatingTimer(this.app, callbacks)
+			: new StatusBar(this.addStatusBarItem(), callbacks);
 	}
 
 	public override async onload(): Promise<void> {
