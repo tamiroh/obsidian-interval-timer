@@ -43,7 +43,7 @@ export default defineConfig(
 				{
 					patterns: [
 						{
-							regex: "^obsidian(-.*)?$",
+							regex: "(^|/)obsidian(-.*)?$",
 							message:
 								"Only modules with an `obsidian` prefix are allowed to depend on obsidian.",
 						},

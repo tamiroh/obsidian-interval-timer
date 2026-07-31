@@ -7,7 +7,7 @@ import {
 	setIcon,
 } from "obsidian";
 import { match } from "ts-pattern";
-import { SettingTab } from "./setting-tab";
+import { SettingTab } from "./obsidian-setting-tab";
 import {
 	IntervalTimer,
 	IntervalTimerState,
@@ -15,22 +15,26 @@ import {
 	NotifierContext,
 } from "./interval-timer";
 import { StatusBar } from "./status-bar";
-import { FloatingTimer } from "./floating-timer";
+import { FloatingTimer } from "./obsidian-floating-timer";
 import { KeyValueStore } from "./key-value-store";
-import { NotificationStyle, Notifier, createNotifier } from "./notifier";
+import {
+	NotificationStyle,
+	Notifier,
+	createNotifier,
+} from "./obsidian-notifier";
 import { FlashOverlay } from "./flash-overlay";
-import { TaskTracker, type TrackTaskResult } from "./task-tracker";
+import { TaskTracker, type TrackTaskResult } from "./obsidian-task-tracker";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
-import { TaskLineHighlighter } from "./task-line-highlight-extension";
+import { TaskLineHighlighter } from "./obsidian-task-line-highlight-extension";
 import {
 	parsePositiveInteger,
 	ParsePositiveIntegerResult,
 } from "./value-parser";
-import { parsePluginSetting, PluginSetting } from "./plugin-setting";
+import { parsePluginSetting, PluginSetting } from "./obsidian-plugin-setting";
 import { isMinutes, type Minutes } from "./time";
 import type { Result } from "./result";
 
-export type { PluginSetting } from "./plugin-setting";
+export type { PluginSetting } from "./obsidian-plugin-setting";
 
 type ParseNotificationStyleResult = Result<
 	NotificationStyle,

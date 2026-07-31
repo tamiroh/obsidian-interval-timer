@@ -2,7 +2,7 @@ import { within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import type { App } from "obsidian";
 import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";
-import { FloatingTimer } from "./floating-timer";
+import { FloatingTimer } from "./obsidian-floating-timer";
 
 const settings: IntervalTimerSetting = {
 	focusIntervalDuration: 25,

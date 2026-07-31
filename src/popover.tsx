@@ -12,13 +12,13 @@ import { createRoot, Root } from "react-dom/client";
 import { match } from "ts-pattern";
 import { TimerType } from "./countdown-timer";
 import {
+	defaultLongBreakAfter,
 	IntervalTimer,
 	IntervalTimerState,
 	TouchAction,
 } from "./interval-timer";
 import { ObservableStore } from "./observable-store";
 import { minutesUpperBound, Time, toSeconds } from "./time";
-import { defaultPluginSetting } from "./plugin-setting";
 
 //
 // Constants and types
@@ -94,7 +94,7 @@ export class Popover {
 			intervalTimerState: "focus",
 			timerState: "initialized",
 			intervalsSet: 0,
-			longBreakAfter: defaultPluginSetting.longBreakAfter,
+			longBreakAfter: defaultLongBreakAfter,
 			remainingPercent: 0,
 			currentTaskName: null,
 			isFloating: options.floatOnMount ?? false,
@@ -139,7 +139,7 @@ export class Popover {
 		intervalTimerState: IntervalTimerState,
 		timerState: TimerType,
 		intervalsSet = 0,
-		longBreakAfter = defaultPluginSetting.longBreakAfter,
+		longBreakAfter = defaultLongBreakAfter,
 	): void {
 		const remainingSeconds = toSeconds(time);
 		if (timerState === "initialized" || this.intervalTotalSeconds === 0) {

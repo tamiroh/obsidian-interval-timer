@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { App } from "obsidian";
 import { KeyValueStore } from "./key-value-store";
-import { TaskTracker } from "./task-tracker";
+import { TaskTracker } from "./obsidian-task-tracker";
 
 describe("TaskTracker", () => {
 	beforeEach(() => {

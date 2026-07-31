@@ -16,7 +16,7 @@ const context = await esbuild.context({
 		css: banner,
 	},
 	entryPoints: {
-		main: "src/plugin.ts",
+		main: "src/obsidian-plugin.ts",
 		styles: "index.css",
 	},
 	bundle: true,

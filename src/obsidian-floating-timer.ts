@@ -1,9 +1,12 @@
 import { App, EventRef } from "obsidian";
 import { Time } from "./time";
-import { IntervalTimer, IntervalTimerState } from "./interval-timer";
+import {
+	defaultLongBreakAfter,
+	IntervalTimer,
+	IntervalTimerState,
+} from "./interval-timer";
 import { TimerType } from "./countdown-timer";
 import { Popover } from "./popover";
-import { defaultPluginSetting } from "./plugin-setting";
 
 export class FloatingTimer {
 	private readonly containerEl: HTMLElement;
@@ -57,7 +60,7 @@ export class FloatingTimer {
 		time: Time,
 		intervalTimerState: IntervalTimerState,
 		timerState: TimerType,
-		longBreakAfter = defaultPluginSetting.longBreakAfter,
+		longBreakAfter = defaultLongBreakAfter,
 	): void {
 		this.popover.update(
 			time,

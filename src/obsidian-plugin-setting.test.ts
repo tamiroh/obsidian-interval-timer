@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultPluginSetting, parsePluginSetting } from "./plugin-setting";
+import { defaultPluginSetting, parsePluginSetting } from "./obsidian-plugin-setting";
 
 describe("parsePluginSetting", () => {
 	it("returns defaults when stored data is missing", () => {

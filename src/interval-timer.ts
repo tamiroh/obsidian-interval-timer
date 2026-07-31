@@ -18,6 +18,8 @@ export type MutableIntervalTimerSetting = Omit<
 	"resetTime"
 >;
 
+export const defaultLongBreakAfter = 4;
+
 export const intervalTimerStates = [
 	"focus",
 	"shortBreak",
