@@ -34,6 +34,24 @@ export default defineConfig(
 			"obsidianmd/prefer-create-el": "off",
 		},
 	},
+	{
+		files: ["**/*.{ts,tsx}"],
+		ignores: ["**/obsidian*.{ts,tsx}"],
+		rules: {
+			"no-restricted-imports": [
+				"error",
+				{
+					patterns: [
+						{
+							regex: "^obsidian(-.*)?$",
+							message:
+								"Only modules with an `obsidian` prefix are allowed to depend on obsidian.",
+						},
+					],
+				},
+			],
+		},
+	},
 	globalIgnores([
 		"node_modules",
 		"dist",
