@@ -21,6 +21,9 @@ main.js
 # obsidian
 data.json
 
+# Timer events recorded by the plugin at runtime.
+events/
+
 # test coverage output
 coverage/
 
