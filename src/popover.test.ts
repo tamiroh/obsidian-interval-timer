@@ -515,6 +515,33 @@ describe("Popover", () => {
 		);
 	});
 
+	it("restores the original time when an invalid edit loses focus", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		const notify = vi.fn();
+		const popover = await createPopover(el, { ...createOptions(), notify });
+		const intervalTimer = createIntervalTimer();
+		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
+		popover.enableActions(intervalTimer);
+		await user.click(await within(el).findByRole("button", { name: "07" }));
+		await getFocusedRetimeInput(el);
+
+		// Act
+		await user.clear(getRetimeInput(el));
+		await user.type(getRetimeInput(el), "1.5");
+		await user.tab();
+
+		// Assert
+		expect(notify).toHaveBeenCalledWith(
+			"Enter a positive whole number of minutes.",
+		);
+		expect(getRetimeInput(el)).toHaveValue("7");
+		expect(
+			el.querySelector(".interval-timer-popover-retime-editor"),
+		).not.toHaveClass("interval-timer-popover-retime-editor-editing");
+	});
+
 	it("keeps a minute click from triggering the status bar click", async () => {
 		// Arrange
 		const user = userEvent.setup();

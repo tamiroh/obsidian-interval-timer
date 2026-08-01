@@ -293,6 +293,11 @@ const PopoverView = ({
 					)
 					.exhaustive(),
 			);
+			if (!restoreFocus) {
+				retimeInput.current.value = String(time.minutes);
+				stopEditingTime(false);
+				return;
+			}
 			retimeInput.current.select();
 			return;
 		}
