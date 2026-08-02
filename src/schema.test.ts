@@ -99,17 +99,36 @@ describe("validate", () => {
 			});
 		});
 
-		it("should reject a non-object", () => {
-			expect(validate(schema, "not-an-object")).toStrictEqual({
+		it.each([
+			{ label: "a string", input: "not-an-object" },
+			{ label: "a number", input: 42 },
+			{ label: "a boolean", input: true },
+			{ label: "undefined", input: undefined },
+			{ label: "a function", input: () => {} },
+			{ label: "an array", input: [] },
+		])("should reject $label", ({ input }) => {
+			expect(validate(schema, input)).toStrictEqual({
 				ok: false,
 				reason: "type_mismatch",
 			});
 		});
 
-		it("should reject an array", () => {
-			expect(validate(schema, [])).toStrictEqual({
+		it("should reject non-plain objects whose required properties are missing", () => {
+			expect(validate(schema, new Date())).toStrictEqual({
 				ok: false,
 				reason: "type_mismatch",
+			});
+		});
+
+		it("should accept non-plain objects when no properties are declared", () => {
+			const emptySchema = {
+				type: "object",
+				properties: {},
+			} as const satisfies Schema;
+
+			expect(validate(emptySchema, new Date())).toStrictEqual({
+				ok: true,
+				value: {},
 			});
 		});
 
