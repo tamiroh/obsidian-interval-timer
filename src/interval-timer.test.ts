@@ -1438,6 +1438,34 @@ describe("IntervalTimer", () => {
 			intervalTimer.dispose();
 		});
 
+		it("should publish an intervals-reset event with scope set for resetIntervalsSet", () => {
+			const intervalTimer = createTimer();
+			const events: IntervalTimerEvent[] = [];
+			intervalTimer.subscribe((event) => events.push(event));
+
+			intervalTimer.resetIntervalsSet();
+
+			expect(
+				events.find((event) => event.type === "intervals-reset"),
+			).toMatchObject({ scope: "set" });
+
+			intervalTimer.dispose();
+		});
+
+		it("should publish an intervals-reset event with scope total for resetTotalIntervals", () => {
+			const intervalTimer = createTimer();
+			const events: IntervalTimerEvent[] = [];
+			intervalTimer.subscribe((event) => events.push(event));
+
+			intervalTimer.resetTotalIntervals();
+
+			expect(
+				events.find((event) => event.type === "intervals-reset"),
+			).toMatchObject({ scope: "total" });
+
+			intervalTimer.dispose();
+		});
+
 		it("should stop publishing to an unsubscribed listener", () => {
 			const intervalTimer = createTimer();
 			const listener = vi.fn();

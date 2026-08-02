@@ -118,6 +118,7 @@ export default class Plugin extends BasePlugin {
 		FlashOverlay.dispose();
 		this.timerDisplay.dispose();
 		this.intervalTimer.dispose();
+		void this.intervalTimerEventStore.flush();
 	}
 
 	public async updateSetting(
