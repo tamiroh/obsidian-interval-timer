@@ -595,7 +595,13 @@ const PopoverView = ({
 									/>
 								</form>
 							</div>
-							<span className="interval-timer-popover-clock-separator">
+							<span
+								className={`interval-timer-popover-clock-separator${
+									timerState === "running"
+										? " interval-timer-popover-clock-separator-running"
+										: ""
+								}`}
+							>
 								:
 							</span>
 							<span className="interval-timer-popover-clock-seconds">
