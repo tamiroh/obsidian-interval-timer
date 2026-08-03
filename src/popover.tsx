@@ -54,6 +54,11 @@ type Position = {
 	top: number;
 };
 
+type ExpandedTask = {
+	name: string;
+	hoverBounds: Pick<DOMRect, "bottom" | "left" | "right" | "top">;
+};
+
 type ClosingAnimationState =
 	| { current: "idle" }
 	| {
@@ -234,9 +239,7 @@ const PopoverView = ({
 		touchAction,
 	} = useSyncExternalStore(store.subscribe, store.getSnapshot);
 	const [isEditingTime, setIsEditingTime] = useState(false);
-	const [expandedTaskName, setExpandedTaskName] = useState<string | null>(
-		null,
-	);
+	const [expandedTask, setExpandedTask] = useState<ExpandedTask | null>(null);
 	const [drag, setDrag] = useState<Drag | null>(null);
 	const [popoverPosition, setPopoverPosition] = useState<Position | null>(
 		null,
@@ -253,6 +256,7 @@ const PopoverView = ({
 		intervalTimerState === "focus"
 			? (currentTaskName ?? "No task selected")
 			: "Break time";
+	const isTaskNameExpanded = expandedTask?.name === taskName;
 
 	const handleMinutesClick = () => {
 		suppressBlurApply.current = false;
@@ -623,20 +627,36 @@ const PopoverView = ({
 									? " interval-timer-popover-task-name-break"
 									: ""
 						}${
-							expandedTaskName === taskName
+							isTaskNameExpanded
 								? " interval-timer-popover-task-name-expanded"
 								: ""
 						}`}
 						onMouseEnter={(event) => {
 							if (isElementTruncated(event.currentTarget)) {
-								setExpandedTaskName(taskName);
+								setExpandedTask({
+									name: taskName,
+									hoverBounds:
+										event.currentTarget.getBoundingClientRect(),
+								});
 							}
 						}}
-						onMouseLeave={() => setExpandedTaskName(null)}
+						onMouseMove={(event) => {
+							if (
+								expandedTask &&
+								!containsPoint(
+									expandedTask.hoverBounds,
+									event.clientX,
+									event.clientY,
+								)
+							) {
+								setExpandedTask(null);
+							}
+						}}
+						onMouseLeave={() => setExpandedTask(null)}
 					>
 						{taskName}
 					</div>
-					{expandedTaskName !== taskName && (
+					{!isTaskNameExpanded && (
 						<div className="interval-timer-popover-task-actions">
 							<Action
 								className="interval-timer-popover-touch-action"
@@ -683,6 +703,16 @@ const clamp = (position: number, maximum: number): number =>
 const isElementTruncated = (element: HTMLElement): boolean =>
 	element.scrollHeight > element.clientHeight ||
 	element.scrollWidth > element.clientWidth;
+
+const containsPoint = (
+	bounds: Pick<DOMRect, "bottom" | "left" | "right" | "top">,
+	x: number,
+	y: number,
+): boolean =>
+	x >= bounds.left &&
+	x <= bounds.right &&
+	y >= bounds.top &&
+	y <= bounds.bottom;
 
 const isNonDraggableTarget = (target: EventTarget | null): boolean =>
 	target instanceof Element && target.closest("button, input, form") !== null;
