@@ -400,12 +400,20 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 .interval-timer-popover-task-name {
 	display: -webkit-box;
 	overflow: hidden;
+	overflow-wrap: anywhere;
 	color: var(--text-normal);
 	font-size: 13px;
 	font-weight: 600;
 	line-height: 1.4;
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 2;
+}
+
+.interval-timer-popover-task-name:hover {
+	display: block;
+	flex: 1;
+	overflow-y: auto;
+	-webkit-line-clamp: unset;
 }
 
 .interval-timer-popover-task-name-empty,
@@ -420,6 +428,11 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 	gap: 3px;
 	align-items: flex-start;
 	margin-top: auto;
+}
+
+.interval-timer-popover-task-name:hover
+	+ .interval-timer-popover-task-actions {
+	display: none;
 }
 
 .interval-timer-popover button.interval-timer-popover-touch-action,
