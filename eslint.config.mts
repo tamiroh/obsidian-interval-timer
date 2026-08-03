@@ -1,4 +1,5 @@
 import obsidianmd from "eslint-plugin-obsidianmd";
+import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 import { defineConfig, globalIgnores } from "eslint/config";
 import vitest from "@vitest/eslint-plugin";
@@ -19,6 +20,15 @@ export default defineConfig(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		files: ["**/*.{ts,tsx}"],
+		plugins: {
+			"react-hooks": reactHooks,
+		},
+		rules: {
+			...reactHooks.configs.flat.recommended.rules,
+		},
+	},
 	{
 		files: ["**/*.test.{ts,tsx}"],
 		plugins: {
