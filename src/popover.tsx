@@ -234,6 +234,9 @@ const PopoverView = ({
 		touchAction,
 	} = useSyncExternalStore(store.subscribe, store.getSnapshot);
 	const [isEditingTime, setIsEditingTime] = useState(false);
+	const [expandedTaskName, setExpandedTaskName] = useState<string | null>(
+		null,
+	);
 	const [drag, setDrag] = useState<Drag | null>(null);
 	const [popoverPosition, setPopoverPosition] = useState<Position | null>(
 		null,
@@ -619,36 +622,51 @@ const PopoverView = ({
 								: intervalTimerState !== "focus"
 									? " interval-timer-popover-task-name-break"
 									: ""
+						}${
+							expandedTaskName === taskName
+								? " interval-timer-popover-task-name-expanded"
+								: ""
 						}`}
+						onMouseEnter={(event) => {
+							if (isElementTruncated(event.currentTarget)) {
+								setExpandedTaskName(taskName);
+							}
+						}}
+						onMouseLeave={() => setExpandedTaskName(null)}
 					>
 						{taskName}
 					</div>
-					<div className="interval-timer-popover-task-actions">
-						<Action
-							className="interval-timer-popover-touch-action"
-							icon={touchActionPresentation.icon}
-							disabled={!intervalTimer}
-							renderIcon={renderIcon}
-							onClick={() => {
-								if (!intervalTimer) return;
+					{expandedTaskName !== taskName && (
+						<div className="interval-timer-popover-task-actions">
+							<Action
+								className="interval-timer-popover-touch-action"
+								icon={touchActionPresentation.icon}
+								disabled={!intervalTimer}
+								renderIcon={renderIcon}
+								onClick={() => {
+									if (!intervalTimer) return;
 
-								intervalTimer.touch();
-								store.update({
-									touchAction: intervalTimer.predictTouch(),
-								});
-							}}
-						>
-							{touchActionPresentation.label}
-						</Action>
-						<Action
-							className="interval-timer-popover-reset-set"
-							icon="rotate-ccw"
-							renderIcon={renderIcon}
-							onClick={() => intervalTimer?.resetIntervalsSet()}
-						>
-							Reset set
-						</Action>
-					</div>
+									intervalTimer.touch();
+									store.update({
+										touchAction:
+											intervalTimer.predictTouch(),
+									});
+								}}
+							>
+								{touchActionPresentation.label}
+							</Action>
+							<Action
+								className="interval-timer-popover-reset-set"
+								icon="rotate-ccw"
+								renderIcon={renderIcon}
+								onClick={() =>
+									intervalTimer?.resetIntervalsSet()
+								}
+							>
+								Reset set
+							</Action>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>
@@ -661,6 +679,10 @@ const PopoverView = ({
 
 const clamp = (position: number, maximum: number): number =>
 	Math.min(Math.max(0, position), Math.max(0, maximum));
+
+const isElementTruncated = (element: HTMLElement): boolean =>
+	element.scrollHeight > element.clientHeight ||
+	element.scrollWidth > element.clientWidth;
 
 const isNonDraggableTarget = (target: EventTarget | null): boolean =>
 	target instanceof Element && target.closest("button, input, form") !== null;
