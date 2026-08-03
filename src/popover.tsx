@@ -283,6 +283,12 @@ const PopoverView = ({
 
 		const result = intervalTimer.retime(Number(retimeInput.current.value));
 		if (!result.ok) {
+			if (!restoreFocus) {
+				retimeInput.current.value = String(time.minutes);
+				stopEditingTime(false);
+				return;
+			}
+
 			notify(
 				match(result.reason)
 					.with(
