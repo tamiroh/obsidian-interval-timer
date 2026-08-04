@@ -54,6 +54,11 @@ type Position = {
 	top: number;
 };
 
+type ExpandedTask = {
+	name: string;
+	hoverBounds: Pick<DOMRect, "bottom" | "left" | "right" | "top">;
+};
+
 type ClosingAnimationState =
 	| { current: "idle" }
 	| {
@@ -234,6 +239,7 @@ const PopoverView = ({
 		touchAction,
 	} = useSyncExternalStore(store.subscribe, store.getSnapshot);
 	const [isEditingTime, setIsEditingTime] = useState(false);
+	const [expandedTask, setExpandedTask] = useState<ExpandedTask | null>(null);
 	const [drag, setDrag] = useState<Drag | null>(null);
 	const [popoverPosition, setPopoverPosition] = useState<Position | null>(
 		null,
@@ -250,6 +256,7 @@ const PopoverView = ({
 		intervalTimerState === "focus"
 			? (currentTaskName ?? "No task selected")
 			: "Break time";
+	const isTaskNameExpanded = expandedTask?.name === taskName;
 
 	const handleMinutesClick = () => {
 		suppressBlurApply.current = false;
@@ -276,6 +283,12 @@ const PopoverView = ({
 
 		const result = intervalTimer.retime(Number(retimeInput.current.value));
 		if (!result.ok) {
+			if (!restoreFocus) {
+				retimeInput.current.value = String(time.minutes);
+				stopEditingTime(false);
+				return;
+			}
+
 			notify(
 				match(result.reason)
 					.with(
@@ -595,7 +608,13 @@ const PopoverView = ({
 									/>
 								</form>
 							</div>
-							<span className="interval-timer-popover-clock-separator">
+							<span
+								className={`interval-timer-popover-clock-separator${
+									timerState === "running"
+										? " interval-timer-popover-clock-separator-running"
+										: ""
+								}`}
+							>
 								:
 							</span>
 							<span className="interval-timer-popover-clock-seconds">
@@ -613,36 +632,67 @@ const PopoverView = ({
 								: intervalTimerState !== "focus"
 									? " interval-timer-popover-task-name-break"
 									: ""
+						}${
+							isTaskNameExpanded
+								? " interval-timer-popover-task-name-expanded"
+								: ""
 						}`}
+						onMouseEnter={(event) => {
+							if (isElementTruncated(event.currentTarget)) {
+								setExpandedTask({
+									name: taskName,
+									hoverBounds:
+										event.currentTarget.getBoundingClientRect(),
+								});
+							}
+						}}
+						onMouseMove={(event) => {
+							if (
+								expandedTask &&
+								!containsPoint(
+									expandedTask.hoverBounds,
+									event.clientX,
+									event.clientY,
+								)
+							) {
+								setExpandedTask(null);
+							}
+						}}
+						onMouseLeave={() => setExpandedTask(null)}
 					>
 						{taskName}
 					</div>
-					<div className="interval-timer-popover-task-actions">
-						<Action
-							className="interval-timer-popover-touch-action"
-							icon={touchActionPresentation.icon}
-							disabled={!intervalTimer}
-							renderIcon={renderIcon}
-							onClick={() => {
-								if (!intervalTimer) return;
+					{!isTaskNameExpanded && (
+						<div className="interval-timer-popover-task-actions">
+							<Action
+								className="interval-timer-popover-touch-action"
+								icon={touchActionPresentation.icon}
+								disabled={!intervalTimer}
+								renderIcon={renderIcon}
+								onClick={() => {
+									if (!intervalTimer) return;
 
-								intervalTimer.touch();
-								store.update({
-									touchAction: intervalTimer.predictTouch(),
-								});
-							}}
-						>
-							{touchActionPresentation.label}
-						</Action>
-						<Action
-							className="interval-timer-popover-reset-set"
-							icon="rotate-ccw"
-							renderIcon={renderIcon}
-							onClick={() => intervalTimer?.resetIntervalsSet()}
-						>
-							Reset set
-						</Action>
-					</div>
+									intervalTimer.touch();
+									store.update({
+										touchAction:
+											intervalTimer.predictTouch(),
+									});
+								}}
+							>
+								{touchActionPresentation.label}
+							</Action>
+							<Action
+								className="interval-timer-popover-reset-set"
+								icon="rotate-ccw"
+								renderIcon={renderIcon}
+								onClick={() =>
+									intervalTimer?.resetIntervalsSet()
+								}
+							>
+								Reset set
+							</Action>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>
@@ -655,6 +705,20 @@ const PopoverView = ({
 
 const clamp = (position: number, maximum: number): number =>
 	Math.min(Math.max(0, position), Math.max(0, maximum));
+
+const isElementTruncated = (element: HTMLElement): boolean =>
+	element.scrollHeight > element.clientHeight ||
+	element.scrollWidth > element.clientWidth;
+
+const containsPoint = (
+	bounds: Pick<DOMRect, "bottom" | "left" | "right" | "top">,
+	x: number,
+	y: number,
+): boolean =>
+	x >= bounds.left &&
+	x <= bounds.right &&
+	y >= bounds.top &&
+	y <= bounds.bottom;
 
 const isNonDraggableTarget = (target: EventTarget | null): boolean =>
 	target instanceof Element && target.closest("button, input, form") !== null;

@@ -284,6 +284,16 @@ button.interval-timer-popover-return:focus-visible {
 	line-height: 22px;
 }
 
+.interval-timer-popover-clock-separator-running {
+	animation: interval-timer-popover-blink 1s steps(1, end) infinite;
+}
+
+@keyframes interval-timer-popover-blink {
+	50% {
+		visibility: hidden;
+	}
+}
+
 .interval-timer-popover button.interval-timer-popover-clock-minutes {
 	position: relative;
 	min-height: 0;
@@ -400,12 +410,20 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 .interval-timer-popover-task-name {
 	display: -webkit-box;
 	overflow: hidden;
+	overflow-wrap: anywhere;
 	color: var(--text-normal);
 	font-size: 13px;
 	font-weight: 600;
 	line-height: 1.4;
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 2;
+}
+
+.interval-timer-popover-task-name-expanded {
+	display: block;
+	flex: 1;
+	overflow-y: auto;
+	-webkit-line-clamp: unset;
 }
 
 .interval-timer-popover-task-name-empty,
