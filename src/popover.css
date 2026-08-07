@@ -5,10 +5,25 @@
 .interval-timer-popover {
 	--interval-timer-popover-clock-size: 96px;
 	--interval-timer-popover-clock-ring-diameter: 91.2px;
+	--interval-timer-popover-control-icon-size: 12px;
+	--interval-timer-popover-control-margin: 7px;
+	--interval-timer-popover-control-gap: 6px;
+	--interval-timer-popover-control-width: calc(
+		var(--interval-timer-popover-control-icon-size) +
+			var(--interval-timer-popover-control-margin) * 2
+	);
+	--interval-timer-popover-control-height: calc(
+		var(--interval-timer-popover-control-icon-size) +
+			var(--interval-timer-popover-control-gap)
+	);
+	--interval-timer-popover-control-top: calc(
+		var(--interval-timer-popover-control-margin) -
+			var(--interval-timer-popover-control-gap) / 2
+	);
 
 	position: absolute;
 	z-index: var(--layer-popover, 100);
-	right: 10px;
+	right: -2px;
 	bottom: calc(100% + 11px);
 	width: min(250px, calc(100vw - 24px));
 	padding: 14px;
@@ -106,28 +121,45 @@
 	visibility: hidden;
 }
 
-.interval-timer-popover button.interval-timer-popover-close {
+.interval-timer-popover button.interval-timer-popover-close,
+.interval-timer-popover button.interval-timer-popover-return {
 	position: absolute;
 	z-index: 1;
-	top: -9px;
-	right: -9px;
+	right: 0;
 	display: grid;
 	place-items: center;
 	min-width: 0;
-	width: 22px;
-	height: 22px;
+	width: var(--interval-timer-popover-control-width);
+	height: var(--interval-timer-popover-control-height);
 	padding: 0;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: 50%;
+	border: 0;
+	border-radius: 6px;
 	appearance: none;
-	background: var(--background-primary);
+	background: transparent;
 	box-shadow: none;
-	color: var(--text-muted);
+	color: var(--text-faint);
 	cursor: pointer;
 	line-height: 1;
 	opacity: 0;
 	pointer-events: none;
-	transition: opacity 120ms ease;
+	transition:
+		opacity 120ms ease,
+		color 120ms ease;
+}
+
+.interval-timer-popover button.interval-timer-popover-close {
+	top: var(--interval-timer-popover-control-top);
+}
+
+.interval-timer-popover button.interval-timer-popover-return {
+	top: calc(
+		var(--interval-timer-popover-control-top) +
+			var(--interval-timer-popover-control-height)
+	);
+}
+
+.interval-timer-popover-no-close button.interval-timer-popover-return {
+	top: var(--interval-timer-popover-control-top);
 }
 
 .interval-timer-popover-floating button.interval-timer-popover-close {
@@ -135,75 +167,40 @@
 	pointer-events: auto;
 }
 
-button.interval-timer-popover-close:hover,
-button.interval-timer-popover-close:focus-visible {
-	border-color: var(--background-modifier-border-hover);
-	background: var(--background-modifier-hover);
-	color: var(--text-normal);
-}
-
-.interval-timer-popover-close-icon {
-	display: grid;
-	place-items: center;
-	width: 14px;
-	height: 14px;
-}
-
-.interval-timer-popover-close-icon svg {
-	width: 14px;
-	height: 14px;
-}
-
-.interval-timer-popover button.interval-timer-popover-return {
-	position: absolute;
-	z-index: 1;
-	top: -9px;
-	right: 19px;
-	display: grid;
-	place-items: center;
-	min-width: 0;
-	width: 22px;
-	height: 22px;
-	padding: 0;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: 50%;
-	appearance: none;
-	background: var(--background-primary);
-	box-shadow: none;
-	color: var(--text-muted);
-	cursor: pointer;
-	line-height: 1;
-	opacity: 0;
-	pointer-events: none;
-	transition: opacity 120ms ease;
-}
-
 .interval-timer-popover-moved button.interval-timer-popover-return {
 	opacity: 1;
 	pointer-events: auto;
 }
 
-.interval-timer-popover-no-close button.interval-timer-popover-return {
-	right: -9px;
-}
-
+button.interval-timer-popover-close:hover,
+button.interval-timer-popover-close:focus-visible,
 button.interval-timer-popover-return:hover,
 button.interval-timer-popover-return:focus-visible {
-	border-color: var(--background-modifier-border-hover);
-	background: var(--background-modifier-hover);
-	color: var(--text-normal);
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--interval-timer-accent);
 }
 
+button.interval-timer-popover-close:focus-visible,
+button.interval-timer-popover-return:focus-visible {
+	outline: 1px solid var(--interval-timer-accent);
+	outline-offset: -3px;
+}
+
+.interval-timer-popover-close-icon,
 .interval-timer-popover-return-icon {
 	display: grid;
 	place-items: center;
-	width: 14px;
-	height: 14px;
+	width: var(--interval-timer-popover-control-icon-size);
+	height: var(--interval-timer-popover-control-icon-size);
 }
 
+.interval-timer-popover-close-icon svg,
 .interval-timer-popover-return-icon svg {
-	width: 14px;
-	height: 14px;
+	width: var(--interval-timer-popover-control-icon-size);
+	height: var(--interval-timer-popover-control-icon-size);
+	stroke-width: 2.5;
 }
 
 .interval-timer-popover-body {
@@ -410,6 +407,7 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 .interval-timer-popover-task-name {
 	display: -webkit-box;
 	overflow: hidden;
+	padding-right: var(--interval-timer-popover-control-margin);
 	overflow-wrap: anywhere;
 	color: var(--text-normal);
 	font-size: 13px;
