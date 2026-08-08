@@ -86,6 +86,31 @@ describe("Plugin", () => {
 			defaultPluginSetting.flashOverlayEnabled,
 		);
 	});
+
+	it("updates the focus tick sound volume", async () => {
+		const plugin = createPlugin();
+		await plugin.onload();
+
+		const result = await plugin.updateSetting("focusTickSoundVolume", 65);
+
+		expect(result).toEqual({ ok: true, value: 65 });
+		expect(plugin.settings.focusTickSoundVolume).toBe(65);
+	});
+
+	it("rejects an out-of-range focus tick sound volume", async () => {
+		const plugin = createPlugin();
+		await plugin.onload();
+
+		const result = await plugin.updateSetting("focusTickSoundVolume", 101);
+
+		expect(result).toEqual({
+			ok: false,
+			reason: "invalid_focus_tick_sound_volume",
+		});
+		expect(plugin.settings.focusTickSoundVolume).toBe(
+			defaultPluginSetting.focusTickSoundVolume,
+		);
+	});
 });
 
 const createPlugin = (): Plugin => {

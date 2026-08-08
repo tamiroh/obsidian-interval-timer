@@ -10,7 +10,10 @@ export type PluginSetting = {
 	longBreakAfter: number;
 	notificationStyle: NotificationStyle;
 	flashOverlayEnabled: boolean;
+	focusTickSoundVolume: number;
 };
+
+export const focusTickSoundVolumeRange = { min: 0, max: 100 } as const;
 
 export const defaultPluginSetting = {
 	focusIntervalDuration: 25,
@@ -19,6 +22,7 @@ export const defaultPluginSetting = {
 	longBreakAfter: defaultLongBreakAfter,
 	notificationStyle: "simple",
 	flashOverlayEnabled: false,
+	focusTickSoundVolume: 0,
 } satisfies PluginSetting;
 
 export const parsePluginSetting = (value: unknown): PluginSetting => {
@@ -48,6 +52,7 @@ export const parsePluginSetting = (value: unknown): PluginSetting => {
 			typeof stored.flashOverlayEnabled === "boolean"
 				? stored.flashOverlayEnabled
 				: defaultPluginSetting.flashOverlayEnabled,
+		focusTickSoundVolume: parseFocusTickSoundVolume(stored),
 	};
 };
 
@@ -69,3 +74,16 @@ const parseDurationOrDefault = (value: unknown, fallback: Minutes): Minutes => {
 
 const isNotificationStyle = (value: unknown): value is NotificationStyle =>
 	value === "system" || value === "simple";
+
+export const isFocusTickSoundVolume = (value: unknown): value is number =>
+	typeof value === "number" &&
+	Number.isInteger(value) &&
+	value >= focusTickSoundVolumeRange.min &&
+	value <= focusTickSoundVolumeRange.max;
+
+const parseFocusTickSoundVolume = (stored: Record<string, unknown>): number => {
+	if (isFocusTickSoundVolume(stored.focusTickSoundVolume)) {
+		return stored.focusTickSoundVolume;
+	}
+	return defaultPluginSetting.focusTickSoundVolume;
+};
