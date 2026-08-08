@@ -33,6 +33,13 @@ import {
 import { parsePluginSetting, PluginSetting } from "./obsidian-plugin-setting";
 import { isMinutes, type Minutes } from "./time";
 import type { Result } from "./result";
+import { EventStore } from "./event-store";
+import {
+	intervalTimerEventRecordSchema,
+	toIntervalTimerEventRecord,
+} from "./interval-timer-event-record";
+import { TaskEventModal } from "./obsidian-task-event-modal";
+import { ObsidianFileSystem } from "./obsidian-filesystem";
 
 export type { PluginSetting } from "./obsidian-plugin-setting";
 
@@ -58,6 +65,10 @@ export default class Plugin extends BasePlugin {
 
 	private intervalTimerSnapshotStore: IntervalTimerSnapshotStore;
 
+	private readonly intervalTimerEventStore: EventStore<
+		typeof intervalTimerEventRecordSchema
+	>;
+
 	private readonly taskLineHighlighter: TaskLineHighlighter;
 
 	constructor(app: App, manifest: PluginManifest) {
@@ -68,6 +79,13 @@ export default class Plugin extends BasePlugin {
 		this.intervalTimerSnapshotStore = new IntervalTimerSnapshotStore(
 			this.keyValueStore,
 		);
+		this.intervalTimerEventStore = new EventStore({
+			fileSystem: new ObsidianFileSystem(this.app),
+			rootDirectory: `${manifest.dir ?? `${this.app.vault.configDir}/plugins/${manifest.id}`}/events`,
+			schema: intervalTimerEventRecordSchema,
+			getOccurredAt: (event) => event.occurredAt,
+			onError: () => new Notice("Failed to access timer events."),
+		});
 		this.taskLineHighlighter = new TaskLineHighlighter(
 			this.taskTracker,
 			() => this.intervalTimer.state === "focus",
@@ -100,6 +118,7 @@ export default class Plugin extends BasePlugin {
 		FlashOverlay.dispose();
 		this.timerDisplay.dispose();
 		this.intervalTimer.dispose();
+		void this.intervalTimerEventStore.flush();
 	}
 
 	public async updateSetting(
@@ -187,9 +206,6 @@ export default class Plugin extends BasePlugin {
 				timerState,
 				this.settings.longBreakAfter,
 			);
-			if (timerState === "initialized") {
-				this.untrackCurrentTask();
-			}
 		};
 		const onNotify = (message: string, context: NotifierContext) => {
 			if (this.settings.flashOverlayEnabled) {
@@ -220,9 +236,6 @@ export default class Plugin extends BasePlugin {
 				})
 				.catch(() => {
 					new Notice("Failed to record task completion.");
-				})
-				.finally(() => {
-					this.untrackCurrentTask();
 				});
 		};
 		const snapshot = this.intervalTimerSnapshotStore.load();
@@ -256,6 +269,21 @@ export default class Plugin extends BasePlugin {
 						state: event.to,
 					});
 					break;
+			}
+			const eventRecord = toIntervalTimerEventRecord(
+				event,
+				this.taskTracker.getTrackedTask(),
+			);
+			if (eventRecord !== null) {
+				this.intervalTimerEventStore.record(eventRecord);
+			}
+			if (
+				event.type === "timer-reset" ||
+				event.type === "intervals-reset" ||
+				event.type === "interval-completed" ||
+				event.type === "interval-skipped"
+			) {
+				this.untrackCurrentTask();
 			}
 		});
 		updateTimerState(this.intervalTimer.status);
@@ -342,6 +370,22 @@ export default class Plugin extends BasePlugin {
 			id: "reset-total-intervals",
 			name: "Reset total intervals",
 			callback: () => this.intervalTimer.resetTotalIntervals(),
+		});
+		this.addCommand({
+			id: "view-task-events",
+			name: "View task events",
+			checkCallback: (checking) => {
+				const task = this.taskTracker.getTaskFromActiveLine();
+				if (task === null) return false;
+				if (!checking) {
+					new TaskEventModal(
+						this.app,
+						task,
+						this.intervalTimerEventStore,
+					).open();
+				}
+				return true;
+			},
 		});
 		this.addCommand({
 			id: "skip-interval",
