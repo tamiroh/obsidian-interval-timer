@@ -18,6 +18,7 @@ describe("parsePluginSetting", () => {
 				longBreakAfter: 3,
 				notificationStyle: "system",
 				flashOverlayEnabled: true,
+				focusTickSoundVolume: 65,
 			}),
 		).toEqual({
 			focusIntervalDuration: 50,
@@ -26,6 +27,7 @@ describe("parsePluginSetting", () => {
 			longBreakAfter: 3,
 			notificationStyle: "system",
 			flashOverlayEnabled: true,
+			focusTickSoundVolume: 65,
 		});
 	});
 
@@ -38,6 +40,7 @@ describe("parsePluginSetting", () => {
 				longBreakAfter: "invalid",
 				notificationStyle: "unknown",
 				flashOverlayEnabled: "yes",
+				focusTickSoundVolume: 101,
 			}),
 		).toEqual(defaultPluginSetting);
 	});

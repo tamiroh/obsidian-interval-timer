@@ -30,9 +30,14 @@ import {
 	parsePositiveInteger,
 	ParsePositiveIntegerResult,
 } from "./value-parser";
-import { parsePluginSetting, PluginSetting } from "./obsidian-plugin-setting";
+import {
+	isFocusTickSoundVolume,
+	parsePluginSetting,
+	PluginSetting,
+} from "./obsidian-plugin-setting";
 import { isMinutes, type Minutes } from "./time";
 import type { Result } from "./result";
+import { FocusTickSound } from "./focus-tick-sound";
 
 export type { PluginSetting } from "./obsidian-plugin-setting";
 
@@ -42,6 +47,11 @@ type ParseNotificationStyleResult = Result<
 >;
 
 type ParseBooleanResult = Result<boolean, "invalid_boolean">;
+
+type ParseFocusTickSoundVolumeResult = Result<
+	number,
+	"invalid_focus_tick_sound_volume"
+>;
 
 export default class Plugin extends BasePlugin {
 	public override settings!: PluginSetting;
@@ -59,6 +69,8 @@ export default class Plugin extends BasePlugin {
 	private intervalTimerSnapshotStore: IntervalTimerSnapshotStore;
 
 	private readonly taskLineHighlighter: TaskLineHighlighter;
+
+	private readonly focusTickSound = new FocusTickSound();
 
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
@@ -98,6 +110,7 @@ export default class Plugin extends BasePlugin {
 
 	public override onunload(): void {
 		FlashOverlay.dispose();
+		this.focusTickSound.dispose();
 		this.timerDisplay.dispose();
 		this.intervalTimer.dispose();
 	}
@@ -110,6 +123,7 @@ export default class Plugin extends BasePlugin {
 		| Result<Minutes, "out_of_range_minutes">
 		| ParseNotificationStyleResult
 		| ParseBooleanResult
+		| ParseFocusTickSoundVolumeResult
 	> {
 		switch (key) {
 			case "focusIntervalDuration":
@@ -163,6 +177,22 @@ export default class Plugin extends BasePlugin {
 				if (!parsed.value) {
 					FlashOverlay.getInstance().hide();
 				}
+				await this.saveData(this.settings);
+
+				return parsed;
+			}
+			case "focusTickSoundVolume": {
+				const parsed: ParseFocusTickSoundVolumeResult =
+					isFocusTickSoundVolume(value)
+						? { ok: true, value }
+						: {
+								ok: false,
+								reason: "invalid_focus_tick_sound_volume",
+							};
+				if (!parsed.ok) return parsed;
+
+				this.settings.focusTickSoundVolume = parsed.value;
+				this.focusTickSound.play(parsed.value);
 				await this.saveData(this.settings);
 
 				return parsed;
@@ -242,6 +272,15 @@ export default class Plugin extends BasePlugin {
 			switch (event.type) {
 				case "state-changed":
 					updateTimerState(event);
+					if (
+						this.settings.focusTickSoundVolume > 0 &&
+						event.snapshot.state === "focus" &&
+						event.timerState === "running"
+					) {
+						this.focusTickSound.play(
+							this.settings.focusTickSoundVolume,
+						);
+					}
 					break;
 				case "timer-started":
 					if (event.mode === "fresh") {
