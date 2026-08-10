@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import type { Result } from "./result";
-import { isMinutes, Seconds, Time, toMilliseconds, toSeconds } from "./time";
+import { isMinutes, Seconds, Time, toSignedSeconds } from "./time";
 
 export const timerTypes = [
 	"initialized",
@@ -49,26 +49,27 @@ export class CountdownTimer {
 
 	private readonly initialTime: Time;
 
+	private completionSignaled: boolean;
+
+	private continuePastZero: boolean;
+
 	constructor(
 		initialTime: Time,
 		onSubtract?: (time: Time) => void,
 		onPause?: (current: Time) => void,
 		onComplete?: () => void,
+		continuePastZero = false,
 	) {
 		this.onPause = onPause;
 		this.onComplete = onComplete;
-		this.initialTime = {
-			minutes: initialTime.minutes,
-			seconds: initialTime.seconds,
-		};
+		this.initialTime = structuredClone(initialTime);
 		this.state = {
 			type: "initialized",
-			currentTime: {
-				minutes: initialTime.minutes,
-				seconds: initialTime.seconds,
-			},
+			currentTime: structuredClone(initialTime),
 		};
 		this.onSubtract = onSubtract;
+		this.completionSignaled = initialTime.negative === true;
+		this.continuePastZero = continuePastZero;
 	}
 
 	public start(): StartTimerResult {
@@ -83,8 +84,9 @@ export class CountdownTimer {
 			.with({ type: "initialized" }, () => new Date())
 			.with({ type: "paused" }, (state) => {
 				const elapsedMs =
-					toMilliseconds(this.initialTime) -
-					toMilliseconds(state.currentTime);
+					(toSignedSeconds(this.initialTime) -
+						toSignedSeconds(state.currentTime)) *
+					1000;
 				return new Date(Date.now() - elapsedMs);
 			})
 			.exhaustive();
@@ -102,8 +104,11 @@ export class CountdownTimer {
 			}
 			if (result === "completed") {
 				this.onSubtract?.(this.state.currentTime);
-				window.clearInterval(intervalId);
-				this.state = { type: "completed" };
+				this.completionSignaled = true;
+				if (!this.continuePastZero) {
+					window.clearInterval(intervalId);
+					this.state = { type: "completed" };
+				}
 				this.onComplete?.();
 			}
 		}, 500);
@@ -127,10 +132,7 @@ export class CountdownTimer {
 			type: "paused",
 			currentTime: this.state.currentTime,
 		};
-		this.onPause?.({
-			minutes: this.state.currentTime.minutes,
-			seconds: this.state.currentTime.seconds,
-		});
+		this.onPause?.(structuredClone(this.state.currentTime));
 
 		return { ok: true, value: undefined };
 	}
@@ -141,17 +143,12 @@ export class CountdownTimer {
 		}
 		this.state = {
 			type: "initialized",
-			currentTime: {
-				minutes: this.initialTime.minutes,
-				seconds: this.initialTime.seconds,
-			},
+			currentTime: structuredClone(this.initialTime),
 		};
+		this.completionSignaled = this.initialTime.negative === true;
 		return {
 			ok: true,
-			value: {
-				minutes: this.initialTime.minutes,
-				seconds: this.initialTime.seconds,
-			},
+			value: structuredClone(this.initialTime),
 		};
 	}
 
@@ -174,10 +171,7 @@ export class CountdownTimer {
 	public get currentTime(): Time {
 		return this.state.type === "completed"
 			? { minutes: 0, seconds: 0 }
-			: {
-					minutes: this.state.currentTime.minutes,
-					seconds: this.state.currentTime.seconds,
-				};
+			: structuredClone(this.state.currentTime);
 	}
 
 	private updateCurrentTime(
@@ -188,22 +182,30 @@ export class CountdownTimer {
 		}
 
 		const remainingSeconds = this.computeRemainingSeconds(startAt);
-		const previousRemainingSeconds = toSeconds(this.state.currentTime);
+		const previousRemainingSeconds = toSignedSeconds(
+			this.state.currentTime,
+		);
 
-		if (remainingSeconds === previousRemainingSeconds) {
+		if (
+			remainingSeconds === previousRemainingSeconds &&
+			(this.completionSignaled || remainingSeconds > 0)
+		) {
 			return "unchanged";
 		}
-		if (remainingSeconds <= 0) {
+		if (remainingSeconds <= 0 && !this.completionSignaled) {
 			this.state.currentTime = { minutes: 0, seconds: 0 };
 			return "completed";
 		}
 
-		const remainingMinutes = Math.floor(remainingSeconds / 60);
+		const absoluteRemainingSeconds = Math.abs(remainingSeconds);
+		const remainingMinutes = Math.floor(absoluteRemainingSeconds / 60);
+		if (!isMinutes(remainingMinutes)) {
+			return "unchanged";
+		}
 		this.state.currentTime = {
-			minutes: isMinutes(remainingMinutes)
-				? remainingMinutes
-				: this.state.currentTime.minutes,
-			seconds: (remainingSeconds % 60) as Seconds,
+			minutes: remainingMinutes,
+			seconds: (absoluteRemainingSeconds % 60) as Seconds,
+			...(remainingSeconds < 0 ? { negative: true as const } : {}),
 		};
 		return "subtracted";
 	}
@@ -213,6 +215,6 @@ export class CountdownTimer {
 			0,
 			Math.floor((Date.now() - startAt.getTime()) / 1000),
 		);
-		return toSeconds(this.initialTime) - elapsedSeconds;
+		return toSignedSeconds(this.initialTime) - elapsedSeconds;
 	}
 }

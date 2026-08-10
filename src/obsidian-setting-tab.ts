@@ -86,6 +86,24 @@ export class SettingTab extends PluginSettingTab {
 					}),
 			);
 
+		new Setting(containerEl)
+			.setName("Count down past zero")
+			.setDesc(
+				"Keep the completed interval open and show overtime as a negative value until you move to the next interval.",
+			)
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.countDownPastZero)
+					.onChange(async (value) => {
+						await this.updateSettingOrShowValidationError(
+							"countDownPastZero",
+							value,
+							toggle.toggleEl,
+							"Count down past zero",
+						);
+					});
+			});
+
 		new Setting(containerEl).setHeading().setName("Notification");
 
 		new Setting(containerEl).setName("Style").addDropdown((dropdown) => {

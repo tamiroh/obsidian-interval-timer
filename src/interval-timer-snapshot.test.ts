@@ -24,7 +24,12 @@ describe("IntervalTimerSnapshotStore", () => {
 
 		snapshotStore.save(
 			"shortBreak",
-			{ minutes: 3, seconds: 20 },
+			{
+				minutes: 3,
+				seconds: 20,
+				negative: true,
+				nextState: "focus",
+			},
 			{ total: 7, set: 2 },
 		);
 		const snapshot = snapshotStore.load();
@@ -33,6 +38,8 @@ describe("IntervalTimerSnapshotStore", () => {
 			state: "shortBreak",
 			minutes: 3,
 			seconds: 20,
+			negative: true,
+			nextState: "focus",
 			focusIntervals: { total: 7, set: 2 },
 		});
 	});

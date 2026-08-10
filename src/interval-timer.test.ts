@@ -1323,6 +1323,16 @@ describe("IntervalTimer", () => {
 				{ set: 2, total: 7 },
 			);
 
+			intervalTimer.applySnapshot({
+				state: "focus",
+				minutes: 2,
+				seconds: 3,
+				negative: true,
+				nextState: "shortBreak",
+				focusIntervals: { total: 1, set: 1 },
+			});
+			expect(intervalTimer.predictTouch()).toBe("next");
+
 			intervalTimer.dispose();
 		});
 
@@ -1358,6 +1368,60 @@ describe("IntervalTimer", () => {
 				{ minutes: 25, seconds: 0 },
 				{ set: 0, total: 0 },
 			);
+
+			intervalTimer.dispose();
+		});
+	});
+
+	describe("Count down past zero", () => {
+		it("keeps the completed interval running in overtime until Next", () => {
+			const notifier = vi.fn();
+			const intervalTimer = new IntervalTimer(
+				() => {},
+				{
+					focusIntervalDuration: 1,
+					shortBreakDuration: 5,
+					longBreakDuration: 15,
+					longBreakAfter: 4,
+					countDownPastZero: true,
+					resetTime: { hours: 0, minutes: 0 },
+				},
+				notifier,
+			);
+
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			expect(intervalTimer.state).toBe("focus");
+			expect(intervalTimer.status).toEqual({
+				timerState: "running",
+				snapshot: {
+					minutes: 0,
+					seconds: 1,
+					negative: true,
+					state: "focus",
+					nextState: "shortBreak",
+					focusIntervals: { total: 1, set: 1 },
+				},
+			});
+			expect(intervalTimer.predictTouch()).toBe("next");
+			expect(notifier).toHaveBeenCalledExactlyOnceWith(
+				"☕️  Time for a short break",
+				{ state: "shortBreak" },
+			);
+
+			intervalTimer.touch();
+
+			expect(intervalTimer.state).toBe("shortBreak");
+			expect(intervalTimer.status.snapshot).toMatchObject({
+				minutes: 5,
+				seconds: 0,
+				focusIntervals: { total: 1, set: 1 },
+			});
+			expect(intervalTimer.status.snapshot).not.toHaveProperty(
+				"negative",
+			);
+			expect(notifier).toHaveBeenCalledTimes(1);
 
 			intervalTimer.dispose();
 		});

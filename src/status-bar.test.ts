@@ -55,6 +55,22 @@ describe("StatusBar", () => {
 				el.querySelector(".interval-timer-popover-clock-time"),
 			).toHaveTextContent("07:05"),
 		);
+
+		statusBar.update(
+			{ total: 1, set: 1 },
+			{ minutes: 7, seconds: 5, negative: true },
+			"focus",
+			"running",
+		);
+
+		expect(
+			el.querySelector(".interval-timer-status-bar-compact"),
+		).toHaveTextContent("1/1 -07:05");
+		await waitFor(() =>
+			expect(
+				el.querySelector(".interval-timer-popover-clock-time"),
+			).toHaveTextContent("-07:05"),
+		);
 	});
 
 	it("uses the break color without showing a phase label", async () => {

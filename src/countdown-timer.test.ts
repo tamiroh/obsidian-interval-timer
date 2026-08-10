@@ -471,4 +471,35 @@ describe("CountdownTimer", () => {
 		// Assert
 		expect(countdownTimer.currentTime).toEqual({ minutes: 1, seconds: 0 });
 	});
+
+	it("should continue counting down past zero and resume when enabled", () => {
+		const handleSubtract = vi.fn<(time: Time) => void>();
+		const handleComplete = vi.fn();
+		const countdownTimer = new CountdownTimer(
+			{ minutes: 0, seconds: 1 },
+			handleSubtract,
+			vi.fn(),
+			handleComplete,
+			true,
+		);
+
+		countdownTimer.start();
+		vi.advanceTimersByTime(2000);
+		countdownTimer.pause();
+		countdownTimer.start();
+		vi.advanceTimersByTime(1000);
+
+		expect(handleComplete).toHaveBeenCalledOnce();
+		expect(handleSubtract).toHaveBeenLastCalledWith({
+			minutes: 0,
+			seconds: 2,
+			negative: true,
+		});
+		expect(countdownTimer.currentTime).toEqual({
+			minutes: 0,
+			seconds: 2,
+			negative: true,
+		});
+		expect(countdownTimer.getCurrentTimerType()).toBe("running");
+	});
 });

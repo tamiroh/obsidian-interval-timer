@@ -11,6 +11,7 @@ export type PluginSetting = {
 	notificationStyle: NotificationStyle;
 	flashOverlayEnabled: boolean;
 	focusTickSoundVolume: number;
+	countDownPastZero: boolean;
 };
 
 export const focusTickSoundVolumeRange = { min: 0, max: 100 } as const;
@@ -23,6 +24,7 @@ export const defaultPluginSetting = {
 	notificationStyle: "simple",
 	flashOverlayEnabled: false,
 	focusTickSoundVolume: 0,
+	countDownPastZero: false,
 } satisfies PluginSetting;
 
 export const parsePluginSetting = (value: unknown): PluginSetting => {
@@ -53,6 +55,10 @@ export const parsePluginSetting = (value: unknown): PluginSetting => {
 				? stored.flashOverlayEnabled
 				: defaultPluginSetting.flashOverlayEnabled,
 		focusTickSoundVolume: parseFocusTickSoundVolume(stored),
+		countDownPastZero:
+			typeof stored.countDownPastZero === "boolean"
+				? stored.countDownPastZero
+				: defaultPluginSetting.countDownPastZero,
 	};
 };
 

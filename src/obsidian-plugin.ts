@@ -197,6 +197,21 @@ export default class Plugin extends BasePlugin {
 
 				return parsed;
 			}
+			case "countDownPastZero": {
+				const parsed: ParseBooleanResult =
+					typeof value === "boolean"
+						? { ok: true, value }
+						: { ok: false, reason: "invalid_boolean" };
+				if (!parsed.ok) return parsed;
+
+				this.settings.countDownPastZero = parsed.value;
+				this.intervalTimer.updateSettings({
+					countDownPastZero: parsed.value,
+				});
+				await this.saveData(this.settings);
+
+				return parsed;
+			}
 		}
 	}
 
@@ -264,6 +279,7 @@ export default class Plugin extends BasePlugin {
 				shortBreakDuration: this.settings.shortBreakDuration,
 				longBreakDuration: this.settings.longBreakDuration,
 				longBreakAfter: this.settings.longBreakAfter,
+				countDownPastZero: this.settings.countDownPastZero,
 				resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
 			},
 			() => {},

@@ -19,6 +19,7 @@ describe("parsePluginSetting", () => {
 				notificationStyle: "system",
 				flashOverlayEnabled: true,
 				focusTickSoundVolume: 65,
+				countDownPastZero: true,
 			}),
 		).toEqual({
 			focusIntervalDuration: 50,
@@ -28,6 +29,7 @@ describe("parsePluginSetting", () => {
 			notificationStyle: "system",
 			flashOverlayEnabled: true,
 			focusTickSoundVolume: 65,
+			countDownPastZero: true,
 		});
 	});
 
@@ -41,6 +43,7 @@ describe("parsePluginSetting", () => {
 				notificationStyle: "unknown",
 				flashOverlayEnabled: "yes",
 				focusTickSoundVolume: 101,
+				countDownPastZero: "yes",
 			}),
 		).toEqual(defaultPluginSetting);
 	});

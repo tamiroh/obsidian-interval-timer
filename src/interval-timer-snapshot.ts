@@ -27,6 +27,8 @@ export class IntervalTimerSnapshotStore {
 		const seconds = this.keyValueStore.get("time-seconds");
 		const total = this.keyValueStore.get("intervals-total");
 		const set = this.keyValueStore.get("intervals-set");
+		const negative = this.keyValueStore.get("time-negative");
+		const nextState = this.keyValueStore.get("next-timer-state");
 		if (
 			state === null ||
 			minutes === null ||
@@ -38,6 +40,13 @@ export class IntervalTimerSnapshotStore {
 		}
 
 		if (!isIntervalTimerState(state)) {
+			return null;
+		}
+
+		if (negative !== null && negative !== "true") {
+			return null;
+		}
+		if (nextState !== null && !isIntervalTimerState(nextState)) {
 			return null;
 		}
 
@@ -61,6 +70,8 @@ export class IntervalTimerSnapshotStore {
 			state,
 			minutes: parsedMinutes.value,
 			seconds: parsedSeconds.value,
+			...(negative === "true" ? { negative: true as const } : {}),
+			...(nextState !== null ? { nextState } : {}),
 			focusIntervals: {
 				total: parsedTotal.value,
 				set: parsedSet.value,
@@ -70,12 +81,22 @@ export class IntervalTimerSnapshotStore {
 
 	public save(
 		state: IntervalTimerState,
-		time: Time,
+		time: Time & { nextState?: IntervalTimerState },
 		focusIntervals: { total: number; set: number },
 	): void {
 		this.keyValueStore.set("timerState", state);
 		this.keyValueStore.set("time-minutes", String(time.minutes));
 		this.keyValueStore.set("time-seconds", String(time.seconds));
+		if (time.negative) {
+			this.keyValueStore.set("time-negative", "true");
+		} else {
+			this.keyValueStore.delete("time-negative");
+		}
+		if (time.nextState) {
+			this.keyValueStore.set("next-timer-state", time.nextState);
+		} else {
+			this.keyValueStore.delete("next-timer-state");
+		}
 		this.keyValueStore.set("intervals-set", String(focusIntervals.set));
 		this.keyValueStore.set("intervals-total", String(focusIntervals.total));
 	}

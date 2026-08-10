@@ -111,6 +111,16 @@ describe("Plugin", () => {
 			defaultPluginSetting.focusTickSoundVolume,
 		);
 	});
+
+	it("updates the count down past zero setting", async () => {
+		const plugin = createPlugin();
+		await plugin.onload();
+
+		const result = await plugin.updateSetting("countDownPastZero", true);
+
+		expect(result).toEqual({ ok: true, value: true });
+		expect(plugin.settings.countDownPastZero).toBe(true);
+	});
 });
 
 const createPlugin = (): Plugin => {

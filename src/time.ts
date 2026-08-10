@@ -13,7 +13,11 @@ export type Minutes = Enumerate<typeof minutesUpperBound>;
 
 export type Seconds = Enumerate<typeof secondsUpperBound>;
 
-export type Time = { minutes: Minutes; seconds: Seconds };
+export type Time = {
+	minutes: Minutes;
+	seconds: Seconds;
+	negative?: true;
+};
 
 export const isMinutes = (value: number): value is Minutes =>
 	Number.isInteger(value) && value >= 0 && value < minutesUpperBound;
@@ -23,5 +27,8 @@ export const isSeconds = (value: number): value is Seconds =>
 
 export const toSeconds = (time: Time): number =>
 	time.minutes * 60 + time.seconds;
+
+export const toSignedSeconds = (time: Time): number =>
+	(time.negative ? -1 : 1) * toSeconds(time);
 
 export const toMilliseconds = (time: Time): number => toSeconds(time) * 1000;

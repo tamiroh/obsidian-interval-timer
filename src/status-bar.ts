@@ -84,7 +84,9 @@ export class StatusBar {
 		longBreakAfter = defaultLongBreakAfter,
 	): void {
 		this.compactIntervalCount.textContent = `${intervals.set}/${intervals.total} `;
-		this.compactMinutes.textContent = String(time.minutes).padStart(2, "0");
+		this.compactMinutes.textContent = `${time.negative ? "-" : ""}${String(
+			time.minutes,
+		).padStart(2, "0")}`;
 		this.compactSeconds.textContent = String(time.seconds).padStart(2, "0");
 		this.popover.update(
 			time,
