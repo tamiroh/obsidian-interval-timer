@@ -277,7 +277,9 @@ const PopoverView = ({
 	const applyRetime = (restoreFocus = true) => {
 		if (!intervalTimer || !retimeInputRef.current) return;
 
-		const result = intervalTimer.retime(Number(retimeInputRef.current.value));
+		const result = intervalTimer.retime(
+			Number(retimeInputRef.current.value),
+		);
 		if (!result.ok) {
 			if (!restoreFocus) {
 				retimeInputRef.current.value = String(time.minutes);
@@ -555,7 +557,9 @@ const PopoverView = ({
 							r="44"
 							pathLength="100"
 							style={{
-								strokeDashoffset: String(remainingPercent - 100),
+								strokeDashoffset: String(
+									remainingPercent - 100,
+								),
 							}}
 						/>
 					</svg>
