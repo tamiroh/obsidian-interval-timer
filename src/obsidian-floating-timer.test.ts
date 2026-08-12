@@ -1,4 +1,4 @@
-import { within } from "@testing-library/react";
+import { within } from "@testing-library/dom";
 import { afterEach, describe, expect, it } from "vitest";
 import type { App } from "obsidian";
 import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";

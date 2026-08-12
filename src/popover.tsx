@@ -1,14 +1,12 @@
 import {
-	KeyboardEvent,
-	MouseEvent as ReactMouseEvent,
 	MouseEventHandler,
-	PointerEvent as ReactPointerEvent,
-	SyntheticEvent,
-	useRef,
-	useState,
-	useSyncExternalStore,
-} from "react";
-import { createRoot, Root } from "react-dom/client";
+	render,
+	TargetedEvent,
+	TargetedKeyboardEvent,
+	TargetedMouseEvent,
+	TargetedPointerEvent,
+} from "preact";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { match } from "ts-pattern";
 import { TimerType } from "./countdown-timer";
 import {
@@ -74,8 +72,6 @@ type ClosingAnimationState =
 //
 
 export class Popover {
-	private readonly root: Root;
-
 	private readonly rootElement: HTMLSpanElement;
 
 	private readonly store: ObservableStore<PopoverSnapshot>;
@@ -110,10 +106,9 @@ export class Popover {
 		this.rootElement = container.createSpan({
 			cls: "interval-timer-popover-root",
 		});
-		this.root = createRoot(this.rootElement);
 		container.addEventListener("mouseleave", this.handleDismissalReset);
 		container.addEventListener("focusin", this.handleDismissalReset);
-		this.root.render(
+		render(
 			<PopoverView
 				store={this.store}
 				getReturnTarget={options.getReturnTarget}
@@ -123,6 +118,7 @@ export class Popover {
 				renderIcon={options.renderIcon}
 				dismissible={options.dismissible ?? true}
 			/>,
+			this.rootElement,
 		);
 	}
 
@@ -135,7 +131,7 @@ export class Popover {
 			"focusin",
 			this.handleDismissalReset,
 		);
-		this.root.unmount();
+		render(null, this.rootElement);
 		this.rootElement.remove();
 	}
 
@@ -237,7 +233,7 @@ const PopoverView = ({
 		isFloating,
 		isDismissed,
 		touchAction,
-	} = useSyncExternalStore(store.subscribe, store.getSnapshot);
+	} = useStoreSnapshot(store);
 	const [isEditingTime, setIsEditingTime] = useState(false);
 	const [expandedTask, setExpandedTask] = useState<ExpandedTask | null>(null);
 	const [drag, setDrag] = useState<Drag | null>(null);
@@ -248,9 +244,9 @@ const PopoverView = ({
 	const [floatingOrigin, setFloatingOrigin] = useState<Position | null>(null);
 	const [closingAnimationState, setClosingAnimationState] =
 		useState<ClosingAnimationState>({ current: "idle" });
-	const minutesButton = useRef<HTMLButtonElement>(null);
-	const retimeInput = useRef<HTMLInputElement>(null);
-	const suppressBlurApply = useRef(false);
+	const minutesButtonRef = useRef<HTMLButtonElement>(null);
+	const retimeInputRef = useRef<HTMLInputElement>(null);
+	const suppressBlurApplyRef = useRef(false);
 	const touchActionPresentation = getTouchActionPresentation(touchAction);
 	const taskName =
 		intervalTimerState === "focus"
@@ -259,32 +255,32 @@ const PopoverView = ({
 	const isTaskNameExpanded = expandedTask?.name === taskName;
 
 	const handleMinutesClick = () => {
-		suppressBlurApply.current = false;
+		suppressBlurApplyRef.current = false;
 		setIsEditingTime(true);
 		window.requestAnimationFrame(() => {
-			if (!retimeInput.current) return;
+			if (!retimeInputRef.current) return;
 
-			retimeInput.current.value = String(time.minutes);
-			retimeInput.current.focus({ preventScroll: true });
-			retimeInput.current.select();
+			retimeInputRef.current.value = String(time.minutes);
+			retimeInputRef.current.focus({ preventScroll: true });
+			retimeInputRef.current.select();
 		});
 	};
 
 	const stopEditingTime = (restoreFocus: boolean) => {
 		setIsEditingTime(false);
 		if (restoreFocus) {
-			suppressBlurApply.current = true;
-			minutesButton.current?.focus();
+			suppressBlurApplyRef.current = true;
+			minutesButtonRef.current?.focus();
 		}
 	};
 
 	const applyRetime = (restoreFocus = true) => {
-		if (!intervalTimer || !retimeInput.current) return;
+		if (!intervalTimer || !retimeInputRef.current) return;
 
-		const result = intervalTimer.retime(Number(retimeInput.current.value));
+		const result = intervalTimer.retime(Number(retimeInputRef.current.value));
 		if (!result.ok) {
 			if (!restoreFocus) {
-				retimeInput.current.value = String(time.minutes);
+				retimeInputRef.current.value = String(time.minutes);
 				stopEditingTime(false);
 				return;
 			}
@@ -306,7 +302,7 @@ const PopoverView = ({
 					)
 					.exhaustive(),
 			);
-			retimeInput.current.select();
+			retimeInputRef.current.select();
 			return;
 		}
 
@@ -314,7 +310,7 @@ const PopoverView = ({
 	};
 
 	const handleRetimeSubmit = (
-		event: SyntheticEvent<HTMLFormElement, SubmitEvent>,
+		event: TargetedEvent<HTMLFormElement, SubmitEvent>,
 	) => {
 		event.preventDefault();
 		applyRetime();
@@ -351,7 +347,7 @@ const PopoverView = ({
 		}
 	};
 
-	const handleCloseClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
+	const handleCloseClick = (event: TargetedMouseEvent<HTMLButtonElement>) => {
 		event.stopPropagation();
 		setIsEditingTime(false);
 
@@ -378,7 +374,7 @@ const PopoverView = ({
 	};
 
 	const handleReturnToOrigin = (
-		event: ReactMouseEvent<HTMLButtonElement>,
+		event: TargetedMouseEvent<HTMLButtonElement>,
 	) => {
 		event.stopPropagation();
 		if (floatingOrigin) setPopoverPosition(floatingOrigin);
@@ -386,7 +382,7 @@ const PopoverView = ({
 	};
 
 	const handlePopoverPointerDown = (
-		event: ReactPointerEvent<HTMLDivElement>,
+		event: TargetedPointerEvent<HTMLDivElement>,
 	) => {
 		if (!isFloating) return;
 		if (isNonDraggableTarget(event.target)) return;
@@ -414,7 +410,7 @@ const PopoverView = ({
 	};
 
 	const handlePopoverPointerMove = (
-		event: ReactPointerEvent<HTMLDivElement>,
+		event: TargetedPointerEvent<HTMLDivElement>,
 	) => {
 		if (drag?.pointerId !== event.pointerId) return;
 
@@ -433,7 +429,9 @@ const PopoverView = ({
 		});
 	};
 
-	const handlePopoverKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+	const handlePopoverKeyDown = (
+		event: TargetedKeyboardEvent<HTMLDivElement>,
+	) => {
 		if (event.target !== event.currentTarget) return;
 		if (isFloating || !isFloatingKey(event.key)) return;
 
@@ -556,7 +554,9 @@ const PopoverView = ({
 							cy="50"
 							r="44"
 							pathLength="100"
-							style={{ strokeDashoffset: remainingPercent - 100 }}
+							style={{
+								strokeDashoffset: String(remainingPercent - 100),
+							}}
 						/>
 					</svg>
 					<div className="interval-timer-popover-clock-readout">
@@ -569,7 +569,7 @@ const PopoverView = ({
 								}`}
 							>
 								<button
-									ref={minutesButton}
+									ref={minutesButtonRef}
 									type="button"
 									className="interval-timer-popover-clock-minutes"
 									disabled={
@@ -585,21 +585,21 @@ const PopoverView = ({
 									onSubmit={handleRetimeSubmit}
 								>
 									<input
-										ref={retimeInput}
+										ref={retimeInputRef}
 										type="text"
 										inputMode="numeric"
 										pattern="[0-9]*"
 										className="interval-timer-popover-inline-retime-input"
 										autoComplete="off"
-										spellCheck={false}
+										spellcheck={false}
 										defaultValue={time.minutes}
 										onKeyDown={handleRetimeInputKeyDown}
 										onClick={(event) =>
 											event.currentTarget.select()
 										}
 										onBlur={() => {
-											if (suppressBlurApply.current) {
-												suppressBlurApply.current = false;
+											if (suppressBlurApplyRef.current) {
+												suppressBlurApplyRef.current = false;
 												return;
 											}
 											if (isEditingTime)
@@ -697,6 +697,18 @@ const PopoverView = ({
 			</div>
 		</div>
 	);
+};
+
+const useStoreSnapshot = <T extends object>(store: ObservableStore<T>): T => {
+	const [snapshot, setSnapshot] = useState(store.getSnapshot);
+	useLayoutEffect(() => {
+		const unsubscribe = store.subscribe(() =>
+			setSnapshot(store.getSnapshot()),
+		);
+		setSnapshot(store.getSnapshot());
+		return unsubscribe;
+	}, [store]);
+	return snapshot;
 };
 
 //
