@@ -122,6 +122,10 @@ export class CountdownTimer {
 		return { ok: true, value: undefined };
 	}
 
+	public setContinuePastZero(enabled: boolean): void {
+		this.continuePastZero = enabled;
+	}
+
 	public pause(): PauseTimerResult {
 		if (this.state.type !== "running") {
 			return { ok: false, reason: "timer_not_running" };

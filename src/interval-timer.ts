@@ -204,6 +204,11 @@ export class IntervalTimer {
 		settings: Partial<MutableIntervalTimerSetting>,
 	): void {
 		this.settings = { ...this.settings, ...settings };
+		if (settings.intervalCompletionBehavior !== undefined) {
+			this.currentInterval.timer.setContinuePastZero(
+				settings.intervalCompletionBehavior === "countDownPastZero",
+			);
+		}
 	}
 
 	public start(): void {

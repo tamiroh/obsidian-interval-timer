@@ -1374,6 +1374,36 @@ describe("IntervalTimer", () => {
 	});
 
 	describe("Count down past zero", () => {
+		it("applies completion behavior changes to the current interval", () => {
+			const intervalTimer = new IntervalTimer(
+				() => {},
+				{
+					focusIntervalDuration: 1,
+					shortBreakDuration: 5,
+					longBreakDuration: 15,
+					longBreakAfter: 4,
+					resetTime: { hours: 0, minutes: 0 },
+				},
+				() => {},
+			);
+
+			intervalTimer.updateSettings({
+				intervalCompletionBehavior: "countDownPastZero",
+			});
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			expect(intervalTimer.status).toMatchObject({
+				timerState: "running",
+				snapshot: {
+					negative: true,
+					nextState: "shortBreak",
+				},
+			});
+
+			intervalTimer.dispose();
+		});
+
 		it("keeps the completed interval running in overtime until Next", () => {
 			const notifier = vi.fn();
 			const intervalTimer = new IntervalTimer(
