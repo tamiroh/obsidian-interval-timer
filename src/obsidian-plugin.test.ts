@@ -112,14 +112,19 @@ describe("Plugin", () => {
 		);
 	});
 
-	it("updates the count down past zero setting", async () => {
+	it("updates the interval completion behavior", async () => {
 		const plugin = createPlugin();
 		await plugin.onload();
 
-		const result = await plugin.updateSetting("countDownPastZero", true);
+		const result = await plugin.updateSetting(
+			"intervalCompletionBehavior",
+			"countDownPastZero",
+		);
 
-		expect(result).toEqual({ ok: true, value: true });
-		expect(plugin.settings.countDownPastZero).toBe(true);
+		expect(result).toEqual({ ok: true, value: "countDownPastZero" });
+		expect(plugin.settings.intervalCompletionBehavior).toBe(
+			"countDownPastZero",
+		);
 	});
 });
 

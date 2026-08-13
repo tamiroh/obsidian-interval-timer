@@ -19,7 +19,7 @@ describe("parsePluginSetting", () => {
 				notificationStyle: "system",
 				flashOverlayEnabled: true,
 				focusTickSoundVolume: 65,
-				countDownPastZero: true,
+				intervalCompletionBehavior: "countDownPastZero",
 			}),
 		).toEqual({
 			focusIntervalDuration: 50,
@@ -29,7 +29,7 @@ describe("parsePluginSetting", () => {
 			notificationStyle: "system",
 			flashOverlayEnabled: true,
 			focusTickSoundVolume: 65,
-			countDownPastZero: true,
+			intervalCompletionBehavior: "countDownPastZero",
 		});
 	});
 
@@ -43,7 +43,7 @@ describe("parsePluginSetting", () => {
 				notificationStyle: "unknown",
 				flashOverlayEnabled: "yes",
 				focusTickSoundVolume: 101,
-				countDownPastZero: "yes",
+				intervalCompletionBehavior: "unknown",
 			}),
 		).toEqual(defaultPluginSetting);
 	});

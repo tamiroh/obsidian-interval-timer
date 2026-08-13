@@ -86,20 +86,24 @@ export class SettingTab extends PluginSettingTab {
 					}),
 			);
 
+		new Setting(containerEl).setHeading().setName("Behavior");
+
 		new Setting(containerEl)
-			.setName("Count down past zero")
-			.setDesc(
-				"Keep the completed interval open and show overtime as a negative value until you move to the next interval.",
-			)
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.countDownPastZero)
+			.setName("When an interval ends")
+			.addDropdown((dropdown) => {
+				dropdown
+					.addOption("advanceToNextInterval", "Go to next interval")
+					.addOption(
+						"countDownPastZero",
+						"Continue counting past zero",
+					)
+					.setValue(this.plugin.settings.intervalCompletionBehavior)
 					.onChange(async (value) => {
 						await this.updateSettingOrShowValidationError(
-							"countDownPastZero",
+							"intervalCompletionBehavior",
 							value,
-							toggle.toggleEl,
-							"Count down past zero",
+							dropdown.selectEl,
+							"When an interval ends",
 						);
 					});
 			});
@@ -209,6 +213,8 @@ export class SettingTab extends PluginSettingTab {
 				return `${settingLabel}: invalid option selected.`;
 			case "invalid_focus_tick_sound_volume":
 				return `${settingLabel}: please choose a value from 0 to 100.`;
+			case "invalid_interval_completion_behavior":
+				return `${settingLabel}: invalid option selected.`;
 		}
 	}
 }

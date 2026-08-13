@@ -1,6 +1,10 @@
 import { parsePositiveInteger } from "./value-parser";
 import { isMinutes, type Minutes } from "./time";
-import { defaultLongBreakAfter } from "./interval-timer";
+import {
+	defaultLongBreakAfter,
+	intervalCompletionBehaviors,
+	type IntervalCompletionBehavior,
+} from "./interval-timer";
 import type { NotificationStyle } from "./obsidian-notifier";
 
 export type PluginSetting = {
@@ -11,7 +15,7 @@ export type PluginSetting = {
 	notificationStyle: NotificationStyle;
 	flashOverlayEnabled: boolean;
 	focusTickSoundVolume: number;
-	countDownPastZero: boolean;
+	intervalCompletionBehavior: IntervalCompletionBehavior;
 };
 
 export const focusTickSoundVolumeRange = { min: 0, max: 100 } as const;
@@ -24,7 +28,7 @@ export const defaultPluginSetting = {
 	notificationStyle: "simple",
 	flashOverlayEnabled: false,
 	focusTickSoundVolume: 0,
-	countDownPastZero: false,
+	intervalCompletionBehavior: "advanceToNextInterval",
 } satisfies PluginSetting;
 
 export const parsePluginSetting = (value: unknown): PluginSetting => {
@@ -55,10 +59,11 @@ export const parsePluginSetting = (value: unknown): PluginSetting => {
 				? stored.flashOverlayEnabled
 				: defaultPluginSetting.flashOverlayEnabled,
 		focusTickSoundVolume: parseFocusTickSoundVolume(stored),
-		countDownPastZero:
-			typeof stored.countDownPastZero === "boolean"
-				? stored.countDownPastZero
-				: defaultPluginSetting.countDownPastZero,
+		intervalCompletionBehavior: isIntervalCompletionBehavior(
+			stored.intervalCompletionBehavior,
+		)
+			? stored.intervalCompletionBehavior
+			: defaultPluginSetting.intervalCompletionBehavior,
 	};
 };
 
@@ -80,6 +85,11 @@ const parseDurationOrDefault = (value: unknown, fallback: Minutes): Minutes => {
 
 const isNotificationStyle = (value: unknown): value is NotificationStyle =>
 	value === "system" || value === "simple";
+
+export const isIntervalCompletionBehavior = (
+	value: unknown,
+): value is IntervalCompletionBehavior =>
+	intervalCompletionBehaviors.some((behavior) => behavior === value);
 
 export const isFocusTickSoundVolume = (value: unknown): value is number =>
 	typeof value === "number" &&

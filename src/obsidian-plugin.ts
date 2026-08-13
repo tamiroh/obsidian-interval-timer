@@ -9,6 +9,7 @@ import {
 import { match } from "ts-pattern";
 import { SettingTab } from "./obsidian-setting-tab";
 import {
+	type IntervalCompletionBehavior,
 	IntervalTimer,
 	IntervalTimerState,
 	type IntervalTimerStatus,
@@ -32,6 +33,7 @@ import {
 } from "./value-parser";
 import {
 	isFocusTickSoundVolume,
+	isIntervalCompletionBehavior,
 	parsePluginSetting,
 	PluginSetting,
 } from "./obsidian-plugin-setting";
@@ -51,6 +53,11 @@ type ParseBooleanResult = Result<boolean, "invalid_boolean">;
 type ParseFocusTickSoundVolumeResult = Result<
 	number,
 	"invalid_focus_tick_sound_volume"
+>;
+
+type ParseIntervalCompletionBehaviorResult = Result<
+	IntervalCompletionBehavior,
+	"invalid_interval_completion_behavior"
 >;
 
 export default class Plugin extends BasePlugin {
@@ -124,6 +131,7 @@ export default class Plugin extends BasePlugin {
 		| ParseNotificationStyleResult
 		| ParseBooleanResult
 		| ParseFocusTickSoundVolumeResult
+		| ParseIntervalCompletionBehaviorResult
 	> {
 		switch (key) {
 			case "focusIntervalDuration":
@@ -197,16 +205,19 @@ export default class Plugin extends BasePlugin {
 
 				return parsed;
 			}
-			case "countDownPastZero": {
-				const parsed: ParseBooleanResult =
-					typeof value === "boolean"
+			case "intervalCompletionBehavior": {
+				const parsed: ParseIntervalCompletionBehaviorResult =
+					isIntervalCompletionBehavior(value)
 						? { ok: true, value }
-						: { ok: false, reason: "invalid_boolean" };
+						: {
+								ok: false,
+								reason: "invalid_interval_completion_behavior",
+							};
 				if (!parsed.ok) return parsed;
 
-				this.settings.countDownPastZero = parsed.value;
+				this.settings.intervalCompletionBehavior = parsed.value;
 				this.intervalTimer.updateSettings({
-					countDownPastZero: parsed.value,
+					intervalCompletionBehavior: parsed.value,
 				});
 				await this.saveData(this.settings);
 
@@ -279,7 +290,8 @@ export default class Plugin extends BasePlugin {
 				shortBreakDuration: this.settings.shortBreakDuration,
 				longBreakDuration: this.settings.longBreakDuration,
 				longBreakAfter: this.settings.longBreakAfter,
-				countDownPastZero: this.settings.countDownPastZero,
+				intervalCompletionBehavior:
+					this.settings.intervalCompletionBehavior,
 				resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
 			},
 			() => {},

@@ -1383,7 +1383,7 @@ describe("IntervalTimer", () => {
 					shortBreakDuration: 5,
 					longBreakDuration: 15,
 					longBreakAfter: 4,
-					countDownPastZero: true,
+					intervalCompletionBehavior: "countDownPastZero",
 					resetTime: { hours: 0, minutes: 0 },
 				},
 				notifier,

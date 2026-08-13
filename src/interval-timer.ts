@@ -10,7 +10,7 @@ export type IntervalTimerSetting = {
 	shortBreakDuration: Minutes;
 	longBreakDuration: Minutes;
 	longBreakAfter: number;
-	countDownPastZero?: boolean;
+	intervalCompletionBehavior?: IntervalCompletionBehavior;
 	resetTime: { hours: number; minutes: number };
 };
 
@@ -20,6 +20,14 @@ export type MutableIntervalTimerSetting = Omit<
 >;
 
 export const defaultLongBreakAfter = 4;
+
+export const intervalCompletionBehaviors = [
+	"advanceToNextInterval",
+	"countDownPastZero",
+] as const;
+
+export type IntervalCompletionBehavior =
+	(typeof intervalCompletionBehaviors)[number];
 
 export const intervalTimerStates = [
 	"focus",
@@ -350,7 +358,10 @@ export class IntervalTimer {
 			.with("shortBreak", "longBreak", () => "focus" as const)
 			.exhaustive();
 
-		if (reason === "completed" && this.settings.countDownPastZero) {
+		if (
+			reason === "completed" &&
+			this.settings.intervalCompletionBehavior === "countDownPastZero"
+		) {
 			this.pendingNextState = nextState;
 			this.changeState("running", this.currentInterval.timer.currentTime);
 		} else {
@@ -391,7 +402,7 @@ export class IntervalTimer {
 			(time: Time) => this.changeState("running", time),
 			handlePause,
 			() => this.enterNextInterval({ reason: "completed" }),
-			this.settings.countDownPastZero === true,
+			this.settings.intervalCompletionBehavior === "countDownPastZero",
 		);
 	}
 
