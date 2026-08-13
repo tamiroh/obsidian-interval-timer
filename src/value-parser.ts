@@ -1,5 +1,5 @@
 import { isMinutes, isSeconds, type Minutes, type Seconds } from "./time";
-import type { Result, ResultFailureReason } from "./result";
+import { err, ok, type Result, type ResultFailureReason } from "./result";
 
 //
 // Positive Integer Parser
@@ -15,12 +15,12 @@ export function parsePositiveInteger(
 ): ParsePositiveIntegerResult {
 	const parsed = toNumber(value);
 	if (Number.isNaN(parsed)) {
-		return { ok: false, reason: "invalid_number" };
+		return err("invalid_number");
 	}
 	if (!Number.isInteger(parsed) || parsed <= 0) {
-		return { ok: false, reason: "non_positive_integer" };
+		return err("non_positive_integer");
 	}
-	return { ok: true, value: parsed };
+	return ok(parsed);
 }
 
 //
@@ -48,15 +48,15 @@ export function parseNonNegativeInteger(
 ): ParseNonNegativeIntegerResult {
 	const parsed = toNumber(value);
 	if (Number.isNaN(parsed)) {
-		return { ok: false, reason: "invalid_number" };
+		return err("invalid_number");
 	}
 	if (!Number.isInteger(parsed)) {
-		return { ok: false, reason: "non_integer" };
+		return err("non_integer");
 	}
 	if (parsed < 0) {
-		return { ok: false, reason: "negative_integer" };
+		return err("negative_integer");
 	}
-	return { ok: true, value: parsed };
+	return ok(parsed);
 }
 
 //
@@ -74,9 +74,9 @@ export function parseMinutes(value: unknown): ParseMinutesResult {
 		return parsed;
 	}
 	if (!isMinutes(parsed.value)) {
-		return { ok: false, reason: "out_of_range_minutes" };
+		return err("out_of_range_minutes");
 	}
-	return { ok: true, value: parsed.value };
+	return ok(parsed.value);
 }
 
 export type ParseSecondsResult = Result<
@@ -90,7 +90,7 @@ export function parseSeconds(value: unknown): ParseSecondsResult {
 		return parsed;
 	}
 	if (!isSeconds(parsed.value)) {
-		return { ok: false, reason: "out_of_range_seconds" };
+		return err("out_of_range_seconds");
 	}
-	return { ok: true, value: parsed.value };
+	return ok(parsed.value);
 }

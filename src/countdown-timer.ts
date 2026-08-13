@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import type { Result } from "./result";
+import { err, ok, type Result } from "./result";
 import { isMinutes, Seconds, Time, toMilliseconds, toSeconds } from "./time";
 
 export const timerTypes = [
@@ -73,10 +73,10 @@ export class CountdownTimer {
 
 	public start(): StartTimerResult {
 		if (this.state.type === "running") {
-			return { ok: false, reason: "timer_running" };
+			return err("timer_running");
 		}
 		if (this.state.type === "completed") {
-			return { ok: false, reason: "timer_completed" };
+			return err("timer_completed");
 		}
 
 		const startAt = match(this.state)
@@ -114,12 +114,12 @@ export class CountdownTimer {
 			currentTime: this.state.currentTime,
 		};
 
-		return { ok: true, value: undefined };
+		return ok();
 	}
 
 	public pause(): PauseTimerResult {
 		if (this.state.type !== "running") {
-			return { ok: false, reason: "timer_not_running" };
+			return err("timer_not_running");
 		}
 
 		window.clearInterval(this.state.intervalId);
@@ -132,7 +132,7 @@ export class CountdownTimer {
 			seconds: this.state.currentTime.seconds,
 		});
 
-		return { ok: true, value: undefined };
+		return ok();
 	}
 
 	public reset(): ResetTimerResult {
@@ -146,13 +146,10 @@ export class CountdownTimer {
 				seconds: this.initialTime.seconds,
 			},
 		};
-		return {
-			ok: true,
-			value: {
-				minutes: this.initialTime.minutes,
-				seconds: this.initialTime.seconds,
-			},
-		};
+		return ok({
+			minutes: this.initialTime.minutes,
+			seconds: this.initialTime.seconds,
+		});
 	}
 
 	public dispose(): void {
