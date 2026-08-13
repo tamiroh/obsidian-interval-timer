@@ -3,7 +3,7 @@ import { CountdownTimer, TimerType } from "./countdown-timer";
 import { isMinutes, Minutes, Seconds, Time } from "./time";
 import { DailyScheduler } from "./daily-scheduler";
 import { parsePositiveInteger } from "./value-parser";
-import type { Result } from "./result";
+import { err, ok, type Result } from "./result";
 
 export type IntervalTimerSetting = {
 	focusIntervalDuration: Minutes;
@@ -246,19 +246,19 @@ export class IntervalTimer {
 	public retime(minutes: number): RetimeResult {
 		const parsed = parsePositiveInteger(minutes);
 		if (!parsed.ok) {
-			return { ok: false, reason: "invalid_minutes" };
+			return err("invalid_minutes");
 		}
 		if (!isMinutes(parsed.value)) {
-			return { ok: false, reason: "out_of_range_minutes" };
+			return err("out_of_range_minutes");
 		}
 		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
-			return { ok: false, reason: "timer_running" };
+			return err("timer_running");
 		}
 		this.enterInterval(this.currentInterval.state, {
 			minutes: parsed.value,
 			seconds: this.currentInterval.timer.currentTime.seconds,
 		});
-		return { ok: true, value: undefined };
+		return ok();
 	}
 
 	public touch(): void {
