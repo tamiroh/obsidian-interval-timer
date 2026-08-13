@@ -28,7 +28,7 @@ export type TimerState =
 	| {
 			type: (typeof timerTypes)[1];
 			currentTime: Time;
-			intervalId: number;
+			timeoutId: number;
 	  }
 	| {
 			type: (typeof timerTypes)[2];
@@ -89,11 +89,21 @@ export class CountdownTimer {
 			})
 			.exhaustive();
 
-		const intervalId = window.setInterval(() => {
-			if (this.state.type !== "running") {
-				window.clearInterval(intervalId);
-				return;
-			}
+		this.state = {
+			type: "running",
+			timeoutId: this.scheduleNextTick(startAt),
+			currentTime: this.state.currentTime,
+		};
+
+		return { ok: true, value: undefined };
+	}
+
+	private scheduleNextTick(startAt: Date): number {
+		const elapsedMs = Math.max(0, Date.now() - startAt.getTime());
+		const delayMs = 1000 - (elapsedMs % 1000);
+
+		return window.setTimeout(() => {
+			if (this.state.type !== "running") return;
 
 			const result = this.updateCurrentTime(startAt);
 
@@ -102,19 +112,17 @@ export class CountdownTimer {
 			}
 			if (result === "completed") {
 				this.onSubtract?.(this.state.currentTime);
-				window.clearInterval(intervalId);
 				this.state = { type: "completed" };
 				this.onComplete?.();
+				return;
 			}
-		}, 500);
 
-		this.state = {
-			type: "running",
-			intervalId,
-			currentTime: this.state.currentTime,
-		};
-
-		return { ok: true, value: undefined };
+			this.state = {
+				type: "running",
+				currentTime: this.state.currentTime,
+				timeoutId: this.scheduleNextTick(startAt),
+			};
+		}, delayMs);
 	}
 
 	public pause(): PauseTimerResult {
@@ -122,7 +130,7 @@ export class CountdownTimer {
 			return { ok: false, reason: "timer_not_running" };
 		}
 
-		window.clearInterval(this.state.intervalId);
+		window.clearTimeout(this.state.timeoutId);
 		this.state = {
 			type: "paused",
 			currentTime: this.state.currentTime,
@@ -137,7 +145,7 @@ export class CountdownTimer {
 
 	public reset(): ResetTimerResult {
 		if (this.state.type === "running") {
-			window.clearInterval(this.state.intervalId);
+			window.clearTimeout(this.state.timeoutId);
 		}
 		this.state = {
 			type: "initialized",
@@ -160,7 +168,7 @@ export class CountdownTimer {
 			return;
 		}
 
-		window.clearInterval(this.state.intervalId);
+		window.clearTimeout(this.state.timeoutId);
 		this.state = {
 			type: "paused",
 			currentTime: this.state.currentTime,
