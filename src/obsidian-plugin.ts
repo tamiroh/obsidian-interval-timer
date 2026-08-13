@@ -303,7 +303,9 @@ export default class Plugin extends BasePlugin {
 					if (
 						this.settings.focusTickSoundVolume > 0 &&
 						event.snapshot.state === "focus" &&
-						event.timerState === "running"
+						event.timerState === "running" &&
+						!event.snapshot.negative &&
+						event.snapshot.nextState === undefined
 					) {
 						this.focusTickSound.play(
 							this.settings.focusTickSoundVolume,
