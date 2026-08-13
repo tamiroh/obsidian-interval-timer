@@ -21,6 +21,7 @@
 		"forceConsistentCasingInFileNames": true,
 		"allowSyntheticDefaultImports": true,
 		"jsx": "react-jsx",
+		"jsxImportSource": "preact",
 		"skipLibCheck": true
 	},
 	"include": ["**/*.ts", "**/*.tsx"]
