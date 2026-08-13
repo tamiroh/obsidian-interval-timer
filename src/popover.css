@@ -281,6 +281,17 @@ button.interval-timer-popover-return:focus-visible {
 	line-height: 22px;
 }
 
+.interval-timer-popover-clock-time-negative {
+	color: var(--text-error);
+	animation: interval-timer-popover-negative-blink 1s ease-in-out infinite;
+}
+
+@keyframes interval-timer-popover-negative-blink {
+	50% {
+		opacity: 0.35;
+	}
+}
+
 .interval-timer-popover-clock-separator-running {
 	animation: interval-timer-popover-blink 1s steps(1, end) infinite;
 }
@@ -336,6 +347,13 @@ button.interval-timer-popover-clock-minutes:disabled:hover {
 	color: var(--text-normal);
 	cursor: default;
 	opacity: 1;
+}
+
+.interval-timer-popover-clock-time-negative
+	button.interval-timer-popover-clock-minutes:disabled,
+.interval-timer-popover-clock-time-negative
+	button.interval-timer-popover-clock-minutes:disabled:hover {
+	color: var(--text-error);
 }
 
 .interval-timer-popover-inline-retime-form {
@@ -508,5 +526,9 @@ button.interval-timer-popover-touch-action:disabled {
 
 	.interval-timer-popover.interval-timer-popover-floating {
 		transition: none;
+	}
+
+	.interval-timer-popover-clock-time-negative {
+		animation: none;
 	}
 }

@@ -566,7 +566,13 @@ const PopoverView = ({
 						/>
 					</svg>
 					<div className="interval-timer-popover-clock-readout">
-						<div className="interval-timer-popover-clock-time">
+						<div
+							className={`interval-timer-popover-clock-time${
+								time.negative
+									? " interval-timer-popover-clock-time-negative"
+									: ""
+							}`}
+						>
 							{time.negative && (
 								<span className="interval-timer-popover-clock-sign">
 									-

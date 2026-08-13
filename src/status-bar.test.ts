@@ -71,6 +71,9 @@ describe("StatusBar", () => {
 				el.querySelector(".interval-timer-popover-clock-time"),
 			).toHaveTextContent("-07:05"),
 		);
+		expect(
+			el.querySelector(".interval-timer-popover-clock-time"),
+		).toHaveClass("interval-timer-popover-clock-time-negative");
 	});
 
 	it("uses the break color without showing a phase label", async () => {
