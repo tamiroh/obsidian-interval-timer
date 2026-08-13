@@ -6,4 +6,5 @@
 body {
 	--interval-timer-focus-color: #ee6152;
 	--interval-timer-break-color: #4cbd4f;
+	--interval-timer-warning-color: #e6a23c;
 }
