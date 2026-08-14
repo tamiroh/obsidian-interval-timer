@@ -1,4 +1,4 @@
-<h1 align="center">Interval Timer for Obsidian 🕔</h1>
+<h1 align="center">⏰ Interval Timer</h1>
 
 <p align="center">
 Run focus and break cycles using methods like the <a href="https://www.pomodorotechnique.com/">Pomodoro Technique</a>, and record completed intervals on your Markdown task lines.
