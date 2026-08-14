@@ -36,7 +36,7 @@ import {
 	PluginSetting,
 } from "./obsidian-plugin-setting";
 import { isMinutes, type Minutes } from "./time";
-import type { Result } from "./result";
+import { err, ok, type Result } from "./result";
 import { FocusTickSound } from "./focus-tick-sound";
 
 export type { PluginSetting } from "./obsidian-plugin-setting";
@@ -132,7 +132,7 @@ export default class Plugin extends BasePlugin {
 				const parsed = parsePositiveInteger(value);
 				if (!parsed.ok) return parsed;
 				if (!isMinutes(parsed.value)) {
-					return { ok: false, reason: "out_of_range_minutes" };
+					return err("out_of_range_minutes");
 				}
 
 				this.settings[key] = parsed.value;
@@ -155,8 +155,8 @@ export default class Plugin extends BasePlugin {
 			case "notificationStyle": {
 				const parsed: ParseNotificationStyleResult =
 					value === "system" || value === "simple"
-						? { ok: true, value }
-						: { ok: false, reason: "invalid_notification_style" };
+						? ok(value)
+						: err("invalid_notification_style");
 				if (!parsed.ok) return parsed;
 
 				this.notifier.clearNotification();
@@ -169,8 +169,8 @@ export default class Plugin extends BasePlugin {
 			case "flashOverlayEnabled": {
 				const parsed: ParseBooleanResult =
 					typeof value === "boolean"
-						? { ok: true, value }
-						: { ok: false, reason: "invalid_boolean" };
+						? ok(value)
+						: err("invalid_boolean");
 				if (!parsed.ok) return parsed;
 
 				this.settings.flashOverlayEnabled = parsed.value;
@@ -184,11 +184,8 @@ export default class Plugin extends BasePlugin {
 			case "focusTickSoundVolume": {
 				const parsed: ParseFocusTickSoundVolumeResult =
 					isFocusTickSoundVolume(value)
-						? { ok: true, value }
-						: {
-								ok: false,
-								reason: "invalid_focus_tick_sound_volume",
-							};
+						? ok(value)
+						: err("invalid_focus_tick_sound_volume");
 				if (!parsed.ok) return parsed;
 
 				this.settings.focusTickSoundVolume = parsed.value;

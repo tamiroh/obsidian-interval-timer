@@ -3,7 +3,7 @@ import { KeyValueStore } from "./key-value-store";
 import { TaskManagementFile } from "./task-management-file";
 import { TaskLine } from "./task-line";
 import { Markdown } from "./markdown";
-import type { Result } from "./result";
+import { err, ok, type Result } from "./result";
 
 export type TrackTaskResult = Result<
 	void,
@@ -28,17 +28,17 @@ export class TaskTracker {
 	public trackTaskFromActiveLine(): TrackTaskResult {
 		const filePath = this.app.workspace.getActiveFile()?.path;
 		if (!filePath) {
-			return { ok: false, reason: "active_file_not_found" };
+			return err("active_file_not_found");
 		}
 
 		const taskName = this.getTaskNameFromActiveLine();
 		if (!taskName) {
-			return { ok: false, reason: "task_not_found" };
+			return err("task_not_found");
 		}
 
 		this.keyValueStore.set("current-task-name", taskName);
 		this.keyValueStore.set("current-task-path", filePath);
-		return { ok: true, value: undefined };
+		return ok();
 	}
 
 	public getTaskNameFromActiveLine(): string | null {
@@ -61,26 +61,26 @@ export class TaskTracker {
 		const name = this.keyValueStore.get("current-task-name");
 		const filePath = this.keyValueStore.get("current-task-path");
 		if (!name || !filePath) {
-			return { ok: false, reason: "tracked_task_not_found" };
+			return err("tracked_task_not_found");
 		}
 
 		const file = this.app.vault.getAbstractFileByPath(filePath);
 		if (!(file instanceof TFile)) {
-			return { ok: false, reason: "tracked_file_not_found" };
+			return err("tracked_file_not_found");
 		}
 
 		const incrementedTaskManagementFile = new TaskManagementFile(
 			await this.app.vault.read(file),
 		).toIncremented(name);
 		if (!incrementedTaskManagementFile) {
-			return { ok: false, reason: "task_not_found" };
+			return err("task_not_found");
 		}
 
 		await this.app.vault.modify(
 			file,
 			incrementedTaskManagementFile.toContent(),
 		);
-		return { ok: true, value: undefined };
+		return ok();
 	}
 
 	public untrack(): void {
