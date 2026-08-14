@@ -282,7 +282,6 @@ button.interval-timer-popover-return:focus-visible {
 }
 
 .interval-timer-popover-clock-time-negative {
-	color: var(--interval-timer-warning-color);
 	animation: interval-timer-popover-negative-blink 1s ease-in-out infinite;
 }
 
@@ -347,13 +346,6 @@ button.interval-timer-popover-clock-minutes:disabled:hover {
 	color: var(--text-normal);
 	cursor: default;
 	opacity: 1;
-}
-
-.interval-timer-popover-clock-time-negative
-	button.interval-timer-popover-clock-minutes:disabled,
-.interval-timer-popover-clock-time-negative
-	button.interval-timer-popover-clock-minutes:disabled:hover {
-	color: var(--interval-timer-warning-color);
 }
 
 .interval-timer-popover-inline-retime-form {
