@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import type { Result } from "./result";
+import { err, ok, type Result } from "./result";
 import { isMinutes, Seconds, Time, toSignedSeconds } from "./time";
 
 export const timerTypes = [
@@ -28,7 +28,7 @@ export type TimerState =
 	| {
 			type: (typeof timerTypes)[1];
 			currentTime: Time;
-			intervalId: number;
+			timeoutId: number;
 	  }
 	| {
 			type: (typeof timerTypes)[2];
@@ -74,10 +74,10 @@ export class CountdownTimer {
 
 	public start(): StartTimerResult {
 		if (this.state.type === "running") {
-			return { ok: false, reason: "timer_running" };
+			return err("timer_running");
 		}
 		if (this.state.type === "completed") {
-			return { ok: false, reason: "timer_completed" };
+			return err("timer_completed");
 		}
 
 		const startAt = match(this.state)
@@ -91,11 +91,21 @@ export class CountdownTimer {
 			})
 			.exhaustive();
 
-		const intervalId = window.setInterval(() => {
-			if (this.state.type !== "running") {
-				window.clearInterval(intervalId);
-				return;
-			}
+		this.state = {
+			type: "running",
+			timeoutId: this.scheduleNextTick(startAt),
+			currentTime: this.state.currentTime,
+		};
+
+		return ok();
+	}
+
+	private scheduleNextTick(startAt: Date): number {
+		const elapsedMs = Math.max(0, Date.now() - startAt.getTime());
+		const delayMs = 1000 - (elapsedMs % 1000);
+
+		return window.setTimeout(() => {
+			if (this.state.type !== "running") return;
 
 			const result = this.updateCurrentTime(startAt);
 
@@ -106,20 +116,19 @@ export class CountdownTimer {
 				this.onSubtract?.(this.state.currentTime);
 				this.completionSignaled = true;
 				if (!this.continuePastZero) {
-					window.clearInterval(intervalId);
 					this.state = { type: "completed" };
+					this.onComplete?.();
+					return;
 				}
 				this.onComplete?.();
 			}
-		}, 500);
 
-		this.state = {
-			type: "running",
-			intervalId,
-			currentTime: this.state.currentTime,
-		};
-
-		return { ok: true, value: undefined };
+			this.state = {
+				type: "running",
+				currentTime: this.state.currentTime,
+				timeoutId: this.scheduleNextTick(startAt),
+			};
+		}, delayMs);
 	}
 
 	public setContinuePastZero(enabled: boolean): void {
@@ -128,32 +137,29 @@ export class CountdownTimer {
 
 	public pause(): PauseTimerResult {
 		if (this.state.type !== "running") {
-			return { ok: false, reason: "timer_not_running" };
+			return err("timer_not_running");
 		}
 
-		window.clearInterval(this.state.intervalId);
+		window.clearTimeout(this.state.timeoutId);
 		this.state = {
 			type: "paused",
 			currentTime: this.state.currentTime,
 		};
 		this.onPause?.(structuredClone(this.state.currentTime));
 
-		return { ok: true, value: undefined };
+		return ok();
 	}
 
 	public reset(): ResetTimerResult {
 		if (this.state.type === "running") {
-			window.clearInterval(this.state.intervalId);
+			window.clearTimeout(this.state.timeoutId);
 		}
 		this.state = {
 			type: "initialized",
 			currentTime: structuredClone(this.initialTime),
 		};
 		this.completionSignaled = this.initialTime.negative === true;
-		return {
-			ok: true,
-			value: structuredClone(this.initialTime),
-		};
+		return ok(structuredClone(this.initialTime));
 	}
 
 	public dispose(): void {
@@ -161,7 +167,7 @@ export class CountdownTimer {
 			return;
 		}
 
-		window.clearInterval(this.state.intervalId);
+		window.clearTimeout(this.state.timeoutId);
 		this.state = {
 			type: "paused",
 			currentTime: this.state.currentTime,
