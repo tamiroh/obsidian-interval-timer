@@ -95,7 +95,7 @@ export class CountdownTimer {
 			currentTime: this.state.currentTime,
 		};
 
-		return { ok: true, value: undefined };
+		return ok();
 	}
 
 	private scheduleNextTick(startAt: Date): number {
