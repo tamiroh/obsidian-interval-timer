@@ -62,6 +62,19 @@ export default defineConfig(
 			],
 		},
 	},
+	{
+		files: ["src/**/*.{ts,tsx}"],
+		ignores: ["**/*.test.{ts,tsx}"],
+		rules: {
+			"import/no-extraneous-dependencies": [
+				"error",
+				{
+					devDependencies: false,
+					optionalDependencies: false,
+				},
+			],
+		},
+	},
 	globalIgnores([
 		"node_modules",
 		"dist",
