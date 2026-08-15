@@ -2,6 +2,7 @@ import { parsePositiveInteger } from "./value-parser";
 import { isMinutes, type Minutes } from "./time";
 import { defaultLongBreakAfter } from "./interval-timer";
 import type { NotificationStyle } from "./obsidian-notifier";
+import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
 
 export type PluginSetting = {
 	focusIntervalDuration: Minutes;
@@ -11,9 +12,13 @@ export type PluginSetting = {
 	notificationStyle: NotificationStyle;
 	flashOverlayEnabled: boolean;
 	focusTickSoundVolume: number;
+	focusBgmType: FocusBgmType;
+	focusBgmVolume: number;
 };
 
 export const focusTickSoundVolumeRange = { min: 0, max: 100 } as const;
+
+export const focusBgmVolumeRange = { min: 0, max: 100 } as const;
 
 export const defaultPluginSetting = {
 	focusIntervalDuration: 25,
@@ -23,6 +28,8 @@ export const defaultPluginSetting = {
 	notificationStyle: "simple",
 	flashOverlayEnabled: false,
 	focusTickSoundVolume: 0,
+	focusBgmType: "none",
+	focusBgmVolume: 50,
 } satisfies PluginSetting;
 
 export const parsePluginSetting = (value: unknown): PluginSetting => {
@@ -52,7 +59,17 @@ export const parsePluginSetting = (value: unknown): PluginSetting => {
 			typeof stored.flashOverlayEnabled === "boolean"
 				? stored.flashOverlayEnabled
 				: defaultPluginSetting.flashOverlayEnabled,
-		focusTickSoundVolume: parseFocusTickSoundVolume(stored),
+		focusTickSoundVolume: isFocusTickSoundVolume(
+			stored.focusTickSoundVolume,
+		)
+			? stored.focusTickSoundVolume
+			: defaultPluginSetting.focusTickSoundVolume,
+		focusBgmType: isFocusBgmType(stored.focusBgmType)
+			? stored.focusBgmType
+			: defaultPluginSetting.focusBgmType,
+		focusBgmVolume: isFocusBgmVolume(stored.focusBgmVolume)
+			? stored.focusBgmVolume
+			: defaultPluginSetting.focusBgmVolume,
 	};
 };
 
@@ -75,15 +92,20 @@ const parseDurationOrDefault = (value: unknown, fallback: Minutes): Minutes => {
 const isNotificationStyle = (value: unknown): value is NotificationStyle =>
 	value === "system" || value === "simple";
 
-export const isFocusTickSoundVolume = (value: unknown): value is number =>
+const isVolume = (
+	value: unknown,
+	range: { min: number; max: number },
+): value is number =>
 	typeof value === "number" &&
 	Number.isInteger(value) &&
-	value >= focusTickSoundVolumeRange.min &&
-	value <= focusTickSoundVolumeRange.max;
+	value >= range.min &&
+	value <= range.max;
 
-const parseFocusTickSoundVolume = (stored: Record<string, unknown>): number => {
-	if (isFocusTickSoundVolume(stored.focusTickSoundVolume)) {
-		return stored.focusTickSoundVolume;
-	}
-	return defaultPluginSetting.focusTickSoundVolume;
-};
+export const isFocusTickSoundVolume = (value: unknown): value is number =>
+	isVolume(value, focusTickSoundVolumeRange);
+
+export const isFocusBgmVolume = (value: unknown): value is number =>
+	isVolume(value, focusBgmVolumeRange);
+
+export const isFocusBgmType = (value: unknown): value is FocusBgmType =>
+	focusBgmTypes.some((type) => type === value);
