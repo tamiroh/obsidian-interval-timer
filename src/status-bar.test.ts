@@ -318,24 +318,22 @@ describe("StatusBar", () => {
 	});
 
 	const createIntervalTimer = (): IntervalTimer =>
-		new IntervalTimer(
-			() => {},
-			settings,
-			() => {},
-		);
+		new IntervalTimer(settings);
 
 	const createIntervalTimerWithStatusBarUpdates = (
 		statusBar: StatusBar,
-	): IntervalTimer =>
-		new IntervalTimer(
-			(timerState, intervalTimerState, time, intervals) =>
+	): IntervalTimer => {
+		const intervalTimer = new IntervalTimer(settings);
+		intervalTimer.subscribe((event) => {
+			if (event.type === "state-changed") {
 				statusBar.update(
-					intervals,
-					time,
-					intervalTimerState,
-					timerState,
-				),
-			settings,
-			() => {},
-		);
+					event.snapshot.focusIntervals,
+					event.snapshot,
+					event.snapshot.state,
+					event.timerState,
+				);
+			}
+		});
+		return intervalTimer;
+	};
 });

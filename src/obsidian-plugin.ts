@@ -316,17 +316,13 @@ export default class Plugin extends BasePlugin {
 		};
 		const snapshot = this.intervalTimerSnapshotStore.load();
 
-		this.intervalTimer = new IntervalTimer(
-			() => {},
-			{
-				focusIntervalDuration: this.settings.focusIntervalDuration,
-				shortBreakDuration: this.settings.shortBreakDuration,
-				longBreakDuration: this.settings.longBreakDuration,
-				longBreakAfter: this.settings.longBreakAfter,
-				resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
-			},
-			() => {},
-		);
+		this.intervalTimer = new IntervalTimer({
+			focusIntervalDuration: this.settings.focusIntervalDuration,
+			shortBreakDuration: this.settings.shortBreakDuration,
+			longBreakDuration: this.settings.longBreakDuration,
+			longBreakAfter: this.settings.longBreakAfter,
+			resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
+		});
 		this.intervalTimer.subscribe((event) => {
 			switch (event.type) {
 				case "state-changed":

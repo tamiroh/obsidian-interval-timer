@@ -5,6 +5,29 @@ import {
 	IntervalTimerSetting,
 } from "./interval-timer";
 import { minutesUpperBound } from "./time";
+import { clear, last } from "./array";
+
+const stateChangedEvents = (
+	events: IntervalTimerEvent[],
+): Array<Extract<IntervalTimerEvent, { type: "state-changed" }>> =>
+	events.filter(
+		(
+			event,
+		): event is Extract<IntervalTimerEvent, { type: "state-changed" }> =>
+			event.type === "state-changed",
+	);
+
+const intervalCompletedEvents = (
+	events: IntervalTimerEvent[],
+): Array<Extract<IntervalTimerEvent, { type: "interval-completed" }>> =>
+	events.filter(
+		(
+			event,
+		): event is Extract<
+			IntervalTimerEvent,
+			{ type: "interval-completed" }
+		> => event.type === "interval-completed",
+	);
 
 describe("IntervalTimer", () => {
 	beforeEach(() => {
@@ -19,33 +42,34 @@ describe("IntervalTimer", () => {
 		it("should reset intervals when reset time is passed", () => {
 			// Arrange
 			vi.setSystemTime(new Date(2024, 0, 1, 23, 59, 0, 0)); // 23:59:00
-			const handleChangeState = vi.fn();
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.enableAutoReset();
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			vi.advanceTimersByTime(1000); // Advance to 23:59:01
 			vi.advanceTimersByTime(60000); // Advance to 00:00:01 (crosses reset time)
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledTimes(1);
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"focus",
-				{ minutes: 25, seconds: 0 },
-				{ set: 0, total: 0 },
-			);
+			const changes = stateChangedEvents(events);
+			expect(changes).toHaveLength(1);
+			expect(changes[0]).toMatchObject({
+				timerState: "initialized",
+				snapshot: {
+					state: "focus",
+					minutes: 25,
+					seconds: 0,
+					focusIntervals: { set: 0, total: 0 },
+				},
+			});
 
 			intervalTimer.dispose();
 		});
@@ -53,27 +77,24 @@ describe("IntervalTimer", () => {
 		it("should not reset intervals if reset time has not been passed", () => {
 			// Arrange
 			vi.setSystemTime(new Date(2024, 0, 1, 23, 59, 0, 0)); // 23:59:00
-			const handleChangeState = vi.fn();
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.enableAutoReset();
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			vi.advanceTimersByTime(1000); // Advance to 23:59:01
 			vi.advanceTimersByTime(1000); // Advance to 23:59:02 (still before reset time)
 
 			// Assert
-			expect(handleChangeState).not.toHaveBeenCalled();
+			expect(stateChangedEvents(events)).toHaveLength(0);
 
 			intervalTimer.dispose();
 		});
@@ -81,20 +102,17 @@ describe("IntervalTimer", () => {
 		it("should reset intervals when crossing reset time right after enableAutoReset", () => {
 			// Arrange
 			vi.setSystemTime(new Date(2024, 0, 1, 23, 59, 59, 999)); // just before reset time
-			const handleChangeState = vi.fn();
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.enableAutoReset();
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			// Advance 1 second to cross the reset time (now 00:00:00)
@@ -102,13 +120,17 @@ describe("IntervalTimer", () => {
 
 			// Assert
 			// Should have reset exactly once because we crossed the reset time
-			expect(handleChangeState).toHaveBeenCalledTimes(1);
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"focus",
-				{ minutes: 25, seconds: 0 },
-				{ set: 0, total: 0 },
-			);
+			const changes = stateChangedEvents(events);
+			expect(changes).toHaveLength(1);
+			expect(changes[0]).toMatchObject({
+				timerState: "initialized",
+				snapshot: {
+					state: "focus",
+					minutes: 25,
+					seconds: 0,
+					focusIntervals: { set: 0, total: 0 },
+				},
+			});
 
 			intervalTimer.dispose();
 		});
@@ -116,28 +138,25 @@ describe("IntervalTimer", () => {
 		it("should not reset intervals after disableAutoReset", () => {
 			// Arrange
 			vi.setSystemTime(new Date(2024, 0, 1, 23, 59, 0, 0)); // 23:59:00
-			const handleChangeState = vi.fn();
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.enableAutoReset();
 			intervalTimer.disableAutoReset();
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			vi.advanceTimersByTime(1000); // Advance to 23:59:01
 			vi.advanceTimersByTime(60000); // Advance to 00:00:01 (crosses reset time)
 
 			// Assert
-			expect(handleChangeState).not.toHaveBeenCalled();
+			expect(stateChangedEvents(events)).toHaveLength(0);
 
 			intervalTimer.dispose();
 		});
@@ -145,45 +164,38 @@ describe("IntervalTimer", () => {
 		it("should not reset intervals after dispose", () => {
 			// Arrange
 			vi.setSystemTime(new Date(2024, 0, 1, 23, 59, 0, 0)); // 23:59:00
-			const handleChangeState = vi.fn();
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.enableAutoReset();
 			intervalTimer.dispose();
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			vi.advanceTimersByTime(1000); // Advance to 23:59:01
 			vi.advanceTimersByTime(60000); // Advance to 00:00:01 (crosses reset time)
 
 			// Assert
-			expect(handleChangeState).not.toHaveBeenCalled();
+			expect(stateChangedEvents(events)).toHaveLength(0);
 		});
 	});
 
 	describe("Basic controls", () => {
 		it("should allow starting but not pausing initially", () => {
 			// Arrange
-			const intervalTimer = new IntervalTimer(
-				() => {},
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
 
 			// Act
 			const canStart = intervalTimer.canStart;
@@ -198,17 +210,13 @@ describe("IntervalTimer", () => {
 
 		it("should allow pausing but not starting while running", () => {
 			// Arrange
-			const intervalTimer = new IntervalTimer(
-				() => {},
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
 
 			// Act
 			intervalTimer.start();
@@ -222,17 +230,13 @@ describe("IntervalTimer", () => {
 
 		it("should allow starting but not pausing while paused", () => {
 			// Arrange
-			const intervalTimer = new IntervalTimer(
-				() => {},
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
 			intervalTimer.start();
 
 			// Act
@@ -246,99 +250,99 @@ describe("IntervalTimer", () => {
 		});
 
 		it("should apply updated durations from the next interval", () => {
-			const handleChangeState = vi.fn();
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
-			handleChangeState.mockClear();
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.subscribe((event) => events.push(event));
+			clear(events);
 
 			intervalTimer.updateSettings({ shortBreakDuration: 10 });
 			intervalTimer.skipInterval();
 
-			expect(handleChangeState).toHaveBeenLastCalledWith(
-				"initialized",
-				"shortBreak",
-				{ minutes: 10, seconds: 0 },
-				{ set: 1, total: 1 },
-			);
+			expect(last(stateChangedEvents(events))).toMatchObject({
+				timerState: "initialized",
+				snapshot: {
+					state: "shortBreak",
+					minutes: 10,
+					seconds: 0,
+					focusIntervals: { set: 1, total: 1 },
+				},
+			});
 
 			intervalTimer.dispose();
 		});
 
 		it("should not change the duration of the current interval", () => {
-			const handleChangeState = vi.fn();
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
-			handleChangeState.mockClear();
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.subscribe((event) => events.push(event));
+			clear(events);
 
 			intervalTimer.updateSettings({ focusIntervalDuration: 30 });
 			intervalTimer.start();
 			vi.advanceTimersByTime(1000);
 
-			expect(handleChangeState).toHaveBeenLastCalledWith(
-				"running",
-				"focus",
-				{ minutes: 24, seconds: 59 },
-				{ set: 0, total: 0 },
-			);
+			expect(last(stateChangedEvents(events))).toMatchObject({
+				timerState: "running",
+				snapshot: {
+					state: "focus",
+					minutes: 24,
+					seconds: 59,
+					focusIntervals: { set: 0, total: 0 },
+				},
+			});
 
 			intervalTimer.dispose();
 		});
 
 		it("should start a long break after lowering longBreakAfter below the current set count", () => {
-			const handleChangeState = vi.fn();
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: 25,
 				seconds: 0,
 				focusIntervals: { total: 3, set: 3 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			intervalTimer.updateSettings({ longBreakAfter: 2 });
 			intervalTimer.skipInterval();
 
-			expect(handleChangeState).toHaveBeenLastCalledWith(
-				"initialized",
-				"longBreak",
-				{ minutes: 15, seconds: 0 },
-				{ set: 0, total: 4 },
-			);
+			expect(last(stateChangedEvents(events))).toMatchObject({
+				timerState: "initialized",
+				snapshot: {
+					state: "longBreak",
+					minutes: 15,
+					seconds: 0,
+					focusIntervals: { set: 0, total: 4 },
+				},
+			});
 
 			intervalTimer.dispose();
 		});
 
 		it("should enter running state when started", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -346,31 +350,32 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const notifier = vi.fn();
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				notifier,
-			);
-			handleChangeState.mockClear();
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
+			clear(events);
 
 			// Act
 			intervalTimer.start();
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledExactlyOnceWith(
-				"running",
-				"focus",
-				{ minutes: 25, seconds: 0 },
-				{ set: 0, total: 0 },
-			);
+			const changes = stateChangedEvents(events);
+			expect(changes).toHaveLength(1);
+			expect(changes[0]).toMatchObject({
+				timerState: "running",
+				snapshot: {
+					state: "focus",
+					minutes: 25,
+					seconds: 0,
+					focusIntervals: { set: 0, total: 0 },
+				},
+			});
 
 			intervalTimer.dispose();
 		});
 
-		it("should call handleChangeState when paused", () => {
+		it("should emit a state-changed event when paused", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 1,
 				shortBreakDuration: 1,
@@ -378,12 +383,9 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
-			handleChangeState.mockClear();
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
+			clear(events);
 
 			// Act
 			intervalTimer.start();
@@ -391,19 +393,22 @@ describe("IntervalTimer", () => {
 			intervalTimer.pause();
 
 			// Assert
-			expect(handleChangeState).toHaveBeenLastCalledWith(
-				"paused",
-				"focus",
-				{ minutes: 0, seconds: 59 },
-				{ set: 0, total: 0 },
-			);
+			expect(last(stateChangedEvents(events))).toMatchObject({
+				timerState: "paused",
+				snapshot: {
+					state: "focus",
+					minutes: 0,
+					seconds: 59,
+					focusIntervals: { set: 0, total: 0 },
+				},
+			});
 
 			intervalTimer.dispose();
 		});
 
-		it("should call handleChangeState when reset", () => {
+		it("should emit a state-changed event when reset", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 1,
 				shortBreakDuration: 1,
@@ -411,12 +416,9 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
-			handleChangeState.mockClear();
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
+			clear(events);
 
 			// Act
 			intervalTimer.start();
@@ -424,11 +426,16 @@ describe("IntervalTimer", () => {
 			intervalTimer.reset();
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"focus",
-				{ minutes: 1, seconds: 0 },
-				{ set: 0, total: 0 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "focus",
+						minutes: 1,
+						seconds: 0,
+						focusIntervals: { set: 0, total: 0 },
+					},
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -436,7 +443,7 @@ describe("IntervalTimer", () => {
 
 		it("should reset intervals set and move to long break", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -444,28 +451,30 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 3, set: 2 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			intervalTimer.resetIntervalsSet();
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"longBreak",
-				{ minutes: 15, seconds: 0 },
-				{ set: 0, total: 3 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "longBreak",
+						minutes: 15,
+						seconds: 0,
+						focusIntervals: { set: 0, total: 3 },
+					},
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -473,7 +482,7 @@ describe("IntervalTimer", () => {
 
 		it("should restart set counting from 1 after resetIntervalsSet", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -481,18 +490,15 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 3, set: 2 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			intervalTimer.resetIntervalsSet();
@@ -500,19 +506,22 @@ describe("IntervalTimer", () => {
 			intervalTimer.skipInterval(); // skips focus and should increment set to 1
 
 			// Assert
-			expect(handleChangeState).toHaveBeenLastCalledWith(
-				"initialized",
-				"shortBreak",
-				{ minutes: 5, seconds: 0 },
-				{ set: 1, total: 4 },
-			);
+			expect(last(stateChangedEvents(events))).toMatchObject({
+				timerState: "initialized",
+				snapshot: {
+					state: "shortBreak",
+					minutes: 5,
+					seconds: 0,
+					focusIntervals: { set: 1, total: 4 },
+				},
+			});
 
 			intervalTimer.dispose();
 		});
 
 		it("should reset total intervals and move to focus", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -520,28 +529,30 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 2, set: 1 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			intervalTimer.resetTotalIntervals();
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"focus",
-				{ minutes: 25, seconds: 0 },
-				{ set: 0, total: 0 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "focus",
+						minutes: 25,
+						seconds: 0,
+						focusIntervals: { set: 0, total: 0 },
+					},
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -549,7 +560,7 @@ describe("IntervalTimer", () => {
 
 		it("should update only the minutes when the timer is stopped", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -557,29 +568,31 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: settings.focusIntervalDuration,
 				seconds: 30,
 				focusIntervals: { total: 0, set: 0 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			const result = intervalTimer.retime(7);
 
 			// Assert
 			expect(result).toEqual({ ok: true, value: undefined });
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"focus",
-				{ minutes: 7, seconds: 30 },
-				{ set: 0, total: 0 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "focus",
+						minutes: 7,
+						seconds: 30,
+						focusIntervals: { set: 0, total: 0 },
+					},
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -587,7 +600,7 @@ describe("IntervalTimer", () => {
 
 		it("should not update timer duration while running", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 1,
 				shortBreakDuration: 1,
@@ -595,11 +608,8 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: settings.focusIntervalDuration,
@@ -607,21 +617,21 @@ describe("IntervalTimer", () => {
 				focusIntervals: { total: 0, set: 0 },
 			});
 			intervalTimer.start();
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			const result = intervalTimer.retime(7);
 
 			// Assert
 			expect(result).toEqual({ ok: false, reason: "timer_running" });
-			expect(handleChangeState).not.toHaveBeenCalled();
+			expect(stateChangedEvents(events)).toHaveLength(0);
 
 			intervalTimer.dispose();
 		});
 
 		it("should reject non-integer or non-positive minutes", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -629,18 +639,15 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act & Assert
 			expect(intervalTimer.retime(1.5)).toEqual({
@@ -655,14 +662,14 @@ describe("IntervalTimer", () => {
 				ok: false,
 				reason: "invalid_minutes",
 			});
-			expect(handleChangeState).not.toHaveBeenCalled();
+			expect(stateChangedEvents(events)).toHaveLength(0);
 
 			intervalTimer.dispose();
 		});
 
 		it("should reject minutes at or beyond the upper bound", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -670,25 +677,22 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act & Assert
 			expect(intervalTimer.retime(minutesUpperBound)).toEqual({
 				ok: false,
 				reason: "out_of_range_minutes",
 			});
-			expect(handleChangeState).not.toHaveBeenCalled();
+			expect(stateChangedEvents(events)).toHaveLength(0);
 
 			expect(intervalTimer.retime(minutesUpperBound - 1)).toEqual({
 				ok: true,
@@ -702,8 +706,7 @@ describe("IntervalTimer", () => {
 	describe("Transitions and counting", () => {
 		it("should advance to long break when focus intervals reach longBreakAfter", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
-			const notifier = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -711,18 +714,15 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 2,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				notifier,
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 1, set: 1 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			intervalTimer.start();
@@ -731,22 +731,30 @@ describe("IntervalTimer", () => {
 			);
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"longBreak",
-				{ minutes: 15, seconds: 0 },
-				{ set: 0, total: 2 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "longBreak",
+						minutes: 15,
+						seconds: 0,
+						focusIntervals: { set: 0, total: 2 },
+					},
+				}),
 			);
-			expect(notifier).toHaveBeenCalledWith("🏖️  Time for a long break", {
-				state: "longBreak",
-			});
+			expect(intervalCompletedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					to: "longBreak",
+					notificationMessage: "🏖️  Time for a long break",
+				}),
+			);
 
 			intervalTimer.dispose();
 		});
 
 		it("should keep counting correctly across multiple long break cycles", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -754,18 +762,15 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 2,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			intervalTimer.skipInterval();
@@ -774,42 +779,50 @@ describe("IntervalTimer", () => {
 			intervalTimer.skipInterval();
 
 			// Assert
-			expect(handleChangeState).toHaveBeenNthCalledWith(
-				1,
-				"initialized",
-				"shortBreak",
-				{ minutes: 5, seconds: 0 },
-				{ set: 1, total: 1 },
-			);
-			expect(handleChangeState).toHaveBeenNthCalledWith(
-				2,
-				"initialized",
-				"focus",
-				{ minutes: 25, seconds: 0 },
-				{ set: 1, total: 1 },
-			);
-			expect(handleChangeState).toHaveBeenNthCalledWith(
-				3,
-				"initialized",
-				"longBreak",
-				{ minutes: 15, seconds: 0 },
-				{ set: 0, total: 2 },
-			);
-			expect(handleChangeState).toHaveBeenNthCalledWith(
-				4,
-				"initialized",
-				"focus",
-				{ minutes: 25, seconds: 0 },
-				{ set: 0, total: 2 },
-			);
+			const changes = stateChangedEvents(events);
+			expect(changes[0]).toMatchObject({
+				timerState: "initialized",
+				snapshot: {
+					state: "shortBreak",
+					minutes: 5,
+					seconds: 0,
+					focusIntervals: { set: 1, total: 1 },
+				},
+			});
+			expect(changes[1]).toMatchObject({
+				timerState: "initialized",
+				snapshot: {
+					state: "focus",
+					minutes: 25,
+					seconds: 0,
+					focusIntervals: { set: 1, total: 1 },
+				},
+			});
+			expect(changes[2]).toMatchObject({
+				timerState: "initialized",
+				snapshot: {
+					state: "longBreak",
+					minutes: 15,
+					seconds: 0,
+					focusIntervals: { set: 0, total: 2 },
+				},
+			});
+			expect(changes[3]).toMatchObject({
+				timerState: "initialized",
+				snapshot: {
+					state: "focus",
+					minutes: 25,
+					seconds: 0,
+					focusIntervals: { set: 0, total: 2 },
+				},
+			});
 
 			intervalTimer.dispose();
 		});
 
 		it("should advance to focus after a short break", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
-			const notifier = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -817,18 +830,15 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				notifier,
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
 				minutes: settings.shortBreakDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			intervalTimer.start();
@@ -837,17 +847,22 @@ describe("IntervalTimer", () => {
 			);
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"focus",
-				{ minutes: 25, seconds: 0 },
-				{ set: 0, total: 0 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "focus",
+						minutes: 25,
+						seconds: 0,
+						focusIntervals: { set: 0, total: 0 },
+					},
+				}),
 			);
-			expect(notifier).toHaveBeenCalledWith(
-				"⏰  Now it's time to focus",
-				{
-					state: "focus",
-				},
+			expect(intervalCompletedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					to: "focus",
+					notificationMessage: "⏰  Now it's time to focus",
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -855,7 +870,7 @@ describe("IntervalTimer", () => {
 
 		it("should not increment focus intervals when short break completes", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 1,
@@ -863,18 +878,15 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
 				minutes: settings.shortBreakDuration,
 				seconds: 0,
 				focusIntervals: { total: 7, set: 3 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			intervalTimer.start();
@@ -883,11 +895,16 @@ describe("IntervalTimer", () => {
 			);
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"focus",
-				{ minutes: 25, seconds: 0 },
-				{ set: 3, total: 7 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "focus",
+						minutes: 25,
+						seconds: 0,
+						focusIntervals: { set: 3, total: 7 },
+					},
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -895,8 +912,7 @@ describe("IntervalTimer", () => {
 
 		it("should advance to short break after focus completion", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
-			const notifier = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 1,
 				shortBreakDuration: 5,
@@ -904,18 +920,15 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				notifier,
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			intervalTimer.start();
@@ -924,17 +937,22 @@ describe("IntervalTimer", () => {
 			);
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"shortBreak",
-				{ minutes: 5, seconds: 0 },
-				{ set: 1, total: 1 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "shortBreak",
+						minutes: 5,
+						seconds: 0,
+						focusIntervals: { set: 1, total: 1 },
+					},
+				}),
 			);
-			expect(notifier).toHaveBeenCalledWith(
-				"☕️  Time for a short break",
-				{
-					state: "shortBreak",
-				},
+			expect(intervalCompletedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					to: "shortBreak",
+					notificationMessage: "☕️  Time for a short break",
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -942,8 +960,7 @@ describe("IntervalTimer", () => {
 
 		it("should advance to short break without notification when skipped", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
-			const notifier = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -951,37 +968,39 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				notifier,
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			intervalTimer.skipInterval();
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"shortBreak",
-				{ minutes: 5, seconds: 0 },
-				{ set: 1, total: 1 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "shortBreak",
+						minutes: 5,
+						seconds: 0,
+						focusIntervals: { set: 1, total: 1 },
+					},
+				}),
 			);
-			expect(notifier).not.toHaveBeenCalled();
+			expect(intervalCompletedEvents(events)).toHaveLength(0);
 
 			intervalTimer.dispose();
 		});
 
 		it("should not increment focus intervals when short break is skipped", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -989,28 +1008,30 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
 				minutes: settings.shortBreakDuration,
 				seconds: 0,
 				focusIntervals: { total: 2, set: 1 },
 			});
-			handleChangeState.mockClear();
+			clear(events);
 
 			// Act
 			intervalTimer.skipInterval();
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"focus",
-				{ minutes: 25, seconds: 0 },
-				{ set: 1, total: 2 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "focus",
+						minutes: 25,
+						seconds: 0,
+						focusIntervals: { set: 1, total: 2 },
+					},
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -1020,7 +1041,7 @@ describe("IntervalTimer", () => {
 	describe("Touch behavior", () => {
 		it("should start when touch is called from initialized state", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 1,
 				shortBreakDuration: 1,
@@ -1028,23 +1049,25 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
-			handleChangeState.mockClear();
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
+			clear(events);
 
 			// Act
 			intervalTimer.touch();
 			vi.advanceTimersByTime(1000);
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"running",
-				"focus",
-				{ minutes: 0, seconds: 59 },
-				{ set: 0, total: 0 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "running",
+					snapshot: {
+						state: "focus",
+						minutes: 0,
+						seconds: 59,
+						focusIntervals: { set: 0, total: 0 },
+					},
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -1052,7 +1075,7 @@ describe("IntervalTimer", () => {
 
 		it("should reset when touch is called during focus running", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 1,
 				shortBreakDuration: 1,
@@ -1060,12 +1083,9 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
-			handleChangeState.mockClear();
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
+			clear(events);
 
 			// Act
 			intervalTimer.start();
@@ -1073,11 +1093,16 @@ describe("IntervalTimer", () => {
 			intervalTimer.touch();
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"focus",
-				{ minutes: 1, seconds: 0 },
-				{ set: 0, total: 0 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "focus",
+						minutes: 1,
+						seconds: 0,
+						focusIntervals: { set: 0, total: 0 },
+					},
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -1085,7 +1110,7 @@ describe("IntervalTimer", () => {
 
 		it("should start when touch is called from paused state", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 1,
 				shortBreakDuration: 1,
@@ -1093,26 +1118,28 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 
 			// Act
 			intervalTimer.start();
 			vi.advanceTimersByTime(1000);
 			intervalTimer.pause();
-			handleChangeState.mockClear();
+			clear(events);
 			intervalTimer.touch();
 			vi.advanceTimersByTime(1000);
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"running",
-				"focus",
-				{ minutes: 0, seconds: 58 },
-				{ set: 0, total: 0 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "running",
+					snapshot: {
+						state: "focus",
+						minutes: 0,
+						seconds: 58,
+						focusIntervals: { set: 0, total: 0 },
+					},
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -1120,8 +1147,7 @@ describe("IntervalTimer", () => {
 
 		it("should skip interval when touch is called during short break", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
-			const notifier = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -1129,32 +1155,31 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				notifier,
-			);
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
 				minutes: settings.shortBreakDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
 			});
-			handleChangeState.mockClear();
 
 			// Act
 			intervalTimer.start();
-			handleChangeState.mockClear();
+			clear(events);
 			intervalTimer.touch();
 
 			// Assert
-			expect(handleChangeState).toHaveBeenLastCalledWith(
-				"initialized",
-				"focus",
-				{ minutes: 25, seconds: 0 },
-				{ set: 0, total: 0 },
-			);
-			expect(notifier).not.toHaveBeenCalled();
+			expect(last(stateChangedEvents(events))).toMatchObject({
+				timerState: "initialized",
+				snapshot: {
+					state: "focus",
+					minutes: 25,
+					seconds: 0,
+					focusIntervals: { set: 0, total: 0 },
+				},
+			});
+			expect(intervalCompletedEvents(events)).toHaveLength(0);
 
 			intervalTimer.dispose();
 		});
@@ -1171,11 +1196,7 @@ describe("IntervalTimer", () => {
 
 		it("should predict start from initialized state", () => {
 			// Arrange
-			const intervalTimer = new IntervalTimer(
-				() => {},
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
 
 			// Act
 			const action = intervalTimer.predictTouch();
@@ -1187,11 +1208,7 @@ describe("IntervalTimer", () => {
 
 		it("should predict resume from paused state", () => {
 			// Arrange
-			const intervalTimer = new IntervalTimer(
-				() => {},
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
 			intervalTimer.start();
 			intervalTimer.pause();
 
@@ -1205,11 +1222,7 @@ describe("IntervalTimer", () => {
 
 		it("should predict reset while a focus interval is running", () => {
 			// Arrange
-			const intervalTimer = new IntervalTimer(
-				() => {},
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
 			intervalTimer.start();
 
 			// Act
@@ -1222,11 +1235,7 @@ describe("IntervalTimer", () => {
 
 		it("should predict skip while a break interval is running", () => {
 			// Arrange
-			const intervalTimer = new IntervalTimer(
-				() => {},
-				settings,
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer(settings);
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
 				minutes: settings.shortBreakDuration,
@@ -1247,17 +1256,13 @@ describe("IntervalTimer", () => {
 	describe("Setters and getters", () => {
 		it("should return focus as the initial state", () => {
 			// Arrange
-			const intervalTimer = new IntervalTimer(
-				() => {},
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
 
 			// Act & Assert
 			expect(intervalTimer.state).toBe("focus");
@@ -1267,17 +1272,13 @@ describe("IntervalTimer", () => {
 
 		it("should return shortBreak after skipping focus", () => {
 			// Arrange
-			const intervalTimer = new IntervalTimer(
-				() => {},
-				{
-					focusIntervalDuration: 25,
-					shortBreakDuration: 5,
-					longBreakDuration: 15,
-					longBreakAfter: 4,
-					resetTime: { hours: 0, minutes: 0 },
-				},
-				() => {},
-			);
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
 
 			// Act
 			intervalTimer.skipInterval();
@@ -1292,7 +1293,7 @@ describe("IntervalTimer", () => {
 	describe("Snapshot", () => {
 		it("should apply snapshot values to state, time, and intervals", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -1300,12 +1301,9 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
-			handleChangeState.mockClear();
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
+			clear(events);
 
 			// Act
 			intervalTimer.applySnapshot({
@@ -1316,11 +1314,16 @@ describe("IntervalTimer", () => {
 			});
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"shortBreak",
-				{ minutes: 3, seconds: 20 },
-				{ set: 2, total: 7 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "shortBreak",
+						minutes: 3,
+						seconds: 20,
+						focusIntervals: { set: 2, total: 7 },
+					},
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -1328,7 +1331,7 @@ describe("IntervalTimer", () => {
 
 		it("should apply explicit default snapshot values", () => {
 			// Arrange
-			const handleChangeState = vi.fn();
+			const events: IntervalTimerEvent[] = [];
 			const settings: IntervalTimerSetting = {
 				focusIntervalDuration: 25,
 				shortBreakDuration: 5,
@@ -1336,12 +1339,9 @@ describe("IntervalTimer", () => {
 				longBreakAfter: 4,
 				resetTime: { hours: 0, minutes: 0 },
 			};
-			const intervalTimer = new IntervalTimer(
-				handleChangeState,
-				settings,
-				() => {},
-			);
-			handleChangeState.mockClear();
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
+			clear(events);
 
 			// Act
 			intervalTimer.applySnapshot({
@@ -1352,11 +1352,16 @@ describe("IntervalTimer", () => {
 			});
 
 			// Assert
-			expect(handleChangeState).toHaveBeenCalledWith(
-				"initialized",
-				"focus",
-				{ minutes: 25, seconds: 0 },
-				{ set: 0, total: 0 },
+			expect(stateChangedEvents(events)).toContainEqual(
+				expect.objectContaining({
+					timerState: "initialized",
+					snapshot: {
+						state: "focus",
+						minutes: 25,
+						seconds: 0,
+						focusIntervals: { set: 0, total: 0 },
+					},
+				}),
 			);
 
 			intervalTimer.dispose();
@@ -1372,12 +1377,7 @@ describe("IntervalTimer", () => {
 			resetTime: { hours: 0, minutes: 0 },
 		};
 
-		const createTimer = (): IntervalTimer =>
-			new IntervalTimer(
-				() => {},
-				settings,
-				() => {},
-			);
+		const createTimer = (): IntervalTimer => new IntervalTimer(settings);
 
 		it("should publish state and operation events with a snapshot", () => {
 			const intervalTimer = createTimer();

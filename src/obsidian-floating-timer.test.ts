@@ -48,11 +48,7 @@ describe("FloatingTimer", () => {
 		// Arrange
 		const floatingTimer = createFloatingTimer(createApp());
 		await within(document.body).findByText("No task selected");
-		const intervalTimer = new IntervalTimer(
-			() => {},
-			settings,
-			() => {},
-		);
+		const intervalTimer = new IntervalTimer(settings);
 
 		// Act
 		floatingTimer.update(

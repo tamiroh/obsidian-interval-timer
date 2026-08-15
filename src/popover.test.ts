@@ -1,7 +1,11 @@
 import { fireEvent, waitFor, within } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi, type MockInstance } from "vitest";
-import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";
+import {
+	IntervalTimer,
+	type IntervalTimerEvent,
+	IntervalTimerSetting,
+} from "./interval-timer";
 import { Popover } from "./popover";
 
 const settings: IntervalTimerSetting = {
@@ -34,10 +38,8 @@ const createPopover = async (
 	return popover;
 };
 
-const createIntervalTimer = (
-	onChangeState: ConstructorParameters<typeof IntervalTimer>[0] = () => {},
-): IntervalTimer => {
-	const intervalTimer = new IntervalTimer(onChangeState, settings, () => {});
+const createIntervalTimer = (): IntervalTimer => {
+	const intervalTimer = new IntervalTimer(settings);
 	intervalTimers.add(intervalTimer);
 	return intervalTimer;
 };
@@ -443,9 +445,9 @@ describe("Popover", () => {
 		const user = userEvent.setup();
 		const el = createDiv();
 		const popover = await createPopover(el);
-		const handleChangeState = vi.fn();
-		const intervalTimer = createIntervalTimer(handleChangeState);
-		handleChangeState.mockClear();
+		const intervalTimer = createIntervalTimer();
+		const events: IntervalTimerEvent[] = [];
+		intervalTimer.subscribe((event) => events.push(event));
 		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
@@ -457,11 +459,17 @@ describe("Popover", () => {
 		fireEvent.submit(getRetimeForm(el));
 
 		// Assert
-		expect(handleChangeState).toHaveBeenCalledWith(
-			"initialized",
-			"focus",
-			{ minutes: 12, seconds: 0 },
-			{ set: 0, total: 0 },
+		expect(events).toContainEqual(
+			expect.objectContaining({
+				type: "state-changed",
+				timerState: "initialized",
+				snapshot: {
+					state: "focus",
+					minutes: 12,
+					seconds: 0,
+					focusIntervals: { set: 0, total: 0 },
+				},
+			}),
 		);
 	});
 
@@ -470,9 +478,9 @@ describe("Popover", () => {
 		const user = userEvent.setup();
 		const el = createDiv();
 		const popover = await createPopover(el);
-		const handleChangeState = vi.fn();
-		const intervalTimer = createIntervalTimer(handleChangeState);
-		handleChangeState.mockClear();
+		const intervalTimer = createIntervalTimer();
+		const events: IntervalTimerEvent[] = [];
+		intervalTimer.subscribe((event) => events.push(event));
 		popover.update({ minutes: 7, seconds: 5 }, "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
@@ -484,11 +492,17 @@ describe("Popover", () => {
 		await user.tab();
 
 		// Assert
-		expect(handleChangeState).toHaveBeenCalledWith(
-			"initialized",
-			"focus",
-			{ minutes: 18, seconds: 0 },
-			{ set: 0, total: 0 },
+		expect(events).toContainEqual(
+			expect.objectContaining({
+				type: "state-changed",
+				timerState: "initialized",
+				snapshot: {
+					state: "focus",
+					minutes: 18,
+					seconds: 0,
+					focusIntervals: { set: 0, total: 0 },
+				},
+			}),
 		);
 	});
 
