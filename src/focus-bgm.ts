@@ -6,19 +6,12 @@ import {
 } from "./audio-output";
 
 //
-// Types
+// Player
 //
 
-export const focusBgmTypes = ["none", "whiteNoise"] as const;
+const fadeSeconds = 0.15;
 
-export type FocusBgmType = (typeof focusBgmTypes)[number];
-
-type PlayableFocusBgmType = Exclude<FocusBgmType, "none">;
-
-type FocusBgmSource = {
-	maxGain: number;
-	sound: Sound;
-};
+const previewDurationMilliseconds = 3_000;
 
 type PlayingBgm = {
 	type: PlayableFocusBgmType;
@@ -26,14 +19,6 @@ type PlayingBgm = {
 	maxGain: number;
 	playback: Playback;
 };
-
-//
-// Player
-//
-
-const fadeSeconds = 0.15;
-
-const previewDurationMilliseconds = 3_000;
 
 export class FocusBgm {
 	private readonly audioOutput: AudioOutput;
@@ -127,6 +112,17 @@ export class FocusBgm {
 //
 // Sources
 //
+
+export const focusBgmTypes = ["none", "whiteNoise"] as const;
+
+export type FocusBgmType = (typeof focusBgmTypes)[number];
+
+type PlayableFocusBgmType = Exclude<FocusBgmType, "none">;
+
+type FocusBgmSource = {
+	maxGain: number;
+	sound: Sound;
+};
 
 const whiteNoiseDurationSeconds = 2;
 

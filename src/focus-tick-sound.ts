@@ -23,9 +23,22 @@ export class FocusTickSound {
 	}
 }
 
-const createTickSamples = (sampleRate: number): Float32Array => {
+const tickSound = new GeneratedSound((sampleRate) => {
 	const frameCount = Math.ceil(sampleRate * tickDurationSeconds);
 	const samples = new Float32Array(frameCount);
+	const createSecondaryImpact = (
+		elapsedSeconds: number,
+		noise: number,
+	): number => {
+		if (elapsedSeconds < secondaryImpactDelaySeconds) return 0;
+
+		const impactTime = elapsedSeconds - secondaryImpactDelaySeconds;
+		const envelope = Math.exp(-impactTime * 600);
+		return (
+			envelope *
+			(noise * 0.28 + Math.sin(2 * Math.PI * 1_900 * impactTime) * 0.18)
+		);
+	};
 
 	for (let frame = 0; frame < frameCount; frame += 1) {
 		const elapsedSeconds = frame / sampleRate;
@@ -56,20 +69,4 @@ const createTickSamples = (sampleRate: number): Float32Array => {
 	}
 
 	return samples;
-};
-
-const createSecondaryImpact = (
-	elapsedSeconds: number,
-	noise: number,
-): number => {
-	if (elapsedSeconds < secondaryImpactDelaySeconds) return 0;
-
-	const impactTime = elapsedSeconds - secondaryImpactDelaySeconds;
-	const envelope = Math.exp(-impactTime * 600);
-	return (
-		envelope *
-		(noise * 0.28 + Math.sin(2 * Math.PI * 1_900 * impactTime) * 0.18)
-	);
-};
-
-const tickSound = new GeneratedSound(createTickSamples);
+});
