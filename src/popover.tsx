@@ -155,8 +155,7 @@ export class Popover {
 			longBreakAfter,
 			remainingPercent: this.getRemainingPercent(remainingSeconds),
 			touchAction:
-				this.store.getSnapshot().intervalTimer?.predictTouch() ??
-				"start",
+				this.store.state.intervalTimer?.predictTouch() ?? "start",
 		});
 	}
 
@@ -194,7 +193,7 @@ export class Popover {
 		)
 			return;
 
-		if (this.store.getSnapshot().isDismissed) {
+		if (this.store.state.isDismissed) {
 			this.store.update({ isDismissed: false });
 		}
 	};
