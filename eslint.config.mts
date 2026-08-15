@@ -19,24 +19,15 @@ export default defineConfig(
 			},
 		},
 	},
-	...obsidianmd.configs.recommended,
 	{
-		files: ["**/*.{ts,tsx}"],
-		plugins: {
-			"react-hooks": reactHooks,
-		},
-		rules: {
-			...reactHooks.configs.flat.recommended.rules,
-		},
+		extends: [
+			obsidianmd.configs.recommended,
+			reactHooks.configs.flat.recommended,
+		],
 	},
 	{
 		files: ["**/*.test.{ts,tsx}"],
-		plugins: {
-			vitest,
-		},
-		rules: {
-			...vitest.configs.recommended.rules,
-		},
+		extends: [vitest.configs.recommended],
 	},
 	{
 		files: ["src/obsidian-globals-fake.ts", "src/obsidian-fake.ts"],
