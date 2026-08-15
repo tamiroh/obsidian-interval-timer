@@ -1,4 +1,9 @@
-import { AudioOutput, type Playback, type Sound } from "./audio-output";
+import {
+	AudioOutput,
+	GeneratedSound,
+	type Playback,
+	type Sound,
+} from "./audio-output";
 
 //
 // Types
@@ -55,7 +60,7 @@ export class FocusBgm {
 
 			playing.volume = volume;
 			playing.playback.setGain(
-				toGain(playing.maxGain, volume),
+				FocusBgm.toGain(playing.maxGain, volume),
 				fadeSeconds,
 			);
 			return;
@@ -91,7 +96,7 @@ export class FocusBgm {
 		const source = focusBgmSources[type];
 		const playback = this.audioOutput.play(source.sound, {
 			mode: "loop",
-			gain: toGain(source.maxGain, volume),
+			gain: FocusBgm.toGain(source.maxGain, volume),
 			fadeSeconds,
 		});
 		if (playback === undefined) return undefined;
@@ -113,10 +118,11 @@ export class FocusBgm {
 		window.clearTimeout(this.previewTimeoutId);
 		this.previewTimeoutId = undefined;
 	}
-}
 
-const toGain = (maxGain: number, volume: number): number =>
-	maxGain * Math.min(volume / 100, 1);
+	private static toGain(maxGain: number, volume: number): number {
+		return maxGain * Math.min(volume / 100, 1);
+	}
+}
 
 //
 // Sources
@@ -127,34 +133,30 @@ const whiteNoiseDurationSeconds = 2;
 const focusBgmSources: Record<PlayableFocusBgmType, FocusBgmSource> = {
 	whiteNoise: {
 		maxGain: 0.22,
-		sound: {
-			type: "generated",
-			createSamples: (sampleRate) => {
-				const lowpassFrequency = 900;
-				const noise = new Float32Array(
-					Math.ceil(sampleRate * whiteNoiseDurationSeconds),
-				);
-				const samples = new Float32Array(noise.length);
-				const smoothing =
-					1 -
-					Math.exp((-2 * Math.PI * lowpassFrequency) / sampleRate);
-				let firstStage = 0;
-				let secondStage = 0;
+		sound: new GeneratedSound((sampleRate) => {
+			const lowpassFrequency = 900;
+			const noise = new Float32Array(
+				Math.ceil(sampleRate * whiteNoiseDurationSeconds),
+			);
+			const samples = new Float32Array(noise.length);
+			const smoothing =
+				1 - Math.exp((-2 * Math.PI * lowpassFrequency) / sampleRate);
+			let firstStage = 0;
+			let secondStage = 0;
 
+			for (let frame = 0; frame < noise.length; frame += 1) {
+				noise[frame] = Math.random() * 2 - 1;
+			}
+			for (let pass = 0; pass < 2; pass += 1) {
 				for (let frame = 0; frame < noise.length; frame += 1) {
-					noise[frame] = Math.random() * 2 - 1;
+					firstStage +=
+						smoothing * ((noise[frame] ?? 0) - firstStage);
+					secondStage += smoothing * (firstStage - secondStage);
+					samples[frame] = secondStage;
 				}
-				for (let pass = 0; pass < 2; pass += 1) {
-					for (let frame = 0; frame < noise.length; frame += 1) {
-						firstStage +=
-							smoothing * ((noise[frame] ?? 0) - firstStage);
-						secondStage += smoothing * (firstStage - secondStage);
-						samples[frame] = secondStage;
-					}
-				}
+			}
 
-				return samples;
-			},
-		},
+			return samples;
+		}),
 	},
 };

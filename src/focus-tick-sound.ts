@@ -1,4 +1,4 @@
-import { AudioOutput, type Sound } from "./audio-output";
+import { AudioOutput, GeneratedSound } from "./audio-output";
 
 const tickDurationSeconds = 0.032;
 
@@ -72,7 +72,4 @@ const createSecondaryImpact = (
 	);
 };
 
-const tickSound: Sound = {
-	type: "generated",
-	createSamples: createTickSamples,
-};
+const tickSound = new GeneratedSound(createTickSamples);
