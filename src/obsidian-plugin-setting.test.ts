@@ -20,6 +20,8 @@ describe("parsePluginSetting", () => {
 				flashOverlayEnabled: true,
 				focusTickSoundVolume: 65,
 				intervalCompletionBehavior: "countDownPastZero",
+				focusBgmType: "whiteNoise",
+				focusBgmVolume: 40,
 			}),
 		).toEqual({
 			focusIntervalDuration: 50,
@@ -30,6 +32,8 @@ describe("parsePluginSetting", () => {
 			flashOverlayEnabled: true,
 			focusTickSoundVolume: 65,
 			intervalCompletionBehavior: "countDownPastZero",
+			focusBgmType: "whiteNoise",
+			focusBgmVolume: 40,
 		});
 	});
 
@@ -44,6 +48,8 @@ describe("parsePluginSetting", () => {
 				flashOverlayEnabled: "yes",
 				focusTickSoundVolume: 101,
 				intervalCompletionBehavior: "unknown",
+				focusBgmType: "unknown",
+				focusBgmVolume: 101,
 			}),
 		).toEqual(defaultPluginSetting);
 	});

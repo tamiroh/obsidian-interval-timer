@@ -1,9 +1,18 @@
 import { App, displayTooltip, PluginSettingTab, Setting } from "obsidian";
 import Plugin, { PluginSetting } from "./obsidian-plugin";
-import { focusTickSoundVolumeRange } from "./obsidian-plugin-setting";
+import {
+	focusBgmVolumeRange,
+	focusTickSoundVolumeRange,
+} from "./obsidian-plugin-setting";
+import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
 import { minutesUpperBound } from "./time";
 
 const VALIDATION_TOOLTIP_CLASS = "interval-timer-validation-tooltip";
+
+const focusBgmTypeLabels: Record<FocusBgmType, string> = {
+	none: "None",
+	whiteNoise: "White noise",
+};
 
 export class SettingTab extends PluginSettingTab {
 	private plugin: Plugin;
@@ -163,6 +172,48 @@ export class SettingTab extends PluginSettingTab {
 					);
 				});
 			});
+
+		new Setting(containerEl)
+			.setName("Background sound")
+			.setDesc("Sound played continuously during focus intervals.")
+			.addDropdown((dropdown) => {
+				focusBgmTypes.forEach((type) => {
+					dropdown.addOption(type, focusBgmTypeLabels[type]);
+				});
+				dropdown
+					.setValue(this.plugin.settings.focusBgmType)
+					.onChange(async (value) => {
+						await this.updateSettingOrShowValidationError(
+							"focusBgmType",
+							value,
+							dropdown.selectEl,
+							"Background sound",
+						);
+					});
+			});
+
+		new Setting(containerEl)
+			.setName("Background sound volume")
+			.setDesc(
+				"Volume of the background sound (0–100). Set to 0 to mute.",
+			)
+			.addSlider((slider) => {
+				slider
+					.setLimits(
+						focusBgmVolumeRange.min,
+						focusBgmVolumeRange.max,
+						5,
+					)
+					.setValue(this.plugin.settings.focusBgmVolume);
+				slider.onChange(async (value) => {
+					await this.updateSettingOrShowValidationError(
+						"focusBgmVolume",
+						value,
+						slider.sliderEl,
+						"Background sound volume",
+					);
+				});
+			});
 	}
 
 	private async updateSettingOrShowValidationError(
@@ -212,8 +263,10 @@ export class SettingTab extends PluginSettingTab {
 			case "invalid_boolean":
 				return `${settingLabel}: invalid option selected.`;
 			case "invalid_focus_tick_sound_volume":
+			case "invalid_focus_bgm_volume":
 				return `${settingLabel}: please choose a value from 0 to 100.`;
 			case "invalid_interval_completion_behavior":
+			case "invalid_focus_bgm_type":
 				return `${settingLabel}: invalid option selected.`;
 		}
 	}

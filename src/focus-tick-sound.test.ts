@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FocusTickSound } from "./focus-tick-sound";
+import { AudioOutput } from "./audio-output";
 
 describe("FocusTickSound", () => {
 	afterEach(() => {
@@ -10,7 +11,7 @@ describe("FocusTickSound", () => {
 		const AudioContextMock = vi.fn();
 		vi.stubGlobal("AudioContext", AudioContextMock);
 
-		new FocusTickSound().play(0);
+		new FocusTickSound(new AudioOutput()).play(0);
 
 		expect(AudioContextMock).not.toHaveBeenCalled();
 	});
@@ -18,7 +19,9 @@ describe("FocusTickSound", () => {
 	it("does nothing when Web Audio is unavailable", () => {
 		vi.stubGlobal("AudioContext", undefined);
 
-		expect(() => new FocusTickSound().play(50)).not.toThrow();
+		expect(() =>
+			new FocusTickSound(new AudioOutput()).play(50),
+		).not.toThrow();
 	});
 
 	it("does not interrupt the timer when audio initialization fails", () => {
@@ -29,6 +32,8 @@ describe("FocusTickSound", () => {
 			}),
 		);
 
-		expect(() => new FocusTickSound().play(50)).not.toThrow();
+		expect(() =>
+			new FocusTickSound(new AudioOutput()).play(50),
+		).not.toThrow();
 	});
 });

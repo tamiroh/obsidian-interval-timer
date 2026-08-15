@@ -32,6 +32,8 @@ import {
 	ParsePositiveIntegerResult,
 } from "./value-parser";
 import {
+	isFocusBgmType,
+	isFocusBgmVolume,
 	isFocusTickSoundVolume,
 	isIntervalCompletionBehavior,
 	parsePluginSetting,
@@ -40,6 +42,8 @@ import {
 import { isMinutes, type Minutes } from "./time";
 import { err, ok, type Result } from "./result";
 import { FocusTickSound } from "./focus-tick-sound";
+import { FocusBgm, type FocusBgmType } from "./focus-bgm";
+import { AudioOutput } from "./audio-output";
 
 export type { PluginSetting } from "./obsidian-plugin-setting";
 
@@ -60,6 +64,10 @@ type ParseIntervalCompletionBehaviorResult = Result<
 	"invalid_interval_completion_behavior"
 >;
 
+type ParseFocusBgmTypeResult = Result<FocusBgmType, "invalid_focus_bgm_type">;
+
+type ParseFocusBgmVolumeResult = Result<number, "invalid_focus_bgm_volume">;
+
 export default class Plugin extends BasePlugin {
 	public override settings!: PluginSetting;
 
@@ -77,7 +85,11 @@ export default class Plugin extends BasePlugin {
 
 	private readonly taskLineHighlighter: TaskLineHighlighter;
 
-	private readonly focusTickSound = new FocusTickSound();
+	private readonly audioOutput = new AudioOutput();
+
+	private readonly focusTickSound = new FocusTickSound(this.audioOutput);
+
+	private readonly focusBgm = new FocusBgm(this.audioOutput);
 
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
@@ -117,7 +129,8 @@ export default class Plugin extends BasePlugin {
 
 	public override onunload(): void {
 		FlashOverlay.dispose();
-		this.focusTickSound.dispose();
+		this.focusBgm.dispose();
+		this.audioOutput.dispose();
 		this.timerDisplay.dispose();
 		this.intervalTimer.dispose();
 	}
@@ -132,6 +145,8 @@ export default class Plugin extends BasePlugin {
 		| ParseBooleanResult
 		| ParseFocusTickSoundVolumeResult
 		| ParseIntervalCompletionBehaviorResult
+		| ParseFocusBgmTypeResult
+		| ParseFocusBgmVolumeResult
 	> {
 		switch (key) {
 			case "focusIntervalDuration":
@@ -220,7 +235,54 @@ export default class Plugin extends BasePlugin {
 
 				return parsed;
 			}
+			case "focusBgmType": {
+				const parsed: ParseFocusBgmTypeResult = isFocusBgmType(value)
+					? ok(value)
+					: err("invalid_focus_bgm_type");
+				if (!parsed.ok) return parsed;
+
+				this.settings.focusBgmType = parsed.value;
+				this.updateFocusBgmPlayback(this.intervalTimer.status, {
+					previewWhenIdle: true,
+				});
+				await this.saveData(this.settings);
+
+				return parsed;
+			}
+			case "focusBgmVolume": {
+				const parsed: ParseFocusBgmVolumeResult = isFocusBgmVolume(
+					value,
+				)
+					? ok(value)
+					: err("invalid_focus_bgm_volume");
+				if (!parsed.ok) return parsed;
+
+				this.settings.focusBgmVolume = parsed.value;
+				this.updateFocusBgmPlayback(this.intervalTimer.status, {
+					previewWhenIdle: true,
+				});
+				await this.saveData(this.settings);
+
+				return parsed;
+			}
 		}
+	}
+
+	private updateFocusBgmPlayback(
+		{ timerState, snapshot }: IntervalTimerStatus,
+		options?: { previewWhenIdle: boolean },
+	): void {
+		const { focusBgmType, focusBgmVolume } = this.settings;
+
+		if (snapshot.state === "focus" && timerState === "running") {
+			this.focusBgm.play(focusBgmType, focusBgmVolume);
+			return;
+		}
+		if (options?.previewWhenIdle === true) {
+			this.focusBgm.preview(focusBgmType, focusBgmVolume);
+			return;
+		}
+		this.focusBgm.stop();
 	}
 
 	private setupIntervalTimer(): void {
@@ -297,6 +359,7 @@ export default class Plugin extends BasePlugin {
 			switch (event.type) {
 				case "state-changed":
 					updateTimerState(event);
+					this.updateFocusBgmPlayback(event);
 					if (
 						this.settings.focusTickSoundVolume > 0 &&
 						event.snapshot.state === "focus" &&

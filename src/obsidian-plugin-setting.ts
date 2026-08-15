@@ -6,6 +6,7 @@ import {
 	type IntervalCompletionBehavior,
 } from "./interval-timer";
 import type { NotificationStyle } from "./obsidian-notifier";
+import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
 
 export type PluginSetting = {
 	focusIntervalDuration: Minutes;
@@ -16,9 +17,13 @@ export type PluginSetting = {
 	flashOverlayEnabled: boolean;
 	focusTickSoundVolume: number;
 	intervalCompletionBehavior: IntervalCompletionBehavior;
+	focusBgmType: FocusBgmType;
+	focusBgmVolume: number;
 };
 
 export const focusTickSoundVolumeRange = { min: 0, max: 100 } as const;
+
+export const focusBgmVolumeRange = { min: 0, max: 100 } as const;
 
 export const defaultPluginSetting = {
 	focusIntervalDuration: 25,
@@ -29,6 +34,8 @@ export const defaultPluginSetting = {
 	flashOverlayEnabled: false,
 	focusTickSoundVolume: 0,
 	intervalCompletionBehavior: "advanceToNextInterval",
+	focusBgmType: "none",
+	focusBgmVolume: 50,
 } satisfies PluginSetting;
 
 export const parsePluginSetting = (value: unknown): PluginSetting => {
@@ -64,6 +71,12 @@ export const parsePluginSetting = (value: unknown): PluginSetting => {
 		)
 			? stored.intervalCompletionBehavior
 			: defaultPluginSetting.intervalCompletionBehavior,
+		focusBgmType: isFocusBgmType(stored.focusBgmType)
+			? stored.focusBgmType
+			: defaultPluginSetting.focusBgmType,
+		focusBgmVolume: isFocusBgmVolume(stored.focusBgmVolume)
+			? stored.focusBgmVolume
+			: defaultPluginSetting.focusBgmVolume,
 	};
 };
 
@@ -91,11 +104,23 @@ export const isIntervalCompletionBehavior = (
 ): value is IntervalCompletionBehavior =>
 	intervalCompletionBehaviors.some((behavior) => behavior === value);
 
-export const isFocusTickSoundVolume = (value: unknown): value is number =>
+const isVolume = (
+	value: unknown,
+	range: { min: number; max: number },
+): value is number =>
 	typeof value === "number" &&
 	Number.isInteger(value) &&
-	value >= focusTickSoundVolumeRange.min &&
-	value <= focusTickSoundVolumeRange.max;
+	value >= range.min &&
+	value <= range.max;
+
+export const isFocusTickSoundVolume = (value: unknown): value is number =>
+	isVolume(value, focusTickSoundVolumeRange);
+
+export const isFocusBgmVolume = (value: unknown): value is number =>
+	isVolume(value, focusBgmVolumeRange);
+
+export const isFocusBgmType = (value: unknown): value is FocusBgmType =>
+	focusBgmTypes.some((type) => type === value);
 
 const parseFocusTickSoundVolume = (stored: Record<string, unknown>): number => {
 	if (isFocusTickSoundVolume(stored.focusTickSoundVolume)) {
