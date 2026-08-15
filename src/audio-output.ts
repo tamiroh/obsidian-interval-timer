@@ -95,15 +95,13 @@ export class AudioOutput {
 		target: number,
 		fadeSeconds: number,
 	): void {
-		const currentGain = gain.gain.value;
-
-		gain.gain.cancelScheduledValues(startAt);
 		if (fadeSeconds <= 0) {
+			gain.gain.cancelScheduledValues(startAt);
 			gain.gain.setValueAtTime(target, startAt);
 			return;
 		}
 
-		gain.gain.setValueAtTime(currentGain, startAt);
+		gain.gain.cancelAndHoldAtTime(startAt);
 		gain.gain.linearRampToValueAtTime(target, startAt + fadeSeconds);
 	}
 }
