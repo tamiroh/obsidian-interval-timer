@@ -71,7 +71,8 @@ export class FocusBgm {
 	}
 
 	public dispose(): void {
-		this.stop();
+		this.clearPreviewTimeout();
+		this.stopPlayingImmediately();
 	}
 
 	private startPlaying(
@@ -95,6 +96,14 @@ export class FocusBgm {
 
 		this.playing = undefined;
 		playing.playback.stop(fadeSeconds);
+	}
+
+	private stopPlayingImmediately(): void {
+		const playing = this.playing;
+		if (playing === undefined) return;
+
+		this.playing = undefined;
+		playing.playback.stop(0);
 	}
 
 	private clearPreviewTimeout(): void {
