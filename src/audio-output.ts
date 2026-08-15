@@ -3,7 +3,6 @@ type CreateSamples = (sampleRate: number) => Float32Array;
 export type Sound = {
 	createSamples: CreateSamples;
 	loop?: boolean;
-	lowpass?: { frequency: number; q: number };
 };
 
 export type PlayOptions = {
@@ -28,22 +27,10 @@ export class AudioOutput {
 		const startAt = audioContext.currentTime;
 		const source = audioContext.createBufferSource();
 		const gain = audioContext.createGain();
-		const nodes: AudioNode[] = [source, gain];
 
 		source.buffer = this.resolveBuffer(audioContext, sound.createSamples);
 		source.loop = sound.loop === true;
-
-		let output: AudioNode = source;
-		if (sound.lowpass !== undefined) {
-			const lowpass = audioContext.createBiquadFilter();
-			lowpass.type = "lowpass";
-			lowpass.frequency.setValueAtTime(sound.lowpass.frequency, startAt);
-			lowpass.Q.setValueAtTime(sound.lowpass.q, startAt);
-			output.connect(lowpass);
-			nodes.push(lowpass);
-			output = lowpass;
-		}
-		output.connect(gain);
+		source.connect(gain);
 		gain.connect(audioContext.destination);
 
 		const fadeSeconds = options.fadeSeconds ?? 0;
@@ -56,7 +43,8 @@ export class AudioOutput {
 		}
 
 		source.addEventListener("ended", () => {
-			nodes.forEach((node) => node.disconnect());
+			source.disconnect();
+			gain.disconnect();
 		});
 		source.start(startAt);
 

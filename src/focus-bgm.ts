@@ -128,18 +128,32 @@ const focusBgmSources: Record<PlayableFocusBgmType, FocusBgmSource> = {
 		maxGain: 0.22,
 		sound: {
 			createSamples: (sampleRate) => {
-				const samples = new Float32Array(
+				const lowpassFrequency = 900;
+				const noise = new Float32Array(
 					Math.ceil(sampleRate * whiteNoiseDurationSeconds),
 				);
+				const samples = new Float32Array(noise.length);
+				const smoothing =
+					1 -
+					Math.exp((-2 * Math.PI * lowpassFrequency) / sampleRate);
+				let firstStage = 0;
+				let secondStage = 0;
 
-				for (let frame = 0; frame < samples.length; frame += 1) {
-					samples[frame] = Math.random() * 2 - 1;
+				for (let frame = 0; frame < noise.length; frame += 1) {
+					noise[frame] = Math.random() * 2 - 1;
+				}
+				for (let pass = 0; pass < 2; pass += 1) {
+					for (let frame = 0; frame < noise.length; frame += 1) {
+						firstStage +=
+							smoothing * ((noise[frame] ?? 0) - firstStage);
+						secondStage += smoothing * (firstStage - secondStage);
+						samples[frame] = secondStage;
+					}
 				}
 
 				return samples;
 			},
 			loop: true,
-			lowpass: { frequency: 900, q: 0.5 },
 		},
 	},
 };
