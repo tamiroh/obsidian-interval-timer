@@ -3,6 +3,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 import { defineConfig, globalIgnores } from "eslint/config";
 import vitest from "@vitest/eslint-plugin";
+import local from "./eslint-plugin-local.mts";
 
 export default defineConfig(
 	{
@@ -41,6 +42,12 @@ export default defineConfig(
 	{
 		files: ["**/*.test.{ts,tsx}"],
 		extends: [vitest.configs.recommended],
+		plugins: {
+			local,
+		},
+		rules: {
+			"local/vitest-aaa-order": "error",
+		},
 	},
 	{
 		files: ["src/obsidian-globals-fake.ts", "src/obsidian-fake.ts"],

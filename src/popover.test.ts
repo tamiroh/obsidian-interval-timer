@@ -614,7 +614,7 @@ describe("Popover", () => {
 		).not.toBeInTheDocument();
 	});
 
-	it("moves a floating popover by dragging it", async () => {
+	it("marks the popover as dragging when a pointer down starts a drag", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -636,7 +636,33 @@ describe("Popover", () => {
 			clientX: 120,
 			clientY: 230,
 		});
+
+		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-dragging");
+	});
+
+	it("moves a floating popover by dragging it", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		await createPopover(el);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
+			left: 100,
+			top: 200,
+			width: 250,
+			height: 150,
+		} as DOMRect);
+		await user.click(popover);
+		fireEvent.pointerDown(popover, {
+			pointerId: 1,
+			clientX: 120,
+			clientY: 230,
+		});
+
+		// Act
 		fireEvent.pointerMove(popover, {
 			pointerId: 1,
 			clientX: 320,
@@ -650,6 +676,7 @@ describe("Popover", () => {
 			top: "300px",
 		});
 		expect(popover).not.toHaveClass("interval-timer-popover-dragging");
+		expect(popover).toHaveClass("interval-timer-popover-moved");
 	});
 
 	it("accounts for a fixed-position origin offset when dragging", async () => {
@@ -743,7 +770,6 @@ describe("Popover", () => {
 			clientY: 330,
 		});
 		fireEvent.pointerUp(popover, { pointerId: 1 });
-		expect(popover).toHaveClass("interval-timer-popover-moved");
 
 		// Act
 		await user.click(
@@ -776,8 +802,6 @@ describe("Popover", () => {
 			width: 250,
 			height: 150,
 		} as DOMRect);
-
-		// Act
 		fireEvent.pointerDown(popover, {
 			pointerId: 1,
 			clientX: 110,
@@ -790,7 +814,8 @@ describe("Popover", () => {
 			clientY: 240,
 		});
 		fireEvent.pointerUp(popover, { pointerId: 1 });
-		expect(popover).toHaveClass("interval-timer-popover-moved");
+
+		// Act
 		await user.click(
 			within(el).getByRole("button", {
 				name: "Return to original position",
@@ -889,7 +914,7 @@ describe("Popover", () => {
 		expect(popover).toHaveClass("interval-timer-popover-floating");
 	});
 
-	it("dismisses a floating popover from its close button", async () => {
+	it("starts the closing animation when the close button is clicked", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -915,6 +940,25 @@ describe("Popover", () => {
 			transform: "translate(700px, 435px) scale(0.15)",
 		});
 		expect(options.onFloatingChange).toHaveBeenLastCalledWith(true);
+	});
+
+	it("dismisses a floating popover once its closing animation finishes", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		const options = createOptions({ left: 925, top: 710 });
+		await createPopover(el, options);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
+			left: 100,
+			top: 200,
+			width: 250,
+			height: 150,
+		} as DOMRect);
+		await user.click(popover);
+		await user.click(within(el).getByRole("button", { name: "Close" }));
 
 		// Act
 		fireEvent.transitionEnd(popover, { propertyName: "transform" });
@@ -926,7 +970,7 @@ describe("Popover", () => {
 		expect(popover.style.top).toBe("");
 	});
 
-	it("restores compact focus after closing from the keyboard", async () => {
+	it("starts the closing animation when Enter is pressed on a focused close button", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -944,6 +988,21 @@ describe("Popover", () => {
 
 		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-returning");
+	});
+
+	it("restores compact focus after closing from the keyboard", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		const options = createOptions();
+		await createPopover(el, options);
+		const popover = el.querySelector(
+			".interval-timer-popover",
+		) as HTMLElement;
+		await user.click(popover);
+		const close = within(el).getByRole("button", { name: "Close" });
+		close.focus();
+		await user.keyboard("{Enter}");
 
 		// Act
 		fireEvent.transitionEnd(popover, { propertyName: "transform" });

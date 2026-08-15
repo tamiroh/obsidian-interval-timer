@@ -66,11 +66,11 @@ describe("FlashOverlay", () => {
 		const overlay = document.querySelector(
 			".interval-timer-flash-overlay",
 		) as HTMLDivElement;
-		expect(overlay).not.toBeNull();
-		expect(overlay.style.backgroundColor).toBe("rgba(100, 255, 100, 0.9)");
 		const overlays = document.querySelectorAll(
 			".interval-timer-flash-overlay",
 		);
+		expect(overlay).not.toBeNull();
+		expect(overlay.style.backgroundColor).toBe("rgba(100, 255, 100, 0.9)");
 		expect(overlays.length).toBe(1);
 	});
 
@@ -97,8 +97,8 @@ describe("FlashOverlay", () => {
 
 		// Assert
 		const styleElement = document.head.querySelector("style");
-		expect(styleElement).toBeNull();
 		const overlay = document.querySelector(".interval-timer-flash-overlay");
+		expect(styleElement).toBeNull();
 		expect(overlay).toBeNull();
 	});
 

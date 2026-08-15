@@ -26,6 +26,7 @@
 		"@testing-library/jest-dom": "^7.0.0",
 		"@testing-library/user-event": "^14.6.1",
 		"@types/node": "^26.1.2",
+		"@typescript-eslint/utils": "^8.67.0",
 		"@vitest/coverage-v8": "^4.1.10",
 		"@vitest/eslint-plugin": "^1.6.24",
 		"esbuild": "0.28.1",
