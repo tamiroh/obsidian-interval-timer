@@ -17,6 +17,7 @@ export class FocusTickSound {
 		if (volume <= 0) return;
 
 		this.audioOutput.play(tickSound, {
+			mode: "once",
 			gain: maxGain * Math.min(volume / 100, 1),
 		});
 	}
@@ -71,4 +72,7 @@ const createSecondaryImpact = (
 	);
 };
 
-const tickSound: Sound = { createSamples: createTickSamples };
+const tickSound: Sound = {
+	type: "generated",
+	createSamples: createTickSamples,
+};

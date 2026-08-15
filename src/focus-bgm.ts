@@ -1,4 +1,4 @@
-import { AudioOutput, type AudioChannel, type Sound } from "./audio-output";
+import { AudioOutput, type Playback, type Sound } from "./audio-output";
 
 //
 // Types
@@ -19,7 +19,7 @@ type PlayingBgm = {
 	type: PlayableFocusBgmType;
 	volume: number;
 	maxGain: number;
-	channel: AudioChannel;
+	playback: Playback;
 };
 
 //
@@ -54,7 +54,7 @@ export class FocusBgm {
 			if (playing.volume === volume) return;
 
 			playing.volume = volume;
-			playing.channel.setGain(
+			playing.playback.setGain(
 				toGain(playing.maxGain, volume),
 				fadeSeconds,
 			);
@@ -89,13 +89,14 @@ export class FocusBgm {
 		volume: number,
 	): PlayingBgm | undefined {
 		const source = focusBgmSources[type];
-		const channel = this.audioOutput.play(source.sound, {
+		const playback = this.audioOutput.play(source.sound, {
+			mode: "loop",
 			gain: toGain(source.maxGain, volume),
 			fadeSeconds,
 		});
-		if (channel === undefined) return undefined;
+		if (playback === undefined) return undefined;
 
-		return { type, volume, maxGain: source.maxGain, channel };
+		return { type, volume, maxGain: source.maxGain, playback };
 	}
 
 	private stopPlaying(): void {
@@ -103,7 +104,7 @@ export class FocusBgm {
 		if (playing === undefined) return;
 
 		this.playing = undefined;
-		playing.channel.stop(fadeSeconds);
+		playing.playback.stop(fadeSeconds);
 	}
 
 	private clearPreviewTimeout(): void {
@@ -127,6 +128,7 @@ const focusBgmSources: Record<PlayableFocusBgmType, FocusBgmSource> = {
 	whiteNoise: {
 		maxGain: 0.22,
 		sound: {
+			type: "generated",
 			createSamples: (sampleRate) => {
 				const lowpassFrequency = 900;
 				const noise = new Float32Array(
@@ -153,7 +155,6 @@ const focusBgmSources: Record<PlayableFocusBgmType, FocusBgmSource> = {
 
 				return samples;
 			},
-			loop: true,
 		},
 	},
 };

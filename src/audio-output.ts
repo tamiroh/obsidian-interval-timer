@@ -1,16 +1,21 @@
+import { match } from "ts-pattern";
+
 type CreateSamples = (sampleRate: number) => Float32Array;
 
-export type Sound = {
+export type GeneratedSound = {
+	type: "generated";
 	createSamples: CreateSamples;
-	loop?: boolean;
 };
 
+export type Sound = GeneratedSound;
+
 export type PlayOptions = {
+	mode: "once" | "loop";
 	gain: number;
 	fadeSeconds?: number;
 };
 
-export type AudioChannel = {
+export type Playback = {
 	setGain: (gain: number, fadeSeconds: number) => void;
 	stop: (fadeSeconds: number) => void;
 };
@@ -20,20 +25,20 @@ export class AudioOutput {
 
 	private buffers = new WeakMap<CreateSamples, AudioBuffer>();
 
-	public play(sound: Sound, options: PlayOptions): AudioChannel | undefined {
+	public play(sound: Sound, options: PlayOptions): Playback | undefined {
 		const audioContext = this.resolveContext();
 		if (audioContext === undefined) return undefined;
 
 		const startAt = audioContext.currentTime;
 		const source = audioContext.createBufferSource();
 		const gain = audioContext.createGain();
+		const fadeSeconds = options.fadeSeconds ?? 0;
 
-		source.buffer = this.resolveBuffer(audioContext, sound.createSamples);
-		source.loop = sound.loop === true;
+		source.buffer = this.resolveBuffer(audioContext, sound);
+		source.loop = options.mode === "loop";
 		source.connect(gain);
 		gain.connect(audioContext.destination);
 
-		const fadeSeconds = options.fadeSeconds ?? 0;
 		gain.gain.setValueAtTime(fadeSeconds > 0 ? 0 : options.gain, startAt);
 		if (fadeSeconds > 0) {
 			gain.gain.linearRampToValueAtTime(
@@ -81,6 +86,17 @@ export class AudioOutput {
 
 	private resolveBuffer(
 		audioContext: AudioContext,
+		sound: Sound,
+	): AudioBuffer {
+		return match(sound)
+			.with({ type: "generated" }, ({ createSamples }) =>
+				this.resolveGeneratedBuffer(audioContext, createSamples),
+			)
+			.exhaustive();
+	}
+
+	private resolveGeneratedBuffer(
+		audioContext: AudioContext,
 		createSamples: CreateSamples,
 	): AudioBuffer {
 		const cached = this.buffers.get(createSamples);
@@ -115,12 +131,14 @@ const rampGain = (
 	target: number,
 	fadeSeconds: number,
 ): void => {
+	const currentGain = gain.gain.value;
+
 	gain.gain.cancelScheduledValues(startAt);
 	if (fadeSeconds <= 0) {
 		gain.gain.setValueAtTime(target, startAt);
 		return;
 	}
 
-	gain.gain.setValueAtTime(gain.gain.value, startAt);
+	gain.gain.setValueAtTime(currentGain, startAt);
 	gain.gain.linearRampToValueAtTime(target, startAt + fadeSeconds);
 };
