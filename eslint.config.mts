@@ -24,6 +24,19 @@ export default defineConfig(
 			obsidianmd.configs.recommended,
 			reactHooks.configs.flat.recommended,
 		],
+		settings: {
+			"import/resolver": {
+				node: {
+					extensions: [".js", ".ts", ".tsx"],
+				},
+			},
+			"import/parsers": {
+				"@typescript-eslint/parser": [".ts", ".tsx"],
+			},
+		},
+		rules: {
+			"import/no-cycle": "error",
+		},
 	},
 	{
 		files: ["**/*.test.{ts,tsx}"],

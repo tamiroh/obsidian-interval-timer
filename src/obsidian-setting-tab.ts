@@ -1,5 +1,6 @@
 import { App, displayTooltip, PluginSettingTab, Setting } from "obsidian";
-import Plugin, { PluginSetting } from "./obsidian-plugin";
+import type Plugin from "./obsidian-plugin";
+import type { PluginSetting } from "./obsidian-plugin";
 import {
 	focusBgmVolumeRange,
 	focusTickSoundVolumeRange,
