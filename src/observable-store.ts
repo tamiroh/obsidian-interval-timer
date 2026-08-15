@@ -1,3 +1,5 @@
+import { useLayoutEffect, useState } from "preact/hooks";
+
 export class ObservableStore<T extends object> {
 	private snapshot: T;
 
@@ -19,3 +21,17 @@ export class ObservableStore<T extends object> {
 		this.listeners.forEach((listener) => listener());
 	}
 }
+
+export const useObservableStore = <T extends object>(
+	store: ObservableStore<T>,
+): T => {
+	const [snapshot, setSnapshot] = useState(store.getSnapshot);
+	useLayoutEffect(() => {
+		const unsubscribe = store.subscribe(() =>
+			setSnapshot(store.getSnapshot()),
+		);
+		setSnapshot(store.getSnapshot());
+		return unsubscribe;
+	}, [store]);
+	return snapshot;
+};

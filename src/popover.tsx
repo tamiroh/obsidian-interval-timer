@@ -6,7 +6,7 @@ import {
 	TargetedMouseEvent,
 	TargetedPointerEvent,
 } from "preact";
-import { useLayoutEffect, useRef, useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import { match } from "ts-pattern";
 import { TimerType } from "./countdown-timer";
 import {
@@ -15,7 +15,7 @@ import {
 	IntervalTimerState,
 	TouchAction,
 } from "./interval-timer";
-import { ObservableStore } from "./observable-store";
+import { ObservableStore, useObservableStore } from "./observable-store";
 import { minutesUpperBound, Time, toSeconds } from "./time";
 
 //
@@ -233,7 +233,7 @@ const PopoverView = ({
 		isFloating,
 		isDismissed,
 		touchAction,
-	} = useStoreSnapshot(store);
+	} = useObservableStore(store);
 	const [isEditingTime, setIsEditingTime] = useState(false);
 	const [expandedTask, setExpandedTask] = useState<ExpandedTask | null>(null);
 	const [drag, setDrag] = useState<Drag | null>(null);
@@ -701,18 +701,6 @@ const PopoverView = ({
 			</div>
 		</div>
 	);
-};
-
-const useStoreSnapshot = <T extends object>(store: ObservableStore<T>): T => {
-	const [snapshot, setSnapshot] = useState(store.getSnapshot);
-	useLayoutEffect(() => {
-		const unsubscribe = store.subscribe(() =>
-			setSnapshot(store.getSnapshot()),
-		);
-		setSnapshot(store.getSnapshot());
-		return unsubscribe;
-	}, [store]);
-	return snapshot;
 };
 
 //
