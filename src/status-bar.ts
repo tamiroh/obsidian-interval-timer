@@ -6,10 +6,11 @@ import {
 } from "./interval-timer";
 import { TimerType } from "./countdown-timer";
 import { Popover } from "./popover";
+import { TimerDisplay } from "./timer-display";
 
 const popoverFloatingClass = "interval-timer-status-bar-popover-floating";
 
-export class StatusBar {
+export class StatusBar implements TimerDisplay {
 	private readonly statusBarItem: HTMLElement;
 
 	private readonly compact: HTMLSpanElement;

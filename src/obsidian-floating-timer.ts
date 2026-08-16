@@ -7,8 +7,9 @@ import {
 } from "./interval-timer";
 import { TimerType } from "./countdown-timer";
 import { Popover } from "./popover";
+import { TimerDisplay } from "./timer-display";
 
-export class FloatingTimer {
+export class FloatingTimer implements TimerDisplay {
 	private readonly containerEl: HTMLElement;
 
 	private readonly popover: Popover;

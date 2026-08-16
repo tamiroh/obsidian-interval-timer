@@ -39,6 +39,8 @@ import { err, ok, type Result } from "./result";
 import { FocusTickSound } from "./focus-tick-sound";
 import { FocusBgm, type FocusBgmType } from "./focus-bgm";
 import { AudioOutput } from "./audio-output";
+import { registerCommands } from "./obsidian-plugin-commands";
+import type { TimerDisplay } from "./timer-display";
 
 export type { PluginSetting } from "./obsidian-plugin-setting";
 
@@ -61,7 +63,7 @@ type ParseFocusBgmVolumeResult = Result<number, "invalid_focus_bgm_volume">;
 export class Plugin extends BasePlugin {
 	public override settings!: PluginSetting;
 
-	private timerDisplay: StatusBar | FloatingTimer;
+	private timerDisplay: TimerDisplay;
 
 	private intervalTimer!: IntervalTimer;
 
@@ -110,7 +112,7 @@ export class Plugin extends BasePlugin {
 		this.notifier = createNotifier(this.settings.notificationStyle);
 		this.setupIntervalTimer();
 		this.setupTaskLineInteraction();
-		this.addCommands();
+		registerCommands(this, this.intervalTimer);
 		this.addSettingTab(new SettingTab(this.app, this));
 
 		this.timerDisplay.enableClick(this.intervalTimer);
@@ -406,57 +408,6 @@ export class Plugin extends BasePlugin {
 		this.syncCurrentTask();
 		this.app.workspace.updateOptions();
 		return result;
-	}
-
-	private addCommands(): void {
-		this.addCommand({
-			id: "start-timer",
-			name: "Start timer",
-			checkCallback: (checking) => {
-				const canStart = this.intervalTimer.canStart;
-				if (!checking && canStart) this.intervalTimer.start();
-				return canStart;
-			},
-		});
-		this.addCommand({
-			id: "pause-timer",
-			name: "Pause timer",
-			checkCallback: (checking) => {
-				const canPause = this.intervalTimer.canPause;
-				if (!checking && canPause) this.intervalTimer.pause();
-				return canPause;
-			},
-		});
-		this.addCommand({
-			id: "reset-timer",
-			name: "Reset timer",
-			callback: () => {
-				this.intervalTimer.reset();
-			},
-		});
-		this.addCommand({
-			id: "reset-intervals-set",
-			name: "Reset intervals set",
-			callback: () => {
-				this.intervalTimer.resetIntervalsSet();
-			},
-		});
-		this.addCommand({
-			id: "reset-total-intervals",
-			name: "Reset total intervals",
-			callback: () => {
-				this.intervalTimer.resetTotalIntervals();
-			},
-		});
-		this.addCommand({
-			id: "skip-interval",
-			name: "Skip interval",
-			checkCallback: (checking) => {
-				const canSkip = this.intervalTimer.state !== "focus";
-				if (!checking && canSkip) this.intervalTimer.skipInterval();
-				return canSkip;
-			},
-		});
 	}
 
 	private async loadSettings(): Promise<void> {
