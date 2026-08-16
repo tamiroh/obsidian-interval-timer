@@ -9,7 +9,7 @@ import { clear, last } from "./array";
 
 const stateChangedEvents = (
 	events: IntervalTimerEvent[],
-): Array<Extract<IntervalTimerEvent, { type: "state-changed" }>> =>
+): Extract<IntervalTimerEvent, { type: "state-changed" }>[] =>
 	events.filter(
 		(
 			event,
@@ -19,7 +19,7 @@ const stateChangedEvents = (
 
 const intervalCompletedEvents = (
 	events: IntervalTimerEvent[],
-): Array<Extract<IntervalTimerEvent, { type: "interval-completed" }>> =>
+): Extract<IntervalTimerEvent, { type: "interval-completed" }>[] =>
 	events.filter(
 		(
 			event,

@@ -27,7 +27,9 @@ describe("StatusBar", () => {
 	};
 
 	afterEach(() => {
-		statusBars.forEach((statusBar) => statusBar.dispose());
+		statusBars.forEach((statusBar) => {
+			statusBar.dispose();
+		});
 		statusBars.clear();
 		document.body.replaceChildren();
 	});

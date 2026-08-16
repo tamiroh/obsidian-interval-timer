@@ -85,7 +85,7 @@ describe("FloatingTimer", () => {
 		).not.toBeInTheDocument();
 	});
 
-	it("mounts inside the active leaf's view container", async () => {
+	it("mounts inside the active leaf's view container", () => {
 		// Arrange
 		const leafContainer = createDiv();
 		document.body.append(leafContainer);
@@ -102,7 +102,7 @@ describe("FloatingTimer", () => {
 		floatingTimer.dispose();
 	});
 
-	it("follows the active leaf when it changes", async () => {
+	it("follows the active leaf when it changes", () => {
 		// Arrange
 		const firstLeaf = createDiv();
 		const secondLeaf = createDiv();
@@ -152,7 +152,9 @@ const createAppWithLeaf = (
 			leafContainer = containerEl;
 		},
 		triggerActiveLeafChange: () => {
-			handlers.forEach((callback) => callback());
+			handlers.forEach((callback) => {
+				callback();
+			});
 		},
 	} as unknown as App & {
 		setActiveLeafContainer: (containerEl: HTMLElement | null) => void;

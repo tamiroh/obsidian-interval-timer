@@ -42,9 +42,10 @@ export class TaskLine {
 	}
 
 	public static from(line: string): TaskLine | null {
-		const match = line.match(
-			/^(\s*-\s\[\s\]\s+)(.*?)\s+(\d+)(?:\s*,\s*(\d+))?\s*\/\s*(\d+)\s*$/,
-		);
+		const match =
+			/^(\s*-\s\[\s\]\s+)(.*?)\s+(\d+)(?:\s*,\s*(\d+))?\s*\/\s*(\d+)\s*$/.exec(
+				line,
+			);
 		if (!match) {
 			return null;
 		}

@@ -105,7 +105,9 @@ export class IntervalTimer {
 		};
 		this.autoResetScheduler = new DailyScheduler(
 			this.settings.resetTime,
-			() => this.resetTotalIntervals(),
+			() => {
+				this.resetTotalIntervals();
+			},
 		);
 
 		this.enterInterval("focus", {
@@ -216,9 +218,15 @@ export class IntervalTimer {
 	public touch(): void {
 		const action = this.predictTouch();
 		match(action)
-			.with("start", "resume", () => this.start())
-			.with("reset", () => this.reset())
-			.with("skip", () => this.skipInterval())
+			.with("start", "resume", () => {
+				this.start();
+			})
+			.with("reset", () => {
+				this.reset();
+			})
+			.with("skip", () => {
+				this.skipInterval();
+			})
 			.exhaustive();
 	}
 
@@ -319,9 +327,15 @@ export class IntervalTimer {
 	private createTimer(minutes: Minutes, seconds: Seconds): CountdownTimer {
 		return new CountdownTimer(
 			{ minutes, seconds },
-			() => this.changeState("running"),
-			() => this.changeState("paused"),
-			() => this.enterNextInterval({ reason: "completed" }),
+			() => {
+				this.changeState("running");
+			},
+			() => {
+				this.changeState("paused");
+			},
+			() => {
+				this.enterNextInterval({ reason: "completed" });
+			},
 		);
 	}
 
@@ -344,7 +358,9 @@ export class IntervalTimer {
 			occurredAt: new Date(),
 			snapshot: this.getSnapshot(),
 		};
-		this.eventListeners.forEach((listener) => listener(timestampedEvent));
+		this.eventListeners.forEach((listener) => {
+			listener(timestampedEvent);
+		});
 	}
 
 	private getSnapshot(): Snapshot {

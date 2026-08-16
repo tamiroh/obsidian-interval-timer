@@ -65,7 +65,7 @@ describe("FlashOverlay", () => {
 		// Assert
 		const overlay = document.querySelector(
 			".interval-timer-flash-overlay",
-		) as HTMLDivElement;
+		) as Element;
 		const overlays = document.querySelectorAll(
 			".interval-timer-flash-overlay",
 		);
@@ -110,7 +110,7 @@ describe("FlashOverlay", () => {
 		flashOverlay.show({ r: 255, g: 100, b: 100 });
 		const overlay = document.querySelector(
 			".interval-timer-flash-overlay",
-		) as HTMLDivElement;
+		) as HTMLElement;
 
 		// Act
 		overlay.click();
@@ -124,7 +124,9 @@ describe("FlashOverlay", () => {
 
 	it("should handle dispose without showing overlay", () => {
 		// Arrange & Act & Assert
-		expect(() => FlashOverlay.dispose()).not.toThrow();
+		expect(() => {
+			FlashOverlay.dispose();
+		}).not.toThrow();
 	});
 
 	it("should handle hide without showing overlay", () => {
@@ -132,6 +134,8 @@ describe("FlashOverlay", () => {
 		const flashOverlay = FlashOverlay.getInstance();
 
 		// Act & Assert
-		expect(() => flashOverlay.hide()).not.toThrow();
+		expect(() => {
+			flashOverlay.hide();
+		}).not.toThrow();
 	});
 });

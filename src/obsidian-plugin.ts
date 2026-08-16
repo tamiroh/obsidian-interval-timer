@@ -95,7 +95,9 @@ export default class Plugin extends BasePlugin {
 		this.taskLineHighlighter = new TaskLineHighlighter(
 			this.taskTracker,
 			() => this.intervalTimer.state === "focus",
-			() => this.syncCurrentTask(),
+			() => {
+				this.syncCurrentTask();
+			},
 		);
 		const callbacks = {
 			notify: (message: string) => new Notice(message),
@@ -115,9 +117,9 @@ export default class Plugin extends BasePlugin {
 		this.addSettingTab(new SettingTab(this.app, this));
 
 		this.timerDisplay.enableClick(this.intervalTimer);
-		this.registerDomEvent(window, "focus", () =>
-			this.notifier.clearNotification(),
-		);
+		this.registerDomEvent(window, "focus", () => {
+			this.notifier.clearNotification();
+		});
 	}
 
 	public override onunload(): void {
@@ -426,17 +428,23 @@ export default class Plugin extends BasePlugin {
 		this.addCommand({
 			id: "reset-timer",
 			name: "Reset timer",
-			callback: () => this.intervalTimer.reset(),
+			callback: () => {
+				this.intervalTimer.reset();
+			},
 		});
 		this.addCommand({
 			id: "reset-intervals-set",
 			name: "Reset intervals set",
-			callback: () => this.intervalTimer.resetIntervalsSet(),
+			callback: () => {
+				this.intervalTimer.resetIntervalsSet();
+			},
 		});
 		this.addCommand({
 			id: "reset-total-intervals",
 			name: "Reset total intervals",
-			callback: () => this.intervalTimer.resetTotalIntervals(),
+			callback: () => {
+				this.intervalTimer.resetTotalIntervals();
+			},
 		});
 		this.addCommand({
 			id: "skip-interval",

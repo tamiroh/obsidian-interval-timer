@@ -5,6 +5,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import vitest from "@vitest/eslint-plugin";
 import testingLibrary from "eslint-plugin-testing-library";
 import jestDom from "eslint-plugin-jest-dom";
+import tseslint from "typescript-eslint";
 import local from "./eslint-plugin-local.mts";
 
 export default defineConfig(
@@ -38,6 +39,26 @@ export default defineConfig(
 		},
 		rules: {
 			"import/no-cycle": "error",
+		},
+	},
+	{
+		name: "local/ts",
+		files: ["**/*.{ts,tsx}"],
+		extends: [
+			tseslint.configs.strictTypeChecked,
+			tseslint.configs.stylisticTypeChecked,
+		],
+		rules: {
+			"@typescript-eslint/restrict-template-expressions": [
+				"error",
+				{ allowNumber: true },
+			],
+			"@typescript-eslint/no-empty-function": [
+				"error",
+				{ allow: ["arrowFunctions", "methods", "constructors"] },
+			],
+			"@typescript-eslint/non-nullable-type-assertion-style": "off", // Conflicts with no-non-null-assertion
+			"@typescript-eslint/consistent-type-definitions": ["error", "type"],
 		},
 	},
 	globalIgnores([
@@ -104,6 +125,8 @@ export default defineConfig(
 		files: ["src/obsidian-globals-fake.ts", "src/obsidian-fake.ts"],
 		rules: {
 			"obsidianmd/prefer-create-el": "off",
+			"@typescript-eslint/no-extraneous-class": "off",
+			"@typescript-eslint/no-useless-constructor": "off",
 		},
 	},
 );

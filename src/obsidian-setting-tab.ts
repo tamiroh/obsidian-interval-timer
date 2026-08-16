@@ -221,7 +221,9 @@ export class SettingTab extends PluginSettingTab {
 	private clearValidationTooltips(): void {
 		document
 			.querySelectorAll(`.${VALIDATION_TOOLTIP_CLASS}`)
-			.forEach((tooltipEl) => tooltipEl.remove());
+			.forEach((tooltipEl) => {
+				tooltipEl.remove();
+			});
 	}
 
 	private formatParseErrorMessage(

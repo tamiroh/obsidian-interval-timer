@@ -20,7 +20,9 @@ export class ObservableStore<T extends object> {
 
 	public update(patch: Partial<T>): void {
 		this.currentState = { ...this.currentState, ...patch };
-		this.listeners.forEach((listener) => listener());
+		this.listeners.forEach((listener) => {
+			listener();
+		});
 	}
 }
 
@@ -29,7 +31,9 @@ export const useObservableStore = <T extends object>(
 ): T => {
 	const [state, setState] = useState(store.state);
 	useLayoutEffect(() => {
-		const unsubscribe = store.subscribe(() => setState(store.state));
+		const unsubscribe = store.subscribe(() => {
+			setState(store.state);
+		});
 		setState(store.state);
 		return unsubscribe;
 	}, [store]);

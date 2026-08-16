@@ -92,7 +92,7 @@ export class Notice {
 
 	constructor(message: ConstructorParameters<typeof RealNotice>[0]) {
 		Notice.messages.push(
-			typeof message === "string" ? message : (message.textContent ?? ""),
+			typeof message === "string" ? message : message.textContent,
 		);
 	}
 }

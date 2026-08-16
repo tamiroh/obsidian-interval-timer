@@ -40,7 +40,7 @@ export class FocusBgm {
 		}
 
 		const playing = this.playing;
-		if (playing !== undefined && playing.type === type) {
+		if (playing?.type === type) {
 			if (playing.volume === volume) return;
 
 			playing.volume = volume;
@@ -59,10 +59,9 @@ export class FocusBgm {
 		this.play(type, volume);
 		if (this.playing === undefined) return;
 
-		this.previewTimeoutId = window.setTimeout(
-			() => this.stop(),
-			previewDurationMilliseconds,
-		);
+		this.previewTimeoutId = window.setTimeout(() => {
+			this.stop();
+		}, previewDurationMilliseconds);
 	}
 
 	public stop(): void {

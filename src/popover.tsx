@@ -320,7 +320,9 @@ const PopoverView = ({
 		store.update({ isFloating: false, isDismissed: true });
 		onFloatingChange(false);
 		if (restoreFocus) {
-			window.requestAnimationFrame(() => onRestoreFocus());
+			window.requestAnimationFrame(() => {
+				onRestoreFocus();
+			});
 		}
 	};
 
@@ -336,7 +338,7 @@ const PopoverView = ({
 		if (
 			!floating.returnTarget ||
 			!bounds ||
-			window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+			window.matchMedia("(prefers-reduced-motion: reduce)").matches
 		) {
 			dismiss(restoreFocus);
 			return;
@@ -399,7 +401,9 @@ const PopoverView = ({
 					dismiss(closingAnimationState.restoreFocus);
 				}
 			}}
-			onContextMenu={(event) => blurFocusWithin(event.currentTarget)}
+			onContextMenu={(event) => {
+				blurFocusWithin(event.currentTarget);
+			}}
 			onClick={(event) => {
 				event.stopPropagation();
 				floating.enterFloating(event.currentTarget);
@@ -509,9 +513,9 @@ const PopoverView = ({
 										spellcheck={false}
 										defaultValue={time.minutes}
 										onKeyDown={handleRetimeInputKeyDown}
-										onClick={(event) =>
-											event.currentTarget.select()
-										}
+										onClick={(event) => {
+											event.currentTarget.select();
+										}}
 										onBlur={() => {
 											if (suppressBlurApplyRef.current) {
 												suppressBlurApplyRef.current = false;
@@ -573,7 +577,9 @@ const PopoverView = ({
 								setExpandedTask(null);
 							}
 						}}
-						onMouseLeave={() => setExpandedTask(null)}
+						onMouseLeave={() => {
+							setExpandedTask(null);
+						}}
 					>
 						{taskName}
 					</div>

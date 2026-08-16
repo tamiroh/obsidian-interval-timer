@@ -10,9 +10,7 @@ export class FlashOverlay {
 	private constructor() {}
 
 	public static getInstance(): FlashOverlay {
-		if (!FlashOverlay.instance) {
-			FlashOverlay.instance = new FlashOverlay();
-		}
+		FlashOverlay.instance ??= new FlashOverlay();
 		return FlashOverlay.instance;
 	}
 
@@ -38,7 +36,9 @@ export class FlashOverlay {
 		this.overlay = createDiv();
 		this.overlay.classList.add("interval-timer-flash-overlay");
 		this.overlay.style.backgroundColor = `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`;
-		this.overlay.addEventListener("click", () => this.hide());
+		this.overlay.addEventListener("click", () => {
+			this.hide();
+		});
 
 		document.body.appendChild(this.overlay);
 	}

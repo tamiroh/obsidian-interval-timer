@@ -80,9 +80,13 @@ const mockComputedStyleFor = (
 
 describe("Popover", () => {
 	afterEach(() => {
-		popovers.forEach((popover) => popover.dispose());
+		popovers.forEach((popover) => {
+			popover.dispose();
+		});
 		popovers.clear();
-		intervalTimers.forEach((intervalTimer) => intervalTimer.dispose());
+		intervalTimers.forEach((intervalTimer) => {
+			intervalTimer.dispose();
+		});
 		intervalTimers.clear();
 		document.body.replaceChildren();
 		vi.restoreAllMocks();
@@ -169,7 +173,7 @@ describe("Popover", () => {
 		);
 
 		// Assert
-		await waitFor(() =>
+		await waitFor(() => {
 			expect(
 				within(el)
 					.getAllByTestId("popover-set-ring-segment")
@@ -178,8 +182,8 @@ describe("Popover", () => {
 							"interval-timer-popover-set-ring-segment-filled",
 						),
 					),
-			).toHaveLength(2),
-		);
+			).toHaveLength(2);
+		});
 	});
 
 	it("shows a completed set during a long break", async () => {
@@ -197,7 +201,7 @@ describe("Popover", () => {
 		);
 
 		// Assert
-		await waitFor(() =>
+		await waitFor(() => {
 			expect(
 				within(el)
 					.getAllByTestId("popover-set-ring-segment")
@@ -206,8 +210,8 @@ describe("Popover", () => {
 							"interval-timer-popover-set-ring-segment-filled",
 						),
 					),
-			).toHaveLength(4),
-		);
+			).toHaveLength(4);
+		});
 	});
 
 	it("updates the tracked task", async () => {
@@ -935,6 +939,33 @@ describe("Popover", () => {
 		expect(options.onFloatingChange).toHaveBeenLastCalledWith(true);
 	});
 
+	it("dismisses immediately without animating when reduced motion is preferred", async () => {
+		// Arrange
+		const user = userEvent.setup();
+		const el = createDiv();
+		const options = createOptions({ left: 925, top: 710 });
+		await createPopover(el, options);
+		const popover = within(el).getByRole("group");
+		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
+			left: 100,
+			top: 200,
+			width: 250,
+			height: 150,
+		} as DOMRect);
+		vi.spyOn(window, "matchMedia").mockReturnValue({
+			matches: true,
+		} as MediaQueryList);
+		await user.click(popover);
+
+		// Act
+		await user.click(within(el).getByRole("button", { name: "Close" }));
+
+		// Assert
+		expect(popover).toHaveClass("interval-timer-popover-dismissed");
+		expect(popover).not.toHaveClass("interval-timer-popover-returning");
+		expect(options.onFloatingChange).toHaveBeenLastCalledWith(false);
+	});
+
 	it("dismisses a floating popover once its closing animation finishes", async () => {
 		// Arrange
 		const user = userEvent.setup();
@@ -996,7 +1027,9 @@ describe("Popover", () => {
 
 		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-dismissed");
-		await waitFor(() => expect(options.onRestoreFocus).toHaveBeenCalled());
+		await waitFor(() => {
+			expect(options.onRestoreFocus).toHaveBeenCalled();
+		});
 	});
 
 	it("clears dismissal when focus returns to the status item", async () => {

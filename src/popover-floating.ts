@@ -89,7 +89,7 @@ export const usePopoverFloating = ({
 			originX: bounds.left - cssPosition.left,
 			originY: bounds.top - cssPosition.top,
 		});
-		popover.setPointerCapture?.(event.pointerId);
+		popover.setPointerCapture(event.pointerId);
 	};
 
 	const handlePointerMove = (event: TargetedPointerEvent<HTMLDivElement>) => {
@@ -107,7 +107,9 @@ export const usePopoverFloating = ({
 		setPosition({ left: left - drag.originX, top: top - drag.originY });
 	};
 
-	const handlePointerEnd = () => setDrag(null);
+	const handlePointerEnd = () => {
+		setDrag(null);
+	};
 
 	const handleKeyDown = (event: TargetedKeyboardEvent<HTMLDivElement>) => {
 		if (event.target !== event.currentTarget) return;

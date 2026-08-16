@@ -28,7 +28,9 @@ export class FloatingTimer {
 
 		this.activeLeafChangeRef = this.app.workspace.on(
 			"active-leaf-change",
-			() => this.mountToActiveLeaf(),
+			() => {
+				this.mountToActiveLeaf();
+			},
 		);
 
 		this.popover = new Popover(this.containerEl, {

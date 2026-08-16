@@ -73,7 +73,9 @@ export class StatusBar {
 					popoverFloatingClass,
 					floating,
 				),
-			onRestoreFocus: () => this.compact.focus({ preventScroll: true }),
+			onRestoreFocus: () => {
+				this.compact.focus({ preventScroll: true });
+			},
 			...callbacks,
 		});
 	}

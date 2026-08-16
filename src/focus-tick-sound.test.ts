@@ -19,9 +19,9 @@ describe("FocusTickSound", () => {
 	it("does nothing when Web Audio is unavailable", () => {
 		vi.stubGlobal("AudioContext", undefined);
 
-		expect(() =>
-			new FocusTickSound(new AudioOutput()).play(50),
-		).not.toThrow();
+		expect(() => {
+			new FocusTickSound(new AudioOutput()).play(50);
+		}).not.toThrow();
 	});
 
 	it("does not interrupt the timer when audio initialization fails", () => {
@@ -32,8 +32,8 @@ describe("FocusTickSound", () => {
 			}),
 		);
 
-		expect(() =>
-			new FocusTickSound(new AudioOutput()).play(50),
-		).not.toThrow();
+		expect(() => {
+			new FocusTickSound(new AudioOutput()).play(50);
+		}).not.toThrow();
 	});
 });
