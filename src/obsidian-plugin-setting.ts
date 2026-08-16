@@ -3,6 +3,7 @@ import { isMinutes, type Minutes } from "./time";
 import { defaultLongBreakAfter } from "./interval-timer";
 import type { NotificationStyle } from "./notification";
 import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
+import type { ObservableStore } from "./observable-store";
 
 export type PluginSetting = {
 	focusIntervalDuration: Minutes;
@@ -15,6 +16,8 @@ export type PluginSetting = {
 	focusBgmType: FocusBgmType;
 	focusBgmVolume: number;
 };
+
+export type PluginSettingStore = ObservableStore<PluginSetting>;
 
 export const focusTickSoundVolumeRange = { min: 0, max: 100 } as const;
 

@@ -28,11 +28,13 @@ import {
 	ParsePositiveIntegerResult,
 } from "./value-parser";
 import {
+	defaultPluginSetting,
 	isFocusBgmType,
 	isFocusBgmVolume,
 	isFocusTickSoundVolume,
 	parsePluginSetting,
 	PluginSetting,
+	type PluginSettingStore,
 } from "./obsidian-plugin-setting";
 import { isMinutes, type Minutes } from "./time";
 import { err, ok, type Result } from "./result";
@@ -41,6 +43,7 @@ import { FocusBgm, type FocusBgmType } from "./focus-bgm";
 import { AudioOutput } from "./audio-output";
 import { registerCommands } from "./obsidian-plugin-commands";
 import type { TimerDisplay } from "./timer-display";
+import { ObservableStore } from "./observable-store";
 
 export type { PluginSetting } from "./obsidian-plugin-setting";
 
@@ -60,8 +63,18 @@ type ParseFocusBgmTypeResult = Result<FocusBgmType, "invalid_focus_bgm_type">;
 
 type ParseFocusBgmVolumeResult = Result<number, "invalid_focus_bgm_volume">;
 
+type SettingsReload = {
+	readonly keys: readonly (keyof PluginSetting)[];
+	readonly reload: (next: PluginSetting) => void;
+};
+
 export class Plugin extends BasePlugin {
-	public override settings!: PluginSetting;
+	private readonly settingStore: PluginSettingStore =
+		new ObservableStore<PluginSetting>(defaultPluginSetting);
+
+	public get currentSettings(): Readonly<PluginSetting> {
+		return this.settingStore.state;
+	}
 
 	private timerDisplay: TimerDisplay;
 
@@ -104,8 +117,14 @@ export class Plugin extends BasePlugin {
 
 	public override async onload(): Promise<void> {
 		await this.loadSettings();
-		this.notifier = createNotifier(this.settings.notificationStyle);
+		this.notifier = createNotifier(this.currentSettings.notificationStyle);
 		this.setupIntervalTimer();
+		this.settingStore.subscribe((previous, next) => {
+			this.handleSettingsChange(previous, next);
+		});
+		this.settingStore.subscribe((_previous, next) => {
+			void this.saveData(next);
+		});
 		this.taskLineController.setup(this, this.intervalTimer);
 		registerCommands(this, this.intervalTimer);
 		this.addSettingTab(new SettingTab(this.app, this));
@@ -124,18 +143,17 @@ export class Plugin extends BasePlugin {
 		this.intervalTimer.dispose();
 	}
 
-	public async updateSetting(
+	public updateSetting(
 		key: keyof PluginSetting,
 		value: unknown,
-	): Promise<
+	):
 		| ParsePositiveIntegerResult
 		| Result<Minutes, "out_of_range_minutes">
 		| ParseNotificationStyleResult
 		| ParseBooleanResult
 		| ParseFocusTickSoundVolumeResult
 		| ParseFocusBgmTypeResult
-		| ParseFocusBgmVolumeResult
-	> {
+		| ParseFocusBgmVolumeResult {
 		switch (key) {
 			case "focusIntervalDuration":
 			case "shortBreakDuration":
@@ -146,9 +164,7 @@ export class Plugin extends BasePlugin {
 					return err("out_of_range_minutes");
 				}
 
-				this.settings[key] = parsed.value;
-				this.intervalTimer.updateSettings({ [key]: parsed.value });
-				await this.saveData(this.settings);
+				this.settingStore.update({ [key]: parsed.value });
 
 				return parsed;
 			}
@@ -156,10 +172,7 @@ export class Plugin extends BasePlugin {
 				const parsed = parsePositiveInteger(value);
 				if (!parsed.ok) return parsed;
 
-				this.settings[key] = parsed.value;
-				this.intervalTimer.updateSettings({ [key]: parsed.value });
-				this.timerDisplay.updateLongBreakAfter(parsed.value);
-				await this.saveData(this.settings);
+				this.settingStore.update({ longBreakAfter: parsed.value });
 
 				return parsed;
 			}
@@ -172,8 +185,7 @@ export class Plugin extends BasePlugin {
 
 				this.notifier.clearNotification();
 				this.notifier = createNotifier(parsed.value);
-				this.settings.notificationStyle = parsed.value;
-				await this.saveData(this.settings);
+				this.settingStore.update({ notificationStyle: parsed.value });
 
 				return parsed;
 			}
@@ -184,11 +196,10 @@ export class Plugin extends BasePlugin {
 						: err("invalid_boolean");
 				if (!parsed.ok) return parsed;
 
-				this.settings.flashOverlayEnabled = parsed.value;
 				if (!parsed.value) {
 					FlashOverlay.getInstance().hide();
 				}
-				await this.saveData(this.settings);
+				this.settingStore.update({ flashOverlayEnabled: parsed.value });
 
 				return parsed;
 			}
@@ -199,9 +210,9 @@ export class Plugin extends BasePlugin {
 						: err("invalid_focus_tick_sound_volume");
 				if (!parsed.ok) return parsed;
 
-				this.settings.focusTickSoundVolume = parsed.value;
-				this.focusTickSound.play(parsed.value);
-				await this.saveData(this.settings);
+				this.settingStore.update({
+					focusTickSoundVolume: parsed.value,
+				});
 
 				return parsed;
 			}
@@ -211,11 +222,7 @@ export class Plugin extends BasePlugin {
 					: err("invalid_focus_bgm_type");
 				if (!parsed.ok) return parsed;
 
-				this.settings.focusBgmType = parsed.value;
-				this.updateFocusBgmPlayback(this.intervalTimer.status, {
-					previewWhenIdle: true,
-				});
-				await this.saveData(this.settings);
+				this.settingStore.update({ focusBgmType: parsed.value });
 
 				return parsed;
 			}
@@ -227,22 +234,68 @@ export class Plugin extends BasePlugin {
 					: err("invalid_focus_bgm_volume");
 				if (!parsed.ok) return parsed;
 
-				this.settings.focusBgmVolume = parsed.value;
-				this.updateFocusBgmPlayback(this.intervalTimer.status, {
-					previewWhenIdle: true,
-				});
-				await this.saveData(this.settings);
+				this.settingStore.update({ focusBgmVolume: parsed.value });
 
 				return parsed;
 			}
 		}
 	}
 
+	private readonly settingsReloads: readonly SettingsReload[] = [
+		{
+			keys: [
+				"focusIntervalDuration",
+				"shortBreakDuration",
+				"longBreakDuration",
+				"longBreakAfter",
+			],
+			reload: (next) => {
+				this.intervalTimer.updateSettings({
+					focusIntervalDuration: next.focusIntervalDuration,
+					shortBreakDuration: next.shortBreakDuration,
+					longBreakDuration: next.longBreakDuration,
+					longBreakAfter: next.longBreakAfter,
+				});
+			},
+		},
+		{
+			keys: ["longBreakAfter"],
+			reload: (next) => {
+				this.timerDisplay.updateLongBreakAfter(next.longBreakAfter);
+			},
+		},
+		{
+			keys: ["focusTickSoundVolume"],
+			reload: (next) => {
+				this.focusTickSound.play(next.focusTickSoundVolume);
+			},
+		},
+		{
+			keys: ["focusBgmType", "focusBgmVolume"],
+			reload: () => {
+				this.updateFocusBgmPlayback(this.intervalTimer.status, {
+					previewWhenIdle: true,
+				});
+			},
+		},
+	];
+
+	private handleSettingsChange(
+		previous: PluginSetting,
+		next: PluginSetting,
+	): void {
+		this.settingsReloads.forEach(({ keys, reload }) => {
+			if (keys.some((key) => previous[key] !== next[key])) {
+				reload(next);
+			}
+		});
+	}
+
 	private updateFocusBgmPlayback(
 		{ timerState, snapshot }: IntervalTimerStatus,
 		options?: { previewWhenIdle: boolean },
 	): void {
-		const { focusBgmType, focusBgmVolume } = this.settings;
+		const { focusBgmType, focusBgmVolume } = this.currentSettings;
 
 		if (snapshot.state === "focus" && timerState === "running") {
 			this.focusBgm.play(focusBgmType, focusBgmVolume);
@@ -270,14 +323,14 @@ export class Plugin extends BasePlugin {
 				snapshot,
 				snapshot.state,
 				timerState,
-				this.settings.longBreakAfter,
+				this.currentSettings.longBreakAfter,
 			);
 			if (timerState === "initialized") {
 				this.taskLineController.untrackCurrentTask();
 			}
 		};
 		const onNotify = (message: string, context: NotifierContext) => {
-			if (this.settings.flashOverlayEnabled) {
+			if (this.currentSettings.flashOverlayEnabled) {
 				const overlayColor = match(context.state)
 					.with("focus", () => ({ r: 255, g: 100, b: 100 }))
 					.with("shortBreak", "longBreak", () => ({
@@ -301,10 +354,10 @@ export class Plugin extends BasePlugin {
 		const snapshot = this.intervalTimerSnapshotStore.load();
 
 		this.intervalTimer = new IntervalTimer({
-			focusIntervalDuration: this.settings.focusIntervalDuration,
-			shortBreakDuration: this.settings.shortBreakDuration,
-			longBreakDuration: this.settings.longBreakDuration,
-			longBreakAfter: this.settings.longBreakAfter,
+			focusIntervalDuration: this.currentSettings.focusIntervalDuration,
+			shortBreakDuration: this.currentSettings.shortBreakDuration,
+			longBreakDuration: this.currentSettings.longBreakDuration,
+			longBreakAfter: this.currentSettings.longBreakAfter,
 			resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
 		});
 		this.intervalTimer.subscribe((event) => {
@@ -313,12 +366,12 @@ export class Plugin extends BasePlugin {
 					updateTimerState(event);
 					this.updateFocusBgmPlayback(event);
 					if (
-						this.settings.focusTickSoundVolume > 0 &&
+						this.currentSettings.focusTickSoundVolume > 0 &&
 						event.snapshot.state === "focus" &&
 						event.timerState === "running"
 					) {
 						this.focusTickSound.play(
-							this.settings.focusTickSoundVolume,
+							this.currentSettings.focusTickSoundVolume,
 						);
 					}
 					break;
@@ -350,6 +403,6 @@ export class Plugin extends BasePlugin {
 	}
 
 	private async loadSettings(): Promise<void> {
-		this.settings = parsePluginSetting(await this.loadData());
+		this.settingStore.update(parsePluginSetting(await this.loadData()));
 	}
 }
