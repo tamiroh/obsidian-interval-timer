@@ -41,6 +41,17 @@ export default defineConfig(
 			"import/no-cycle": "error",
 		},
 	},
+	globalIgnores([
+		"node_modules",
+		"dist",
+		"esbuild.config.mjs",
+		"eslint.config.js",
+		"bin/version-bump.mjs",
+		"versions.json",
+		"main.js",
+		"vitest.config.ts",
+		"vitest.setup.ts",
+	]),
 	{
 		name: "local/ts",
 		files: ["**/*.{ts,tsx}"],
@@ -61,19 +72,8 @@ export default defineConfig(
 			"@typescript-eslint/consistent-type-definitions": ["error", "type"],
 		},
 	},
-	globalIgnores([
-		"node_modules",
-		"dist",
-		"esbuild.config.mjs",
-		"eslint.config.js",
-		"bin/version-bump.mjs",
-		"versions.json",
-		"main.js",
-		"vitest.config.ts",
-		"vitest.setup.ts",
-	]),
 	{
-		name: "local/prod-code",
+		name: "local/ts-prodonly",
 		files: ["src/**/*.{ts,tsx}"],
 		ignores: ["**/*.test.{ts,tsx}"],
 		rules: {
