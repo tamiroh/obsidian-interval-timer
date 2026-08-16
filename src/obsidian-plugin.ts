@@ -96,7 +96,11 @@ export class Plugin extends BasePlugin {
 		this.notifier = createNotifier(this.currentSettings.notificationStyle);
 		this.setupIntervalTimer();
 		this.settingStore.subscribe((previous, next) => {
-			this.handleSettingsChange(previous, next);
+			this.settingsReloads.forEach(({ keys, reload }) => {
+				if (keys.some((key) => previous[key] !== next[key])) {
+					reload(next);
+				}
+			});
 		});
 		this.settingStore.subscribe((_previous, next) => {
 			void this.saveData(next);
@@ -173,40 +177,17 @@ export class Plugin extends BasePlugin {
 		{
 			keys: ["focusBgmType", "focusBgmVolume"],
 			reload: () => {
-				this.updateFocusBgmPlayback(this.intervalTimer.status, {
-					previewWhenIdle: true,
-				});
+				const { focusBgmType, focusBgmVolume } = this.currentSettings;
+				const { timerState, snapshot } = this.intervalTimer.status;
+
+				if (snapshot.state === "focus" && timerState === "running") {
+					this.focusBgm.play(focusBgmType, focusBgmVolume);
+				} else {
+					this.focusBgm.preview(focusBgmType, focusBgmVolume);
+				}
 			},
 		},
 	];
-
-	private handleSettingsChange(
-		previous: PluginSetting,
-		next: PluginSetting,
-	): void {
-		this.settingsReloads.forEach(({ keys, reload }) => {
-			if (keys.some((key) => previous[key] !== next[key])) {
-				reload(next);
-			}
-		});
-	}
-
-	private updateFocusBgmPlayback(
-		{ timerState, snapshot }: IntervalTimerStatus,
-		options?: { previewWhenIdle: boolean },
-	): void {
-		const { focusBgmType, focusBgmVolume } = this.currentSettings;
-
-		if (snapshot.state === "focus" && timerState === "running") {
-			this.focusBgm.play(focusBgmType, focusBgmVolume);
-			return;
-		}
-		if (options?.previewWhenIdle === true) {
-			this.focusBgm.preview(focusBgmType, focusBgmVolume);
-			return;
-		}
-		this.focusBgm.stop();
-	}
 
 	private setupIntervalTimer(): void {
 		const updateTimerState = ({
@@ -262,19 +243,29 @@ export class Plugin extends BasePlugin {
 		});
 		this.intervalTimer.subscribe((event) => {
 			switch (event.type) {
-				case "state-changed":
+				case "state-changed": {
 					updateTimerState(event);
-					this.updateFocusBgmPlayback(event);
-					if (
-						this.currentSettings.focusTickSoundVolume > 0 &&
+
+					const isFocusRunning =
 						event.snapshot.state === "focus" &&
-						event.timerState === "running"
+						event.timerState === "running";
+					const { focusBgmType, focusBgmVolume } =
+						this.currentSettings;
+					if (isFocusRunning) {
+						this.focusBgm.play(focusBgmType, focusBgmVolume);
+					} else {
+						this.focusBgm.stop();
+					}
+					if (
+						isFocusRunning &&
+						this.currentSettings.focusTickSoundVolume > 0
 					) {
 						this.focusTickSound.play(
 							this.currentSettings.focusTickSoundVolume,
 						);
 					}
 					break;
+				}
 				case "timer-started":
 					if (event.mode === "fresh") {
 						onStartedFreshly(event.snapshot.state);
