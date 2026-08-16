@@ -325,18 +325,23 @@ export class IntervalTimer {
 	}
 
 	private createTimer(minutes: Minutes, seconds: Seconds): CountdownTimer {
-		return new CountdownTimer(
-			{ minutes, seconds },
-			() => {
-				this.changeState("running");
-			},
-			() => {
-				this.changeState("paused");
-			},
-			() => {
-				this.enterNextInterval({ reason: "completed" });
-			},
-		);
+		const timer = new CountdownTimer({
+			initialTime: { minutes, seconds },
+		});
+		timer.subscribe((event) => {
+			match(event.type)
+				.with("tick", () => {
+					this.changeState("running");
+				})
+				.with("paused", () => {
+					this.changeState("paused");
+				})
+				.with("completed", () => {
+					this.enterNextInterval({ reason: "completed" });
+				})
+				.exhaustive();
+		});
+		return timer;
 	}
 
 	private enterInterval(state: IntervalTimerState, time: Time): void {
