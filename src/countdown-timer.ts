@@ -2,7 +2,7 @@ import { match } from "ts-pattern";
 import { err, ok, type Result } from "./result";
 import {
 	isMinutes,
-	Seconds,
+	isSeconds,
 	time,
 	Time,
 	toMilliseconds,
@@ -210,11 +210,14 @@ export class CountdownTimer {
 		}
 
 		const remainingMinutes = Math.floor(remainingSeconds / 60);
+		const remainingSecondsInMinute = remainingSeconds % 60;
 		this.state.currentTime = time(
 			isMinutes(remainingMinutes)
 				? remainingMinutes
 				: this.state.currentTime.minutes,
-			(remainingSeconds % 60) as Seconds,
+			isSeconds(remainingSecondsInMinute)
+				? remainingSecondsInMinute
+				: this.state.currentTime.seconds,
 		);
 		return "subtracted";
 	}
