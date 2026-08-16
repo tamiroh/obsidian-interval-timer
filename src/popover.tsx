@@ -423,6 +423,7 @@ const PopoverView = ({
 					aria-label="Close"
 					aria-hidden={!isFloating}
 					tabIndex={isFloating ? 0 : -1}
+					disabled={!isFloating}
 					onClick={handleCloseClick}
 				>
 					<Icon
@@ -439,6 +440,7 @@ const PopoverView = ({
 				aria-label="Return to original position"
 				aria-hidden={!floating.hasMovedFromOrigin}
 				tabIndex={floating.hasMovedFromOrigin ? 0 : -1}
+				disabled={!floating.hasMovedFromOrigin}
 				onClick={handleReturnToOrigin}
 			>
 				<Icon
@@ -497,7 +499,8 @@ const PopoverView = ({
 									className="interval-timer-popover-clock-minutes"
 									disabled={
 										!intervalTimer ||
-										timerState === "running"
+										timerState === "running" ||
+										isEditingTime
 									}
 									onClick={handleMinutesClick}
 								>

@@ -140,12 +140,8 @@
 	top: var(--interval-timer-popover-control-top);
 }
 
-.interval-timer-popover-floating button.interval-timer-popover-close {
-	opacity: 1;
-	pointer-events: auto;
-}
-
-.interval-timer-popover-moved button.interval-timer-popover-return {
+button.interval-timer-popover-close:not(:disabled),
+button.interval-timer-popover-return:not(:disabled) {
 	opacity: 1;
 	pointer-events: auto;
 }
@@ -359,7 +355,7 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 }
 
 .interval-timer-popover-retime-editor-editing
-	.interval-timer-popover-clock-minutes {
+	button.interval-timer-popover-clock-minutes:disabled {
 	opacity: 0;
 	pointer-events: none;
 	transform: scale(1.06);
