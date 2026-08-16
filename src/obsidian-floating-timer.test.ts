@@ -26,9 +26,9 @@ describe("FloatingTimer", () => {
 
 		// Assert
 		await within(document.body).findByText("No task selected");
-		expect(
-			document.body.querySelector(".interval-timer-popover"),
-		).toHaveClass("interval-timer-popover-floating");
+		expect(within(document.body).getByRole("group")).toHaveClass(
+			"interval-timer-popover-floating",
+		);
 		floatingTimer.dispose();
 	});
 
@@ -48,11 +48,7 @@ describe("FloatingTimer", () => {
 		// Arrange
 		const floatingTimer = createFloatingTimer(createApp());
 		await within(document.body).findByText("No task selected");
-		const intervalTimer = new IntervalTimer(
-			() => {},
-			settings,
-			() => {},
-		);
+		const intervalTimer = new IntervalTimer(settings);
 
 		// Act
 		floatingTimer.update(
@@ -66,7 +62,7 @@ describe("FloatingTimer", () => {
 		// Assert
 		await within(document.body).findByText("07");
 		expect(
-			document.body.querySelector(".interval-timer-popover-clock-time"),
+			within(document.body).getByTestId("popover-clock-time"),
 		).toHaveTextContent("07:05");
 		expect(
 			within(document.body).getByRole("button", { name: "Start" }),
@@ -85,11 +81,11 @@ describe("FloatingTimer", () => {
 
 		// Assert
 		expect(
-			document.body.querySelector(".interval-timer-floating-timer"),
-		).toBeNull();
+			within(document.body).queryByTestId("floating-timer"),
+		).not.toBeInTheDocument();
 	});
 
-	it("mounts inside the active leaf's view container", async () => {
+	it("mounts inside the active leaf's view container", () => {
 		// Arrange
 		const leafContainer = createDiv();
 		document.body.append(leafContainer);
@@ -101,12 +97,12 @@ describe("FloatingTimer", () => {
 
 		// Assert
 		expect(
-			leafContainer.querySelector(".interval-timer-floating-timer"),
-		).not.toBeNull();
+			within(leafContainer).getByTestId("floating-timer"),
+		).toBeInTheDocument();
 		floatingTimer.dispose();
 	});
 
-	it("follows the active leaf when it changes", async () => {
+	it("follows the active leaf when it changes", () => {
 		// Arrange
 		const firstLeaf = createDiv();
 		const secondLeaf = createDiv();
@@ -120,11 +116,11 @@ describe("FloatingTimer", () => {
 
 		// Assert
 		expect(
-			secondLeaf.querySelector(".interval-timer-floating-timer"),
-		).not.toBeNull();
+			within(secondLeaf).getByTestId("floating-timer"),
+		).toBeInTheDocument();
 		expect(
-			firstLeaf.querySelector(".interval-timer-floating-timer"),
-		).toBeNull();
+			within(firstLeaf).queryByTestId("floating-timer"),
+		).not.toBeInTheDocument();
 		floatingTimer.dispose();
 	});
 });
@@ -156,7 +152,9 @@ const createAppWithLeaf = (
 			leafContainer = containerEl;
 		},
 		triggerActiveLeafChange: () => {
-			handlers.forEach((callback) => callback());
+			handlers.forEach((callback) => {
+				callback();
+			});
 		},
 	} as unknown as App & {
 		setActiveLeafContainer: (containerEl: HTMLElement | null) => void;

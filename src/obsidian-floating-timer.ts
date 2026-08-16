@@ -23,11 +23,14 @@ export class FloatingTimer {
 		},
 	) {
 		this.containerEl = createDiv({ cls: "interval-timer-floating-timer" });
+		this.containerEl.dataset.testid = "floating-timer";
 		this.mountToActiveLeaf();
 
 		this.activeLeafChangeRef = this.app.workspace.on(
 			"active-leaf-change",
-			() => this.mountToActiveLeaf(),
+			() => {
+				this.mountToActiveLeaf();
+			},
 		);
 
 		this.popover = new Popover(this.containerEl, {

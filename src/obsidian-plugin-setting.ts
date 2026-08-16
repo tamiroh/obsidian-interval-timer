@@ -5,7 +5,7 @@ import {
 	intervalCompletionBehaviors,
 	type IntervalCompletionBehavior,
 } from "./interval-timer";
-import type { NotificationStyle } from "./obsidian-notifier";
+import type { NotificationStyle } from "./notification";
 import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
 
 export type PluginSetting = {

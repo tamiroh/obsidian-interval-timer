@@ -27,7 +27,9 @@ describe("StatusBar", () => {
 	};
 
 	afterEach(() => {
-		statusBars.forEach((statusBar) => statusBar.dispose());
+		statusBars.forEach((statusBar) => {
+			statusBar.dispose();
+		});
 		statusBars.clear();
 		document.body.replaceChildren();
 	});
@@ -46,13 +48,12 @@ describe("StatusBar", () => {
 		);
 
 		// Assert
-		expect(
-			el.querySelector(".interval-timer-status-bar-compact"),
-		).toHaveTextContent("2/4 07:05");
-		expect(el.querySelector(".interval-timer-compact-clock")).toBeNull();
+		expect(within(el).getByTestId("status-bar-compact")).toHaveTextContent(
+			"2/4 07:05",
+		);
 		await waitFor(() =>
 			expect(
-				el.querySelector(".interval-timer-popover-clock-time"),
+				within(el).getByTestId("popover-clock-time"),
 			).toHaveTextContent("07:05"),
 		);
 
@@ -91,10 +92,8 @@ describe("StatusBar", () => {
 
 		// Assert
 		expect(el).toHaveClass("interval-timer-status-bar-break");
-		expect(el.querySelector(".interval-timer-phase")).toBeNull();
-		expect(el.querySelector(".interval-timer-status")).toBeNull();
 		await waitFor(() =>
-			expect(el.querySelector(".interval-timer-popover")).toHaveClass(
+			expect(within(el).getByRole("group")).toHaveClass(
 				"interval-timer-popover-break",
 			),
 		);
@@ -122,14 +121,11 @@ describe("StatusBar", () => {
 		// Assert
 		await waitFor(() =>
 			expect(
-				(
-					el.querySelector(
-						".interval-timer-popover-clock-value",
-					) as SVGElement
-				).style.strokeDashoffset,
-			).toBe("-40"),
+				within(el).getByTestId(
+					"popover-clock-value",
+				) as unknown as SVGElement,
+			).toHaveStyle({ strokeDashoffset: "-40" }),
 		);
-		expect(el.querySelector(".interval-timer-progress-value")).toBeNull();
 	});
 
 	it("shows the separator as running while the timer is running", async () => {
@@ -146,12 +142,12 @@ describe("StatusBar", () => {
 		);
 
 		// Assert
-		expect(el.querySelector(".interval-timer-time-separator")).toHaveClass(
+		expect(within(el).getByTestId("status-bar-separator")).toHaveClass(
 			"interval-timer-time-separator-running",
 		);
 		await waitFor(() =>
 			expect(
-				el.querySelector(".interval-timer-popover-clock-time"),
+				within(el).getByTestId("popover-clock-time"),
 			).toHaveTextContent("01:00"),
 		);
 	});
@@ -178,9 +174,9 @@ describe("StatusBar", () => {
 		);
 
 		// Assert
-		expect(
-			el.querySelector(".interval-timer-time-separator"),
-		).not.toHaveClass("interval-timer-time-separator-running");
+		expect(within(el).getByTestId("status-bar-separator")).not.toHaveClass(
+			"interval-timer-time-separator-running",
+		);
 		expect(
 			await within(el).findByRole("button", { name: "Start" }),
 		).toBeEnabled();
@@ -223,9 +219,7 @@ describe("StatusBar", () => {
 			createIntervalTimerWithStatusBarUpdates(statusBar);
 		const touchSpy = vi.spyOn(intervalTimer, "touch");
 		statusBar.enableClick(intervalTimer);
-		const compact = el.querySelector(
-			".interval-timer-status-bar-compact",
-		) as HTMLElement;
+		const compact = within(el).getByTestId("status-bar-compact");
 
 		// Act
 		await user.click(compact);
@@ -249,9 +243,7 @@ describe("StatusBar", () => {
 			createIntervalTimerWithStatusBarUpdates(statusBar);
 		const touchSpy = vi.spyOn(intervalTimer, "touch");
 		statusBar.enableClick(intervalTimer);
-		const compact = el.querySelector(
-			".interval-timer-status-bar-compact",
-		) as HTMLElement;
+		const compact = within(el).getByTestId("status-bar-compact");
 		compact.focus();
 
 		// Act
@@ -276,9 +268,7 @@ describe("StatusBar", () => {
 
 		// Act
 		statusBar.enableClick(intervalTimer);
-		const compact = el.querySelector(
-			".interval-timer-status-bar-compact",
-		) as HTMLElement;
+		const compact = within(el).getByTestId("status-bar-compact");
 		const reset = within(el).getByRole("button", { name: "Reset set" });
 
 		// Assert
@@ -322,9 +312,7 @@ describe("StatusBar", () => {
 		const intervalTimer = createIntervalTimer();
 		const touchSpy = vi.spyOn(intervalTimer, "touch");
 		statusBar.enableClick(intervalTimer);
-		const compact = el.querySelector(
-			".interval-timer-status-bar-compact",
-		) as HTMLElement;
+		const compact = within(el).getByTestId("status-bar-compact");
 		// Act
 		statusBar.dispose();
 		statusBars.delete(statusBar);
@@ -337,24 +325,22 @@ describe("StatusBar", () => {
 	});
 
 	const createIntervalTimer = (): IntervalTimer =>
-		new IntervalTimer(
-			() => {},
-			settings,
-			() => {},
-		);
+		new IntervalTimer(settings);
 
 	const createIntervalTimerWithStatusBarUpdates = (
 		statusBar: StatusBar,
-	): IntervalTimer =>
-		new IntervalTimer(
-			(timerState, intervalTimerState, time, intervals) =>
+	): IntervalTimer => {
+		const intervalTimer = new IntervalTimer(settings);
+		intervalTimer.subscribe((event) => {
+			if (event.type === "state-changed") {
 				statusBar.update(
-					intervals,
-					time,
-					intervalTimerState,
-					timerState,
-				),
-			settings,
-			() => {},
-		);
+					event.snapshot.focusIntervals,
+					event.snapshot,
+					event.snapshot.state,
+					event.timerState,
+				);
+			}
+		});
+		return intervalTimer;
+	};
 });

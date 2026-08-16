@@ -1,16 +1,9 @@
-type Enumerate<
-	N extends number,
-	Acc extends number[] = [],
-> = Acc["length"] extends N
-	? Acc[number]
-	: Enumerate<N, [...Acc, Acc["length"]]>;
+import type { Enumerate } from "./enumerate";
 
 export const minutesUpperBound = 600;
-
 export const secondsUpperBound = 60;
 
 export type Minutes = Enumerate<typeof minutesUpperBound>;
-
 export type Seconds = Enumerate<typeof secondsUpperBound>;
 
 export type Time = {

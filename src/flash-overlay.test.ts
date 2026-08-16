@@ -65,12 +65,14 @@ describe("FlashOverlay", () => {
 		// Assert
 		const overlay = document.querySelector(
 			".interval-timer-flash-overlay",
-		) as HTMLDivElement;
-		expect(overlay).not.toBeNull();
-		expect(overlay.style.backgroundColor).toBe("rgba(100, 255, 100, 0.9)");
+		) as Element;
 		const overlays = document.querySelectorAll(
 			".interval-timer-flash-overlay",
 		);
+		expect(overlay).not.toBeNull();
+		expect(overlay).toHaveStyle({
+			backgroundColor: "rgba(100, 255, 100, 0.9)",
+		});
 		expect(overlays.length).toBe(1);
 	});
 
@@ -97,8 +99,8 @@ describe("FlashOverlay", () => {
 
 		// Assert
 		const styleElement = document.head.querySelector("style");
-		expect(styleElement).toBeNull();
 		const overlay = document.querySelector(".interval-timer-flash-overlay");
+		expect(styleElement).toBeNull();
 		expect(overlay).toBeNull();
 	});
 
@@ -108,7 +110,7 @@ describe("FlashOverlay", () => {
 		flashOverlay.show({ r: 255, g: 100, b: 100 });
 		const overlay = document.querySelector(
 			".interval-timer-flash-overlay",
-		) as HTMLDivElement;
+		) as HTMLElement;
 
 		// Act
 		overlay.click();
@@ -122,7 +124,9 @@ describe("FlashOverlay", () => {
 
 	it("should handle dispose without showing overlay", () => {
 		// Arrange & Act & Assert
-		expect(() => FlashOverlay.dispose()).not.toThrow();
+		expect(() => {
+			FlashOverlay.dispose();
+		}).not.toThrow();
 	});
 
 	it("should handle hide without showing overlay", () => {
@@ -130,6 +134,8 @@ describe("FlashOverlay", () => {
 		const flashOverlay = FlashOverlay.getInstance();
 
 		// Act & Assert
-		expect(() => flashOverlay.hide()).not.toThrow();
+		expect(() => {
+			flashOverlay.hide();
+		}).not.toThrow();
 	});
 });

@@ -5,6 +5,7 @@ import {
 } from "./interval-timer";
 import { KeyValueStore } from "./key-value-store";
 import { Time } from "./time";
+import type { Result } from "./result";
 import {
 	parseMinutes,
 	parseNonNegativeInteger,
@@ -23,60 +24,51 @@ export class IntervalTimerSnapshotStore {
 
 	public load(): Snapshot | null {
 		const state = this.keyValueStore.get("timerState");
-		const minutes = this.keyValueStore.get("time-minutes");
-		const seconds = this.keyValueStore.get("time-seconds");
-		const total = this.keyValueStore.get("intervals-total");
-		const set = this.keyValueStore.get("intervals-set");
+		if (state === null || !isIntervalTimerState(state)) return null;
+
+		const minutes = this.parseField("time-minutes", parseMinutes);
+		if (minutes === null) return null;
+
 		const negative = this.keyValueStore.get("time-negative");
-		const nextState = this.keyValueStore.get("next-timer-state");
-		if (
-			state === null ||
-			minutes === null ||
-			seconds === null ||
-			total === null ||
-			set === null
-		) {
-			return null;
-		}
-
-		if (!isIntervalTimerState(state)) {
-			return null;
-		}
-
 		if (negative !== null && negative !== "true") {
 			return null;
 		}
+		const nextState = this.keyValueStore.get("next-timer-state");
 		if (nextState !== null && !isIntervalTimerState(nextState)) {
 			return null;
 		}
 
-		const parsedMinutes = parseMinutes(minutes);
-		const parsedSeconds = parseSeconds(seconds);
-		const parsedTotal = parseNonNegativeInteger(total);
-		const parsedSet = parseNonNegativeInteger(set);
-		if (
-			!parsedMinutes.ok ||
-			!parsedSeconds.ok ||
-			!parsedTotal.ok ||
-			!parsedSet.ok
-		) {
-			return null;
-		}
-		if (parsedSet.value > parsedTotal.value) {
-			return null;
-		}
+		const seconds = this.parseField("time-seconds", parseSeconds);
+		if (seconds === null) return null;
+
+		const total = this.parseField(
+			"intervals-total",
+			parseNonNegativeInteger,
+		);
+		if (total === null) return null;
+
+		const set = this.parseField("intervals-set", parseNonNegativeInteger);
+		if (set === null || set > total) return null;
 
 		return {
 			state,
-			minutes: parsedMinutes.value,
-			seconds: parsedSeconds.value,
+			minutes,
+			seconds,
 			...(negative === "true" ? { negative: true as const } : {}),
 			...(nextState !== null ? { nextState } : {}),
-			focusIntervals: {
-				total: parsedTotal.value,
-				set: parsedSet.value,
-			},
+			focusIntervals: { total, set },
 		};
+	}
+
+	private parseField<T>(
+		key: string,
+		parse: (value: string) => Result<T, string>,
+	): T | null {
+		const raw = this.keyValueStore.get(key);
+		if (raw === null) return null;
+
+		const parsed = parse(raw);
+		return parsed.ok ? parsed.value : null;
 	}
 
 	public save(

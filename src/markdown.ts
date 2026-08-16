@@ -36,7 +36,7 @@ export class Markdown {
 	}
 
 	private static parseOpeningFence(line: string): Fence | null {
-		const match = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+		const match = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
 		const sequence = match?.[1];
 		if (sequence === undefined) return null;
 
@@ -48,10 +48,10 @@ export class Markdown {
 	}
 
 	private static isClosingFence(line: string, fence: Fence): boolean {
-		const sequence = line.match(/^ {0,3}(`+|~+)[ \t]*\r?$/)?.[1];
+		const sequence = /^ {0,3}(`+|~+)[ \t]*\r?$/.exec(line)?.[1];
 		return (
 			sequence !== undefined &&
-			sequence[0] === fence.character &&
+			sequence.startsWith(fence.character) &&
 			sequence.length >= fence.length
 		);
 	}
