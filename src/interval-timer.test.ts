@@ -1356,6 +1356,35 @@ describe("IntervalTimer", () => {
 			intervalTimer.dispose();
 		});
 
+		it("should ignore start() while a next interval is pending", () => {
+			// Arrange
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.applySnapshot({
+				state: "focus",
+				minutes: 0,
+				seconds: 0,
+				nextState: "shortBreak",
+				focusIntervals: { total: 1, set: 1 },
+			});
+			intervalTimer.subscribe((event) => events.push(event));
+
+			// Act
+			intervalTimer.start();
+
+			// Assert
+			expect(intervalCompletedEvents(events)).toHaveLength(0);
+			expect(intervalTimer.status.timerState).toBe("initialized");
+
+			intervalTimer.dispose();
+		});
+
 		it("should apply explicit default snapshot values", () => {
 			// Arrange
 			const events: IntervalTimerEvent[] = [];

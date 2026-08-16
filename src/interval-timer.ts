@@ -169,6 +169,8 @@ export class IntervalTimer {
 	}
 
 	public start(): void {
+		if (!this.canStart) return;
+
 		const currentTimerType =
 			this.currentInterval.timer.getCurrentTimerType();
 
@@ -183,6 +185,8 @@ export class IntervalTimer {
 	}
 
 	public pause(): void {
+		if (!this.canPause) return;
+
 		if (this.currentInterval.timer.pause().ok) {
 			this.emit({ type: "timer-paused" });
 		}
