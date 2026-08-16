@@ -50,21 +50,17 @@ export default defineConfig(
 		"vitest.setup.ts",
 	]),
 	{
-		name: "local/test-files",
-		files: ["**/*.test.{ts,tsx}"],
-		extends: [vitest.configs.recommended],
-		plugins: {
-			local,
-		},
+		name: "local/prod-code",
+		files: ["src/**/*.{ts,tsx}"],
+		ignores: ["**/*.test.{ts,tsx}"],
 		rules: {
-			"local/vitest-aaa-order": "error",
-		},
-	},
-	{
-		name: "local/obsidian-fakes",
-		files: ["src/obsidian-globals-fake.ts", "src/obsidian-fake.ts"],
-		rules: {
-			"obsidianmd/prefer-create-el": "off",
+			"import/no-extraneous-dependencies": [
+				"error",
+				{
+					devDependencies: false,
+					optionalDependencies: false,
+				},
+			],
 		},
 	},
 	{
@@ -87,17 +83,21 @@ export default defineConfig(
 		},
 	},
 	{
-		name: "local/no-extraneous-dependencies",
-		files: ["src/**/*.{ts,tsx}"],
-		ignores: ["**/*.test.{ts,tsx}"],
+		name: "local/test-files",
+		files: ["**/*.test.{ts,tsx}"],
+		extends: [vitest.configs.recommended],
+		plugins: {
+			local,
+		},
 		rules: {
-			"import/no-extraneous-dependencies": [
-				"error",
-				{
-					devDependencies: false,
-					optionalDependencies: false,
-				},
-			],
+			"local/vitest-aaa-order": "error",
+		},
+	},
+	{
+		name: "local/obsidian-fakes",
+		files: ["src/obsidian-globals-fake.ts", "src/obsidian-fake.ts"],
+		rules: {
+			"obsidianmd/prefer-create-el": "off",
 		},
 	},
 );
