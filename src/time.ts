@@ -18,7 +18,7 @@ export const isMinutes = (value: number): value is Minutes =>
 export const isSeconds = (value: number): value is Seconds =>
 	Number.isInteger(value) && value >= 0 && value < secondsUpperBound;
 
-export const toSeconds = (time: Time): number =>
-	time.minutes * 60 + time.seconds;
+export const toSeconds = ({ minutes, seconds }: Time): number =>
+	minutes * 60 + seconds;
 
-export const toMilliseconds = (time: Time): number => toSeconds(time) * 1000;
+export const toMilliseconds = (value: Time): number => toSeconds(value) * 1000;

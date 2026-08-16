@@ -52,7 +52,7 @@ const buildDecorations = (
 	);
 	const markdown = new Markdown(view.state.doc.toString());
 
-	if (trackedTaskName) {
+	if (trackedTaskName !== null) {
 		for (
 			let lineNumber = 1;
 			lineNumber <= view.state.doc.lines;

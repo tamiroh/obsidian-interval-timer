@@ -4,6 +4,7 @@ import { TaskManagementFile } from "./task-management-file";
 import { TaskLine } from "./task-line";
 import { Markdown } from "./markdown";
 import { err, ok, type Result } from "./result";
+import { isBlank } from "./string";
 
 export type TrackTaskResult = Result<
 	void,
@@ -27,12 +28,12 @@ export class TaskTracker {
 
 	public trackTaskFromActiveLine(): TrackTaskResult {
 		const filePath = this.app.workspace.getActiveFile()?.path;
-		if (!filePath) {
+		if (isBlank(filePath)) {
 			return err("active_file_not_found");
 		}
 
 		const taskName = this.getTaskNameFromActiveLine();
-		if (!taskName) {
+		if (isBlank(taskName)) {
 			return err("task_not_found");
 		}
 
@@ -60,7 +61,7 @@ export class TaskTracker {
 	public async incrementTrackedTask(): Promise<IncrementTrackedTaskResult> {
 		const name = this.keyValueStore.get("current-task-name");
 		const filePath = this.keyValueStore.get("current-task-path");
-		if (!name || !filePath) {
+		if (isBlank(name) || isBlank(filePath)) {
 			return err("tracked_task_not_found");
 		}
 

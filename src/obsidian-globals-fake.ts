@@ -13,7 +13,7 @@ export function setupObsidianGlobals(): void {
 		}
 
 		const el = document.createElement(tag);
-		if (cls) {
+		if (cls != null) {
 			el.classList.add(...(Array.isArray(cls) ? cls : [cls]));
 		}
 		parent?.appendChild(el);
@@ -40,7 +40,7 @@ export function setupObsidianGlobals(): void {
 		}
 
 		const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
-		if (cls) {
+		if (cls != null) {
 			el.classList.add(...(Array.isArray(cls) ? cls : [cls]));
 		}
 		parent?.appendChild(el);

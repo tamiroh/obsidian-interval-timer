@@ -123,19 +123,19 @@ export class Popover {
 	}
 
 	public update(
-		time: Time,
+		currentTime: Time,
 		intervalTimerState: IntervalTimerState,
 		timerState: TimerType,
 		intervalsSet = 0,
 		longBreakAfter = defaultLongBreakAfter,
 	): void {
-		const remainingSeconds = toSeconds(time);
+		const remainingSeconds = toSeconds(currentTime);
 		if (timerState === "initialized" || this.intervalTotalSeconds === 0) {
 			this.intervalTotalSeconds = remainingSeconds;
 		}
 
 		this.store.update({
-			time,
+			time: currentTime,
 			intervalTimerState,
 			timerState,
 			intervalsSet,
@@ -209,7 +209,7 @@ const PopoverView = ({
 }) => {
 	const {
 		intervalTimer,
-		time,
+		time: currentTime,
 		intervalTimerState,
 		timerState,
 		intervalsSet,
@@ -249,7 +249,7 @@ const PopoverView = ({
 		window.requestAnimationFrame(() => {
 			if (!retimeInputRef.current) return;
 
-			retimeInputRef.current.value = String(time.minutes);
+			retimeInputRef.current.value = String(currentTime.minutes);
 			retimeInputRef.current.focus({ preventScroll: true });
 			retimeInputRef.current.select();
 		});
@@ -271,7 +271,7 @@ const PopoverView = ({
 		);
 		if (!result.ok) {
 			if (!restoreFocus) {
-				retimeInputRef.current.value = String(time.minutes);
+				retimeInputRef.current.value = String(currentTime.minutes);
 				stopEditingTime(false);
 				return;
 			}
@@ -495,7 +495,7 @@ const PopoverView = ({
 									}
 									onClick={handleMinutesClick}
 								>
-									{String(time.minutes).padStart(2, "0")}
+									{String(currentTime.minutes).padStart(2, "0")}
 								</button>
 								<form
 									className="interval-timer-popover-inline-retime-form"
@@ -511,7 +511,7 @@ const PopoverView = ({
 										aria-label="Retime minutes"
 										autoComplete="off"
 										spellcheck={false}
-										defaultValue={time.minutes}
+										defaultValue={currentTime.minutes}
 										onKeyDown={handleRetimeInputKeyDown}
 										onClick={(event) => {
 											event.currentTarget.select();
@@ -537,7 +537,7 @@ const PopoverView = ({
 								:
 							</span>
 							<span className="interval-timer-popover-clock-seconds">
-								{String(time.seconds).padStart(2, "0")}
+								{String(currentTime.seconds).padStart(2, "0")}
 							</span>
 						</div>
 					</div>

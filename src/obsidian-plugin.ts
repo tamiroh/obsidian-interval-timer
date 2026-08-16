@@ -350,6 +350,11 @@ export default class Plugin extends BasePlugin {
 						state: event.to,
 					});
 					break;
+				case "timer-paused":
+				case "timer-reset":
+				case "interval-skipped":
+					// no-op
+					break;
 			}
 		});
 		updateTimerState(this.intervalTimer.status);
