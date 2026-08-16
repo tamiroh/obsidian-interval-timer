@@ -20,9 +20,9 @@ import { KeyValueStore } from "./key-value-store";
 import { NotificationStyle, Notifier } from "./notification";
 import { createNotifier } from "./obsidian-notification";
 import { FlashOverlay } from "./flash-overlay";
-import { TaskTracker, type TrackTaskResult } from "./obsidian-task-tracker";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
-import { TaskLineHighlighter } from "./obsidian-task-line-highlight-extension";
+import { TaskTracker } from "./obsidian-task-tracker";
+import { TaskLineController } from "./obsidian-task-line-controller";
 import {
 	parsePositiveInteger,
 	ParsePositiveIntegerResult,
@@ -71,11 +71,9 @@ export class Plugin extends BasePlugin {
 
 	private keyValueStore: KeyValueStore;
 
-	private taskTracker: TaskTracker;
-
 	private intervalTimerSnapshotStore: IntervalTimerSnapshotStore;
 
-	private readonly taskLineHighlighter: TaskLineHighlighter;
+	private readonly taskLineController: TaskLineController;
 
 	private readonly audioOutput = new AudioOutput();
 
@@ -87,16 +85,8 @@ export class Plugin extends BasePlugin {
 		super(app, manifest);
 
 		this.keyValueStore = new KeyValueStore(manifest.id);
-		this.taskTracker = new TaskTracker(this.app, this.keyValueStore);
 		this.intervalTimerSnapshotStore = new IntervalTimerSnapshotStore(
 			this.keyValueStore,
-		);
-		this.taskLineHighlighter = new TaskLineHighlighter(
-			this.taskTracker,
-			() => this.intervalTimer.state === "focus",
-			() => {
-				this.syncCurrentTask();
-			},
 		);
 		const callbacks = {
 			notify: (message: string) => new Notice(message),
@@ -105,13 +95,18 @@ export class Plugin extends BasePlugin {
 		this.timerDisplay = Platform.isMobile
 			? new FloatingTimer(this.app, callbacks)
 			: new StatusBar(this.addStatusBarItem(), callbacks);
+		this.taskLineController = new TaskLineController(
+			this.app.workspace,
+			new TaskTracker(this.app, this.keyValueStore),
+			this.timerDisplay,
+		);
 	}
 
 	public override async onload(): Promise<void> {
 		await this.loadSettings();
 		this.notifier = createNotifier(this.settings.notificationStyle);
 		this.setupIntervalTimer();
-		this.setupTaskLineInteraction();
+		this.taskLineController.setup(this, this.intervalTimer);
 		registerCommands(this, this.intervalTimer);
 		this.addSettingTab(new SettingTab(this.app, this));
 
@@ -278,7 +273,7 @@ export class Plugin extends BasePlugin {
 				this.settings.longBreakAfter,
 			);
 			if (timerState === "initialized") {
-				this.untrackCurrentTask();
+				this.taskLineController.untrackCurrentTask();
 			}
 		};
 		const onNotify = (message: string, context: NotifierContext) => {
@@ -297,23 +292,11 @@ export class Plugin extends BasePlugin {
 		};
 		const onStartedFreshly = (state: IntervalTimerState) => {
 			if (state === "focus") {
-				this.trackCurrentTaskFromActiveLine();
+				this.taskLineController.trackCurrentTaskFromActiveLine();
 			}
 		};
 		const onFocusIntervalEnded = () => {
-			this.taskTracker
-				.incrementTrackedTask()
-				.then((result) => {
-					if (!result.ok) {
-						new Notice("Failed to record task completion.");
-					}
-				})
-				.catch(() => {
-					new Notice("Failed to record task completion.");
-				})
-				.finally(() => {
-					this.untrackCurrentTask();
-				});
+			void this.taskLineController.completeFocusInterval();
 		};
 		const snapshot = this.intervalTimerSnapshotStore.load();
 
@@ -364,50 +347,6 @@ export class Plugin extends BasePlugin {
 			this.intervalTimer.applySnapshot(snapshot);
 		}
 		this.intervalTimer.enableAutoReset();
-	}
-
-	private setupTaskLineInteraction(): void {
-		this.registerEditorExtension(
-			this.taskLineHighlighter.createExtension(),
-		);
-		this.registerDomEvent(document, "click", (event) => {
-			if (!(event.target instanceof HTMLElement)) {
-				return;
-			}
-			const startTaskButton = event.target.closest(
-				".interval-timer-task-line-highlight-start-task-button",
-			);
-			if (!startTaskButton) {
-				return;
-			}
-			event.preventDefault();
-
-			this.trackCurrentTaskFromActiveLine();
-			this.intervalTimer.start();
-		});
-	}
-
-	private syncCurrentTask(): void {
-		this.timerDisplay.updateTrackedTask(
-			this.taskTracker.getTrackedTaskName() ??
-				this.taskTracker.getTaskNameFromActiveLine(),
-		);
-	}
-
-	private untrackCurrentTask(): void {
-		this.taskTracker.untrack();
-		this.syncCurrentTask();
-		this.app.workspace.updateOptions();
-	}
-
-	private trackCurrentTaskFromActiveLine(): TrackTaskResult {
-		const result = this.taskTracker.trackTaskFromActiveLine();
-		if (!result.ok) {
-			this.taskTracker.untrack();
-		}
-		this.syncCurrentTask();
-		this.app.workspace.updateOptions();
-		return result;
 	}
 
 	private async loadSettings(): Promise<void> {
