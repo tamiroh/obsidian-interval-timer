@@ -1326,6 +1326,20 @@ describe("IntervalTimer", () => {
 				}),
 			);
 
+			intervalTimer.dispose();
+		});
+
+		it("should restore the pending next interval from a snapshot", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+
+			// Act
 			intervalTimer.applySnapshot({
 				state: "focus",
 				minutes: 2,
@@ -1334,6 +1348,8 @@ describe("IntervalTimer", () => {
 				nextState: "shortBreak",
 				focusIntervals: { total: 1, set: 1 },
 			});
+
+			// Assert
 			expect(intervalTimer.predictTouch()).toBe("next");
 
 			intervalTimer.dispose();
@@ -1405,8 +1421,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.dispose();
 		});
 
-		it("keeps the completed interval running in overtime until Next", () => {
-			const events: IntervalTimerEvent[] = [];
+		it("keeps the completed interval running in overtime", () => {
 			const intervalTimer = new IntervalTimer({
 				focusIntervalDuration: 1,
 				shortBreakDuration: 5,
@@ -1415,8 +1430,6 @@ describe("IntervalTimer", () => {
 				intervalCompletionBehavior: "countDownPastZero",
 				resetTime: { hours: 0, minutes: 0 },
 			});
-			intervalTimer.subscribe((event) => events.push(event));
-
 			intervalTimer.start();
 			vi.advanceTimersByTime(61_000);
 
@@ -1434,8 +1447,28 @@ describe("IntervalTimer", () => {
 			});
 			expect(intervalTimer.predictTouch()).toBe("next");
 
+			intervalTimer.dispose();
+		});
+
+		it("moves to the pending interval when Next is touched", () => {
+			// Arrange
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 1,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				intervalCompletionBehavior: "countDownPastZero",
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.subscribe((event) => events.push(event));
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			// Act
 			intervalTimer.touch();
 
+			// Assert
 			expect(intervalTimer.state).toBe("shortBreak");
 			expect(intervalTimer.status.snapshot).toMatchObject({
 				minutes: 5,

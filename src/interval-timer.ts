@@ -246,9 +246,15 @@ export class IntervalTimer {
 	public touch(): void {
 		const action = this.predictTouch();
 		match(action)
-			.with("start", "resume", () => this.start())
-			.with("reset", () => this.reset())
-			.with("skip", "next", () => this.skipInterval())
+			.with("start", "resume", () => {
+				this.start();
+			})
+			.with("reset", () => {
+				this.reset();
+			})
+			.with("skip", "next", () => {
+				this.skipInterval();
+			})
 			.exhaustive();
 	}
 
@@ -350,9 +356,15 @@ export class IntervalTimer {
 	private createTimer(time: Time): CountdownTimer {
 		return new CountdownTimer(
 			time,
-			() => this.changeState("running"),
-			() => this.changeState("paused"),
-			() => this.enterNextInterval({ reason: "completed" }),
+			() => {
+				this.changeState("running");
+			},
+			() => {
+				this.changeState("paused");
+			},
+			() => {
+				this.enterNextInterval({ reason: "completed" });
+			},
 			this.settings.intervalCompletionBehavior === "countDownPastZero",
 		);
 	}
