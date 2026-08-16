@@ -84,6 +84,10 @@ export default defineConfig(
 					optionalDependencies: false,
 				},
 			],
+			"@typescript-eslint/consistent-type-assertions": [
+				"error",
+				{ assertionStyle: "never" },
+			],
 		},
 	},
 	{
