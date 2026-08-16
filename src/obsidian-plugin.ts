@@ -96,7 +96,7 @@ export class Plugin extends BasePlugin {
 		this.notifier = createNotifier(this.currentSettings.notificationStyle);
 		this.setupIntervalTimer();
 		this.settingStore.subscribe((previous, next) => {
-			this.settingsReloads.forEach(({ keys, reload }) => {
+			this.settingsReloads().forEach(({ keys, reload }) => {
 				if (keys.some((key) => previous[key] !== next[key])) {
 					reload(next);
 				}
@@ -130,64 +130,70 @@ export class Plugin extends BasePlugin {
 		return this.settingStore.update(key, value);
 	}
 
-	private readonly settingsReloads: readonly SettingsReload[] = [
-		{
-			keys: ["notificationStyle"],
-			reload: (next) => {
-				this.notifier.clearNotification();
-				this.notifier = createNotifier(next.notificationStyle);
+	private settingsReloads(): readonly SettingsReload[] {
+		return [
+			{
+				keys: ["notificationStyle"],
+				reload: (next) => {
+					this.notifier.clearNotification();
+					this.notifier = createNotifier(next.notificationStyle);
+				},
 			},
-		},
-		{
-			keys: ["flashOverlayEnabled"],
-			reload: (next) => {
-				if (!next.flashOverlayEnabled) {
-					FlashOverlay.getInstance().hide();
-				}
+			{
+				keys: ["flashOverlayEnabled"],
+				reload: (next) => {
+					if (!next.flashOverlayEnabled) {
+						FlashOverlay.getInstance().hide();
+					}
+				},
 			},
-		},
-		{
-			keys: [
-				"focusIntervalDuration",
-				"shortBreakDuration",
-				"longBreakDuration",
-				"longBreakAfter",
-			],
-			reload: (next) => {
-				this.intervalTimer.updateSettings({
-					focusIntervalDuration: next.focusIntervalDuration,
-					shortBreakDuration: next.shortBreakDuration,
-					longBreakDuration: next.longBreakDuration,
-					longBreakAfter: next.longBreakAfter,
-				});
+			{
+				keys: [
+					"focusIntervalDuration",
+					"shortBreakDuration",
+					"longBreakDuration",
+					"longBreakAfter",
+				],
+				reload: (next) => {
+					this.intervalTimer.updateSettings({
+						focusIntervalDuration: next.focusIntervalDuration,
+						shortBreakDuration: next.shortBreakDuration,
+						longBreakDuration: next.longBreakDuration,
+						longBreakAfter: next.longBreakAfter,
+					});
+				},
 			},
-		},
-		{
-			keys: ["longBreakAfter"],
-			reload: (next) => {
-				this.timerDisplay.updateLongBreakAfter(next.longBreakAfter);
+			{
+				keys: ["longBreakAfter"],
+				reload: (next) => {
+					this.timerDisplay.updateLongBreakAfter(next.longBreakAfter);
+				},
 			},
-		},
-		{
-			keys: ["focusTickSoundVolume"],
-			reload: (next) => {
-				this.focusTickSound.play(next.focusTickSoundVolume);
+			{
+				keys: ["focusTickSoundVolume"],
+				reload: (next) => {
+					this.focusTickSound.play(next.focusTickSoundVolume);
+				},
 			},
-		},
-		{
-			keys: ["focusBgmType", "focusBgmVolume"],
-			reload: () => {
-				const { focusBgmType, focusBgmVolume } = this.currentSettings;
-				const { timerState, snapshot } = this.intervalTimer.status;
+			{
+				keys: ["focusBgmType", "focusBgmVolume"],
+				reload: () => {
+					const { focusBgmType, focusBgmVolume } =
+						this.currentSettings;
+					const { timerState, snapshot } = this.intervalTimer.status;
 
-				if (snapshot.state === "focus" && timerState === "running") {
-					this.focusBgm.play(focusBgmType, focusBgmVolume);
-				} else {
-					this.focusBgm.preview(focusBgmType, focusBgmVolume);
-				}
+					if (
+						snapshot.state === "focus" &&
+						timerState === "running"
+					) {
+						this.focusBgm.play(focusBgmType, focusBgmVolume);
+					} else {
+						this.focusBgm.preview(focusBgmType, focusBgmVolume);
+					}
+				},
 			},
-		},
-	];
+		];
+	}
 
 	private setupIntervalTimer(): void {
 		const updateTimerState = ({
