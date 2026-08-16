@@ -40,15 +40,6 @@
 	visibility: hidden;
 }
 
-.interval-timer-status-bar.interval-timer-status-bar-popover-floating {
-	display: contents;
-}
-
-.interval-timer-status-bar-popover-floating
-	> .interval-timer-status-bar-compact {
-	display: none;
-}
-
 .interval-timer-popover.interval-timer-popover-floating {
 	position: fixed;
 	inset: auto;
@@ -95,12 +86,6 @@
 	transform: rotate(45deg);
 }
 
-.interval-timer-status-bar:hover
-	.interval-timer-popover:not(.interval-timer-popover-dismissed),
-.interval-timer-status-bar:focus-visible
-	.interval-timer-popover:not(.interval-timer-popover-dismissed),
-.interval-timer-status-bar:focus-within
-	.interval-timer-popover:not(.interval-timer-popover-dismissed),
 .interval-timer-popover-floating {
 	opacity: 1;
 	visibility: visible;
@@ -112,13 +97,6 @@
 	transition:
 		transform 260ms cubic-bezier(0.4, 0, 0.2, 1),
 		opacity 200ms ease;
-}
-
-.interval-timer-status-bar .interval-timer-popover-dismissed {
-	opacity: 0;
-	pointer-events: none;
-	transition: none;
-	visibility: hidden;
 }
 
 .interval-timer-popover button.interval-timer-popover-close,

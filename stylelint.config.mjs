@@ -7,11 +7,11 @@ export default {
 	},
 	overrides: [
 		{
-			files: ["src/popover.css"],
+			files: ["src/status-bar.css"],
 			rules: {
 				"local/selector-class-module-pattern": [
 					true,
-					{ allowModules: ["status-bar"] },
+					{ allowModules: ["popover"] },
 				],
 			},
 		},

@@ -32,3 +32,29 @@
 		color: var(--interval-timer-accent);
 	}
 }
+
+.interval-timer-status-bar.interval-timer-status-bar-popover-floating {
+	display: contents;
+}
+
+.interval-timer-status-bar-popover-floating
+	> .interval-timer-status-bar-compact {
+	display: none;
+}
+
+.interval-timer-status-bar:hover
+	.interval-timer-popover:not(.interval-timer-popover-dismissed),
+.interval-timer-status-bar:focus-visible
+	.interval-timer-popover:not(.interval-timer-popover-dismissed),
+.interval-timer-status-bar:focus-within
+	.interval-timer-popover:not(.interval-timer-popover-dismissed) {
+	opacity: 1;
+	visibility: visible;
+}
+
+.interval-timer-status-bar .interval-timer-popover-dismissed {
+	opacity: 0;
+	pointer-events: none;
+	transition: none;
+	visibility: hidden;
+}
