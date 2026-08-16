@@ -2,9 +2,7 @@ import {
 	MouseEventHandler,
 	render,
 	TargetedEvent,
-	TargetedKeyboardEvent,
 	TargetedMouseEvent,
-	TargetedPointerEvent,
 } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { match } from "ts-pattern";
@@ -16,6 +14,7 @@ import {
 	TouchAction,
 } from "./interval-timer";
 import { ObservableStore, useObservableStore } from "./observable-store";
+import { Position, usePopoverFloating } from "./popover-floating";
 import { minutesUpperBound, Time, toSeconds } from "./time";
 
 //
@@ -37,19 +36,6 @@ type PopoverSnapshot = {
 	isDismissed: boolean;
 	touchAction: TouchAction;
 	intervalTimer: IntervalTimer | null;
-};
-
-type Drag = {
-	pointerId: number;
-	offsetX: number;
-	offsetY: number;
-	originX: number;
-	originY: number;
-};
-
-type Position = {
-	left: number;
-	top: number;
 };
 
 type ExpandedTask = {
@@ -235,14 +221,17 @@ const PopoverView = ({
 	} = useObservableStore(store);
 	const [isEditingTime, setIsEditingTime] = useState(false);
 	const [expandedTask, setExpandedTask] = useState<ExpandedTask | null>(null);
-	const [drag, setDrag] = useState<Drag | null>(null);
-	const [popoverPosition, setPopoverPosition] = useState<Position | null>(
-		null,
-	);
-	const [returnTarget, setReturnTarget] = useState<Position | null>(null);
-	const [floatingOrigin, setFloatingOrigin] = useState<Position | null>(null);
 	const [closingAnimationState, setClosingAnimationState] =
 		useState<ClosingAnimationState>({ current: "idle" });
+	const floating = usePopoverFloating({
+		isFloating,
+		getReturnTarget,
+		onEnterFloating: () => {
+			setClosingAnimationState({ current: "idle" });
+			store.update({ isFloating: true });
+			onFloatingChange(true);
+		},
+	});
 	const minutesButtonRef = useRef<HTMLButtonElement>(null);
 	const retimeInputRef = useRef<HTMLInputElement>(null);
 	const suppressBlurApplyRef = useRef(false);
@@ -324,23 +313,9 @@ const PopoverView = ({
 		}
 	};
 
-	const enterFloatingMode = (popover: HTMLDivElement) => {
-		if (isFloating) return;
-
-		const bounds = popover.getBoundingClientRect();
-		setClosingAnimationState({ current: "idle" });
-		setPopoverPosition({ left: bounds.left, top: bounds.top });
-		setFloatingOrigin({ left: bounds.left, top: bounds.top });
-		setReturnTarget(getReturnTarget());
-		store.update({ isFloating: true });
-		onFloatingChange(true);
-	};
-
 	const dismiss = (restoreFocus: boolean) => {
 		setClosingAnimationState({ current: "completed" });
-		setReturnTarget(null);
-		setPopoverPosition(null);
-		setFloatingOrigin(null);
+		floating.reset();
 		store.update({ isFloating: false, isDismissed: true });
 		onFloatingChange(false);
 		if (restoreFocus) {
@@ -358,7 +333,7 @@ const PopoverView = ({
 		const bounds =
 			event.currentTarget.parentElement?.getBoundingClientRect();
 		if (
-			!returnTarget ||
+			!floating.returnTarget ||
 			!bounds ||
 			window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
 		) {
@@ -368,8 +343,10 @@ const PopoverView = ({
 
 		setClosingAnimationState({
 			current: "animating",
-			offsetX: returnTarget.left - (bounds.left + bounds.width / 2),
-			offsetY: returnTarget.top - (bounds.top + bounds.height / 2),
+			offsetX:
+				floating.returnTarget.left - (bounds.left + bounds.width / 2),
+			offsetY:
+				floating.returnTarget.top - (bounds.top + bounds.height / 2),
 			restoreFocus,
 		});
 	};
@@ -378,78 +355,9 @@ const PopoverView = ({
 		event: TargetedMouseEvent<HTMLButtonElement>,
 	) => {
 		event.stopPropagation();
-		if (floatingOrigin) setPopoverPosition(floatingOrigin);
+		floating.returnToOrigin();
 		if (event.detail > 0) event.currentTarget.blur();
 	};
-
-	const handlePopoverPointerDown = (
-		event: TargetedPointerEvent<HTMLDivElement>,
-	) => {
-		if (!isFloating) return;
-		if (isNonDraggableTarget(event.target)) return;
-
-		const popover = event.currentTarget;
-		const bounds = popover.getBoundingClientRect();
-		const computedStyle = getComputedStyle(popover);
-		const computedLeft = parseFloat(computedStyle.left);
-		const computedTop = parseFloat(computedStyle.top);
-		const cssPosition = {
-			left: Number.isFinite(computedLeft) ? computedLeft : bounds.left,
-			top: Number.isFinite(computedTop) ? computedTop : bounds.top,
-		};
-		if (!floatingOrigin) {
-			setFloatingOrigin(cssPosition);
-		}
-		setDrag({
-			pointerId: event.pointerId,
-			offsetX: event.clientX - bounds.left,
-			offsetY: event.clientY - bounds.top,
-			originX: bounds.left - cssPosition.left,
-			originY: bounds.top - cssPosition.top,
-		});
-		popover.setPointerCapture?.(event.pointerId);
-	};
-
-	const handlePopoverPointerMove = (
-		event: TargetedPointerEvent<HTMLDivElement>,
-	) => {
-		if (drag?.pointerId !== event.pointerId) return;
-
-		const bounds = event.currentTarget.getBoundingClientRect();
-		const left = clamp(
-			event.clientX - drag.offsetX,
-			window.innerWidth - bounds.width,
-		);
-		const top = clamp(
-			event.clientY - drag.offsetY,
-			window.innerHeight - bounds.height,
-		);
-		setPopoverPosition({
-			left: left - drag.originX,
-			top: top - drag.originY,
-		});
-	};
-
-	const handlePopoverKeyDown = (
-		event: TargetedKeyboardEvent<HTMLDivElement>,
-	) => {
-		if (event.target !== event.currentTarget) return;
-		if (isFloating || !isFloatingKey(event.key)) return;
-
-		event.preventDefault();
-		enterFloatingMode(event.currentTarget);
-	};
-
-	const handlePopoverPointerEnd = () => {
-		setDrag(null);
-	};
-
-	const hasMovedFromOrigin =
-		isFloating &&
-		floatingOrigin !== null &&
-		popoverPosition !== null &&
-		(popoverPosition.left !== floatingOrigin.left ||
-			popoverPosition.top !== floatingOrigin.top);
 
 	const popoverClassName = [
 		"interval-timer-popover",
@@ -457,10 +365,10 @@ const PopoverView = ({
 			? "interval-timer-popover-focus"
 			: "interval-timer-popover-break",
 		isFloating && "interval-timer-popover-floating",
-		hasMovedFromOrigin && "interval-timer-popover-moved",
+		floating.hasMovedFromOrigin && "interval-timer-popover-moved",
 		closingAnimationState.current === "animating" &&
 			"interval-timer-popover-returning",
-		drag && "interval-timer-popover-dragging",
+		floating.isDragging && "interval-timer-popover-dragging",
 		isDismissed && "interval-timer-popover-dismissed",
 		!dismissible && "interval-timer-popover-no-close",
 	]
@@ -473,19 +381,14 @@ const PopoverView = ({
 			style={
 				closingAnimationState.current === "animating"
 					? {
-							...popoverPosition,
+							...floating.position,
 							transform: `translate(${closingAnimationState.offsetX}px, ${closingAnimationState.offsetY}px) scale(0.15)`,
 						}
-					: (popoverPosition ?? undefined)
+					: (floating.position ?? undefined)
 			}
 			role="group"
 			tabIndex={0}
-			onPointerDown={handlePopoverPointerDown}
-			onPointerMove={handlePopoverPointerMove}
-			onPointerUp={handlePopoverPointerEnd}
-			onPointerCancel={handlePopoverPointerEnd}
-			onLostPointerCapture={handlePopoverPointerEnd}
-			onKeyDown={handlePopoverKeyDown}
+			{...floating.handlers}
 			onTransitionEnd={(event) => {
 				if (
 					event.target === event.currentTarget &&
@@ -498,7 +401,7 @@ const PopoverView = ({
 			onContextMenu={(event) => blurFocusWithin(event.currentTarget)}
 			onClick={(event) => {
 				event.stopPropagation();
-				enterFloatingMode(event.currentTarget);
+				floating.enterFloating(event.currentTarget);
 			}}
 		>
 			{dismissible && (
@@ -521,8 +424,8 @@ const PopoverView = ({
 				type="button"
 				className="interval-timer-popover-return"
 				aria-label="Return to original position"
-				aria-hidden={!hasMovedFromOrigin}
-				tabIndex={hasMovedFromOrigin ? 0 : -1}
+				aria-hidden={!floating.hasMovedFromOrigin}
+				tabIndex={floating.hasMovedFromOrigin ? 0 : -1}
 				onClick={handleReturnToOrigin}
 			>
 				<Icon
@@ -706,9 +609,6 @@ const PopoverView = ({
 // Utils
 //
 
-const clamp = (position: number, maximum: number): number =>
-	Math.min(Math.max(0, position), Math.max(0, maximum));
-
 const isElementTruncated = (element: HTMLElement): boolean =>
 	element.scrollHeight > element.clientHeight ||
 	element.scrollWidth > element.clientWidth;
@@ -722,11 +622,6 @@ const containsPoint = (
 	x <= bounds.right &&
 	y >= bounds.top &&
 	y <= bounds.bottom;
-
-const isNonDraggableTarget = (target: EventTarget | null): boolean =>
-	target instanceof Element && target.closest("button, input, form") !== null;
-
-const isFloatingKey = (key: string): boolean => key === "Enter" || key === " ";
 
 const blurFocusWithin = (container: HTMLElement): void => {
 	if (
