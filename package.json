@@ -9,7 +9,7 @@
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"lint": "eslint \"src/**/*.{ts,tsx}\" && npm run lint:styles",
+		"lint": "npx eslint . && npm run lint:styles",
 		"lint:styles": "stylelint \"src/**/*.css\" \"index.css\"",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
