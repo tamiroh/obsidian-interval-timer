@@ -183,8 +183,6 @@ export class Plugin extends BasePlugin {
 						: err("invalid_notification_style");
 				if (!parsed.ok) return parsed;
 
-				this.notifier.clearNotification();
-				this.notifier = createNotifier(parsed.value);
 				this.settingStore.update({ notificationStyle: parsed.value });
 
 				return parsed;
@@ -196,9 +194,6 @@ export class Plugin extends BasePlugin {
 						: err("invalid_boolean");
 				if (!parsed.ok) return parsed;
 
-				if (!parsed.value) {
-					FlashOverlay.getInstance().hide();
-				}
 				this.settingStore.update({ flashOverlayEnabled: parsed.value });
 
 				return parsed;
@@ -242,6 +237,21 @@ export class Plugin extends BasePlugin {
 	}
 
 	private readonly settingsReloads: readonly SettingsReload[] = [
+		{
+			keys: ["notificationStyle"],
+			reload: (next) => {
+				this.notifier.clearNotification();
+				this.notifier = createNotifier(next.notificationStyle);
+			},
+		},
+		{
+			keys: ["flashOverlayEnabled"],
+			reload: (next) => {
+				if (!next.flashOverlayEnabled) {
+					FlashOverlay.getInstance().hide();
+				}
+			},
+		},
 		{
 			keys: [
 				"focusIntervalDuration",
