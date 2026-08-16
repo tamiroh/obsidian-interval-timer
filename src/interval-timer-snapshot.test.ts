@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { KeyValueStore } from "./key-value-store";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
+import { time } from "./time";
 
 describe("IntervalTimerSnapshotStore", () => {
 	beforeEach(() => {
@@ -22,11 +23,7 @@ describe("IntervalTimerSnapshotStore", () => {
 			new KeyValueStore("snapshot-test"),
 		);
 
-		snapshotStore.save(
-			"shortBreak",
-			{ minutes: 3, seconds: 20 },
-			{ total: 7, set: 2 },
-		);
+		snapshotStore.save("shortBreak", time(3, 20), { total: 7, set: 2 });
 		const snapshot = snapshotStore.load();
 
 		expect(snapshot).toEqual({

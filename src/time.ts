@@ -7,6 +7,11 @@ export type Minutes = Enumerate<typeof minutesUpperBound>;
 export type Seconds = Enumerate<typeof secondsUpperBound>;
 export type Time = { minutes: Minutes; seconds: Seconds };
 
+export const time = (minutes: Minutes, seconds: Seconds): Time => ({
+	minutes,
+	seconds,
+});
+
 export const isMinutes = (value: number): value is Minutes =>
 	Number.isInteger(value) && value >= 0 && value < minutesUpperBound;
 

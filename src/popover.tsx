@@ -15,7 +15,7 @@ import {
 } from "./interval-timer";
 import { ObservableStore, useObservableStore } from "./observable-store";
 import { Position, usePopoverFloating } from "./popover-floating";
-import { minutesUpperBound, Time, toSeconds } from "./time";
+import { minutesUpperBound, time, Time, toSeconds } from "./time";
 
 //
 // Constants and types
@@ -77,7 +77,7 @@ export class Popover {
 		},
 	) {
 		this.store = new ObservableStore<PopoverSnapshot>({
-			time: { minutes: 0, seconds: 0 },
+			time: time(0, 0),
 			intervalTimerState: "focus",
 			timerState: "initialized",
 			intervalsSet: 0,

@@ -1,6 +1,13 @@
 import { match } from "ts-pattern";
 import { err, ok, type Result } from "./result";
-import { isMinutes, Seconds, Time, toMilliseconds, toSeconds } from "./time";
+import {
+	isMinutes,
+	Seconds,
+	time,
+	Time,
+	toMilliseconds,
+	toSeconds,
+} from "./time";
 
 export const timerTypes = [
 	"initialized",
@@ -60,16 +67,10 @@ export class CountdownTimer {
 	>();
 
 	constructor({ initialTime }: CountdownTimerOptions) {
-		this.initialTime = {
-			minutes: initialTime.minutes,
-			seconds: initialTime.seconds,
-		};
+		this.initialTime = time(initialTime.minutes, initialTime.seconds);
 		this.state = {
 			type: "initialized",
-			currentTime: {
-				minutes: initialTime.minutes,
-				seconds: initialTime.seconds,
-			},
+			currentTime: time(initialTime.minutes, initialTime.seconds),
 		};
 	}
 
@@ -155,15 +156,12 @@ export class CountdownTimer {
 		}
 		this.state = {
 			type: "initialized",
-			currentTime: {
-				minutes: this.initialTime.minutes,
-				seconds: this.initialTime.seconds,
-			},
+			currentTime: time(
+				this.initialTime.minutes,
+				this.initialTime.seconds,
+			),
 		};
-		return ok({
-			minutes: this.initialTime.minutes,
-			seconds: this.initialTime.seconds,
-		});
+		return ok(time(this.initialTime.minutes, this.initialTime.seconds));
 	}
 
 	public dispose(): void {
@@ -186,11 +184,11 @@ export class CountdownTimer {
 
 	public get currentTime(): Time {
 		return this.state.type === "completed"
-			? { minutes: 0, seconds: 0 }
-			: {
-					minutes: this.state.currentTime.minutes,
-					seconds: this.state.currentTime.seconds,
-				};
+			? time(0, 0)
+			: time(
+					this.state.currentTime.minutes,
+					this.state.currentTime.seconds,
+				);
 	}
 
 	private updateCurrentTime(
@@ -207,17 +205,17 @@ export class CountdownTimer {
 			return "unchanged";
 		}
 		if (remainingSeconds <= 0) {
-			this.state.currentTime = { minutes: 0, seconds: 0 };
+			this.state.currentTime = time(0, 0);
 			return "completed";
 		}
 
 		const remainingMinutes = Math.floor(remainingSeconds / 60);
-		this.state.currentTime = {
-			minutes: isMinutes(remainingMinutes)
+		this.state.currentTime = time(
+			isMinutes(remainingMinutes)
 				? remainingMinutes
 				: this.state.currentTime.minutes,
-			seconds: (remainingSeconds % 60) as Seconds,
-		};
+			(remainingSeconds % 60) as Seconds,
+		);
 		return "subtracted";
 	}
 
