@@ -298,6 +298,9 @@ export class IntervalTimer {
 	}
 
 	public get canPause(): boolean {
+		if (this.pendingNextState !== null) {
+			return false;
+		}
 		return this.currentInterval.timer.getCurrentTimerType() === "running";
 	}
 

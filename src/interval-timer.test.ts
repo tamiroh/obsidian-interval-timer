@@ -1451,6 +1451,25 @@ describe("IntervalTimer", () => {
 			intervalTimer.dispose();
 		});
 
+		it("disallows pausing while a next interval is pending", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 1,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				intervalCompletionBehavior: "countDownPastZero",
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			// Assert
+			expect(intervalTimer.canPause).toBe(false);
+
+			intervalTimer.dispose();
+		});
+
 		it("moves to the pending interval when Next is touched", () => {
 			// Arrange
 			const events: IntervalTimerEvent[] = [];
