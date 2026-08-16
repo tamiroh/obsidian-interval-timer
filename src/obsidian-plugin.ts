@@ -17,11 +17,8 @@ import {
 import { StatusBar } from "./status-bar";
 import { FloatingTimer } from "./obsidian-floating-timer";
 import { KeyValueStore } from "./key-value-store";
-import {
-	NotificationStyle,
-	Notifier,
-	createNotifier,
-} from "./obsidian-notifier";
+import { NotificationStyle, Notifier } from "./notification";
+import { createNotifier } from "./obsidian-notification";
 import { FlashOverlay } from "./flash-overlay";
 import { TaskTracker, type TrackTaskResult } from "./obsidian-task-tracker";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";

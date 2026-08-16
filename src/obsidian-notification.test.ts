@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { Notice } from "./obsidian-fake";
-import { createNotifier } from "./obsidian-notifier";
+import { createNotifier } from "./obsidian-notification";
 
 describe("SimpleNotifier", () => {
 	beforeEach(() => {

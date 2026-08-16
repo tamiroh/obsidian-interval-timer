@@ -1,6 +1,3 @@
-import { match } from "ts-pattern";
-import { Notice } from "obsidian";
-
 export type NotificationStyle = "system" | "simple";
 
 export abstract class Notifier {
@@ -34,15 +31,3 @@ export class SystemNotifier extends Notifier {
 		this.current = null;
 	}
 }
-
-export class SimpleNotifier extends Notifier {
-	override notify(message: string): void {
-		new Notice(message);
-	}
-}
-
-export const createNotifier = (style: NotificationStyle): Notifier =>
-	match(style)
-		.with("system", () => new SystemNotifier())
-		.with("simple", () => new SimpleNotifier())
-		.exhaustive();

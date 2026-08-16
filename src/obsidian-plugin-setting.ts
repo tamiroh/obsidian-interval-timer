@@ -1,7 +1,7 @@
 import { parsePositiveInteger } from "./value-parser";
 import { isMinutes, type Minutes } from "./time";
 import { defaultLongBreakAfter } from "./interval-timer";
-import type { NotificationStyle } from "./obsidian-notifier";
+import type { NotificationStyle } from "./notification";
 import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
 
 export type PluginSetting = {
