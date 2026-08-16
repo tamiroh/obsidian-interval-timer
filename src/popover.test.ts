@@ -98,9 +98,9 @@ describe("Popover", () => {
 
 		// Assert
 		await waitFor(() =>
-			expect(within(el).getByTestId("popover-clock-time")).toHaveTextContent(
-				"07:05",
-			),
+			expect(
+				within(el).getByTestId("popover-clock-time"),
+			).toHaveTextContent("07:05"),
 		);
 	});
 
@@ -116,12 +116,10 @@ describe("Popover", () => {
 		// Assert
 		await waitFor(() =>
 			expect(
-				(
-					within(el).getByTestId(
-						"popover-clock-value",
-					) as unknown as SVGElement
-				).style.strokeDashoffset,
-			).toBe("-40"),
+				within(el).getByTestId(
+					"popover-clock-value",
+				) as unknown as SVGElement,
+			).toHaveStyle({ strokeDashoffset: "-40" }),
 		);
 	});
 
@@ -959,8 +957,8 @@ describe("Popover", () => {
 		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-dismissed");
 		expect(options.onFloatingChange).toHaveBeenLastCalledWith(false);
-		expect(popover.style.left).toBe("");
-		expect(popover.style.top).toBe("");
+		// eslint-disable-next-line jest-dom/prefer-to-have-style -- toHaveStyle can't assert that inline styles were cleared
+		expect(popover).toHaveAttribute("style", "");
 	});
 
 	it("starts the closing animation when Enter is pressed on a focused close button", async () => {

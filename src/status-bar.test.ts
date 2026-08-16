@@ -50,9 +50,9 @@ describe("StatusBar", () => {
 			"2/4 07:05",
 		);
 		await waitFor(() =>
-			expect(within(el).getByTestId("popover-clock-time")).toHaveTextContent(
-				"07:05",
-			),
+			expect(
+				within(el).getByTestId("popover-clock-time"),
+			).toHaveTextContent("07:05"),
 		);
 	});
 
@@ -100,12 +100,10 @@ describe("StatusBar", () => {
 		// Assert
 		await waitFor(() =>
 			expect(
-				(
-					within(el).getByTestId(
-						"popover-clock-value",
-					) as unknown as SVGElement
-				).style.strokeDashoffset,
-			).toBe("-40"),
+				within(el).getByTestId(
+					"popover-clock-value",
+				) as unknown as SVGElement,
+			).toHaveStyle({ strokeDashoffset: "-40" }),
 		);
 	});
 
@@ -127,9 +125,9 @@ describe("StatusBar", () => {
 			"interval-timer-time-separator-running",
 		);
 		await waitFor(() =>
-			expect(within(el).getByTestId("popover-clock-time")).toHaveTextContent(
-				"01:00",
-			),
+			expect(
+				within(el).getByTestId("popover-clock-time"),
+			).toHaveTextContent("01:00"),
 		);
 	});
 

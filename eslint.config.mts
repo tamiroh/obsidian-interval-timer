@@ -4,6 +4,7 @@ import globals from "globals";
 import { defineConfig, globalIgnores } from "eslint/config";
 import vitest from "@vitest/eslint-plugin";
 import testingLibrary from "eslint-plugin-testing-library";
+import jestDom from "eslint-plugin-jest-dom";
 import local from "./eslint-plugin-local.mts";
 
 export default defineConfig(
@@ -86,7 +87,11 @@ export default defineConfig(
 	{
 		name: "local/test-files",
 		files: ["**/*.test.{ts,tsx}"],
-		extends: [vitest.configs.recommended, testingLibrary.configs["flat/dom"]],
+		extends: [
+			vitest.configs.recommended,
+			testingLibrary.configs["flat/dom"],
+			jestDom.configs["flat/recommended"],
+		],
 		plugins: {
 			local,
 		},

@@ -79,6 +79,6 @@ describe("usePopoverFloating", () => {
 		});
 
 		// Assert
-		expect(target.getAttribute("style")).toBeNull();
+		expect(target).not.toHaveAttribute("style");
 	});
 });
