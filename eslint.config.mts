@@ -7,6 +7,11 @@ import local from "./eslint-plugin-local.mts";
 
 export default defineConfig(
 	{
+		name: "local/base",
+		extends: [
+			obsidianmd.configs.recommended,
+			reactHooks.configs.flat.recommended,
+		],
 		languageOptions: {
 			globals: {
 				...globals.browser,
@@ -19,12 +24,6 @@ export default defineConfig(
 				extraFileExtensions: [".json"],
 			},
 		},
-	},
-	{
-		extends: [
-			obsidianmd.configs.recommended,
-			reactHooks.configs.flat.recommended,
-		],
 		settings: {
 			"import/resolver": {
 				node: {
@@ -39,7 +38,19 @@ export default defineConfig(
 			"import/no-cycle": "error",
 		},
 	},
+	globalIgnores([
+		"node_modules",
+		"dist",
+		"esbuild.config.mjs",
+		"eslint.config.js",
+		"bin/version-bump.mjs",
+		"versions.json",
+		"main.js",
+		"vitest.config.ts",
+		"vitest.setup.ts",
+	]),
 	{
+		name: "local/test-files",
 		files: ["**/*.test.{ts,tsx}"],
 		extends: [vitest.configs.recommended],
 		plugins: {
@@ -50,12 +61,14 @@ export default defineConfig(
 		},
 	},
 	{
+		name: "local/obsidian-fakes",
 		files: ["src/obsidian-globals-fake.ts", "src/obsidian-fake.ts"],
 		rules: {
 			"obsidianmd/prefer-create-el": "off",
 		},
 	},
 	{
+		name: "local/restrict-obsidian-imports",
 		files: ["**/*.{ts,tsx}"],
 		ignores: ["**/obsidian*.{ts,tsx}"],
 		rules: {
@@ -74,6 +87,7 @@ export default defineConfig(
 		},
 	},
 	{
+		name: "local/no-extraneous-dependencies",
 		files: ["src/**/*.{ts,tsx}"],
 		ignores: ["**/*.test.{ts,tsx}"],
 		rules: {
@@ -86,15 +100,4 @@ export default defineConfig(
 			],
 		},
 	},
-	globalIgnores([
-		"node_modules",
-		"dist",
-		"esbuild.config.mjs",
-		"eslint.config.js",
-		"bin/version-bump.mjs",
-		"versions.json",
-		"main.js",
-		"vitest.config.ts",
-		"vitest.setup.ts",
-	]),
 );
