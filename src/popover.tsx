@@ -221,9 +221,7 @@ const PopoverView = ({
 		touchAction,
 	} = useObservableStore(store);
 	const [isEditingTime, setIsEditingTime] = useState(false);
-	const [retimeValue, setRetimeValue] = useState(
-		String(currentTime.minutes),
-	);
+	const [retimeValue, setRetimeValue] = useState(String(currentTime.minutes));
 	const [shouldRestoreFocus, setShouldRestoreFocus] = useState(false);
 	const [expandedTask, setExpandedTask] = useState<ExpandedTask | null>(null);
 	const [closingAnimationState, setClosingAnimationState] =
@@ -503,7 +501,10 @@ const PopoverView = ({
 									}
 									onClick={handleMinutesClick}
 								>
-									{String(currentTime.minutes).padStart(2, "0")}
+									{String(currentTime.minutes).padStart(
+										2,
+										"0",
+									)}
 								</button>
 								<form
 									className="interval-timer-popover-inline-retime-form"
