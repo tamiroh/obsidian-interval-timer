@@ -92,6 +92,7 @@ export class Popover {
 		this.rootElement = container.createSpan({
 			cls: "interval-timer-popover-root",
 		});
+		this.rootElement.dataset.testid = "popover-root";
 		container.addEventListener("mouseleave", this.handleDismissalReset);
 		container.addEventListener("focusin", this.handleDismissalReset);
 		render(
@@ -408,6 +409,7 @@ const PopoverView = ({
 				<button
 					type="button"
 					className="interval-timer-popover-close"
+					data-testid="popover-close"
 					aria-label="Close"
 					aria-hidden={!isFloating}
 					tabIndex={isFloating ? 0 : -1}
@@ -423,6 +425,7 @@ const PopoverView = ({
 			<button
 				type="button"
 				className="interval-timer-popover-return"
+				data-testid="popover-return"
 				aria-label="Return to original position"
 				aria-hidden={!floating.hasMovedFromOrigin}
 				tabIndex={floating.hasMovedFromOrigin ? 0 : -1}
@@ -454,6 +457,7 @@ const PopoverView = ({
 						/>
 						<circle
 							className="interval-timer-popover-clock-value"
+							data-testid="popover-clock-value"
 							cx="50"
 							cy="50"
 							r="44"
@@ -466,7 +470,10 @@ const PopoverView = ({
 						/>
 					</svg>
 					<div className="interval-timer-popover-clock-readout">
-						<div className="interval-timer-popover-clock-time">
+						<div
+							className="interval-timer-popover-clock-time"
+							data-testid="popover-clock-time"
+						>
 							<div
 								className={`interval-timer-popover-retime-editor${
 									isEditingTime
@@ -488,6 +495,7 @@ const PopoverView = ({
 								</button>
 								<form
 									className="interval-timer-popover-inline-retime-form"
+									aria-label="Retime"
 									onSubmit={handleRetimeSubmit}
 								>
 									<input
@@ -496,6 +504,7 @@ const PopoverView = ({
 										inputMode="numeric"
 										pattern="[0-9]*"
 										className="interval-timer-popover-inline-retime-input"
+										aria-label="Retime minutes"
 										autoComplete="off"
 										spellcheck={false}
 										defaultValue={time.minutes}
@@ -669,6 +678,7 @@ const SetRing = ({
 			{Array.from({ length: markerCount }, (_, index) => (
 				<circle
 					key={index}
+					data-testid="popover-set-ring-segment"
 					className={`interval-timer-popover-set-ring-segment${
 						index < filledMarkers
 							? " interval-timer-popover-set-ring-segment-filled"

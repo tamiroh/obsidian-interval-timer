@@ -1,4 +1,4 @@
-import { fireEvent } from "@testing-library/dom";
+import { fireEvent, within } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import { useState } from "preact/hooks";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -34,9 +34,7 @@ describe("usePopoverFloating", () => {
 		const container = render(
 			<Target getReturnTarget={() => ({ left: 0, top: 0 })} />,
 		);
-		const target = container.querySelector(
-			"[data-testid=target]",
-		) as HTMLElement;
+		const target = within(container).getByTestId("target");
 		vi.spyOn(target, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
@@ -66,9 +64,7 @@ describe("usePopoverFloating", () => {
 		const container = render(
 			<Target getReturnTarget={() => ({ left: 0, top: 0 })} />,
 		);
-		const target = container.querySelector(
-			"[data-testid=target]",
-		) as HTMLElement;
+		const target = within(container).getByTestId("target");
 		fireEvent.pointerDown(target, {
 			pointerId: 1,
 			clientX: 120,

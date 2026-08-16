@@ -26,9 +26,9 @@ describe("FloatingTimer", () => {
 
 		// Assert
 		await within(document.body).findByText("No task selected");
-		expect(
-			document.body.querySelector(".interval-timer-popover"),
-		).toHaveClass("interval-timer-popover-floating");
+		expect(within(document.body).getByRole("group")).toHaveClass(
+			"interval-timer-popover-floating",
+		);
 		floatingTimer.dispose();
 	});
 
@@ -62,7 +62,7 @@ describe("FloatingTimer", () => {
 		// Assert
 		await within(document.body).findByText("07");
 		expect(
-			document.body.querySelector(".interval-timer-popover-clock-time"),
+			within(document.body).getByTestId("popover-clock-time"),
 		).toHaveTextContent("07:05");
 		expect(
 			within(document.body).getByRole("button", { name: "Start" }),
@@ -81,8 +81,8 @@ describe("FloatingTimer", () => {
 
 		// Assert
 		expect(
-			document.body.querySelector(".interval-timer-floating-timer"),
-		).toBeNull();
+			within(document.body).queryByTestId("floating-timer"),
+		).not.toBeInTheDocument();
 	});
 
 	it("mounts inside the active leaf's view container", async () => {
@@ -97,8 +97,8 @@ describe("FloatingTimer", () => {
 
 		// Assert
 		expect(
-			leafContainer.querySelector(".interval-timer-floating-timer"),
-		).not.toBeNull();
+			within(leafContainer).getByTestId("floating-timer"),
+		).toBeInTheDocument();
 		floatingTimer.dispose();
 	});
 
@@ -116,11 +116,11 @@ describe("FloatingTimer", () => {
 
 		// Assert
 		expect(
-			secondLeaf.querySelector(".interval-timer-floating-timer"),
-		).not.toBeNull();
+			within(secondLeaf).getByTestId("floating-timer"),
+		).toBeInTheDocument();
 		expect(
-			firstLeaf.querySelector(".interval-timer-floating-timer"),
-		).toBeNull();
+			within(firstLeaf).queryByTestId("floating-timer"),
+		).not.toBeInTheDocument();
 		floatingTimer.dispose();
 	});
 });

@@ -43,6 +43,7 @@ export class StatusBar {
 		this.compact = this.statusBarItem.createSpan({
 			cls: "interval-timer-status-bar-compact",
 		});
+		this.compact.dataset.testid = "status-bar-compact";
 		this.compactIntervalCount = this.compact.createSpan({
 			cls: "interval-timer-compact-intervals",
 		});
@@ -54,6 +55,7 @@ export class StatusBar {
 		this.compactSeparator = compactTime.createSpan({
 			cls: "interval-timer-time-separator",
 		});
+		this.compactSeparator.dataset.testid = "status-bar-separator";
 		this.compactSeparator.textContent = ":";
 		this.compactSeconds = document.createTextNode("");
 		compactTime.append(this.compactSeconds);

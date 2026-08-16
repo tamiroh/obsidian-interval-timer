@@ -3,6 +3,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 import { defineConfig, globalIgnores } from "eslint/config";
 import vitest from "@vitest/eslint-plugin";
+import testingLibrary from "eslint-plugin-testing-library";
 import local from "./eslint-plugin-local.mts";
 
 export default defineConfig(
@@ -85,7 +86,7 @@ export default defineConfig(
 	{
 		name: "local/test-files",
 		files: ["**/*.test.{ts,tsx}"],
-		extends: [vitest.configs.recommended],
+		extends: [vitest.configs.recommended, testingLibrary.configs["flat/dom"]],
 		plugins: {
 			local,
 		},

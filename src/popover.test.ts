@@ -45,9 +45,9 @@ const createIntervalTimer = (): IntervalTimer => {
 };
 
 const getRetimeInput = (container: HTMLElement): HTMLInputElement =>
-	container.querySelector(
-		".interval-timer-popover-inline-retime-input",
-	) as HTMLInputElement;
+	within(container).getByRole("textbox", {
+		name: "Retime minutes",
+	});
 
 const getFocusedRetimeInput = async (
 	container: HTMLElement,
@@ -58,9 +58,9 @@ const getFocusedRetimeInput = async (
 };
 
 const getRetimeForm = (container: HTMLElement): HTMLFormElement =>
-	container.querySelector(
-		".interval-timer-popover-inline-retime-form",
-	) as HTMLFormElement;
+	within(container).getByRole("form", {
+		name: "Retime",
+	});
 
 const mockComputedStyleFor = (
 	target: HTMLElement,
@@ -98,9 +98,9 @@ describe("Popover", () => {
 
 		// Assert
 		await waitFor(() =>
-			expect(
-				el.querySelector(".interval-timer-popover-clock-time"),
-			).toHaveTextContent("07:05"),
+			expect(within(el).getByTestId("popover-clock-time")).toHaveTextContent(
+				"07:05",
+			),
 		);
 	});
 
@@ -117,9 +117,9 @@ describe("Popover", () => {
 		await waitFor(() =>
 			expect(
 				(
-					el.querySelector(
-						".interval-timer-popover-clock-value",
-					) as SVGElement
+					within(el).getByTestId(
+						"popover-clock-value",
+					) as unknown as SVGElement
 				).style.strokeDashoffset,
 			).toBe("-40"),
 		);
@@ -135,7 +135,7 @@ describe("Popover", () => {
 
 		// Assert
 		await waitFor(() =>
-			expect(el.querySelector(".interval-timer-popover")).toHaveClass(
+			expect(within(el).getByRole("group")).toHaveClass(
 				"interval-timer-popover-break",
 			),
 		);
@@ -152,9 +152,7 @@ describe("Popover", () => {
 
 		// Assert
 		await waitFor(() =>
-			expect(
-				el.querySelector(".interval-timer-popover-task-name"),
-			).toHaveTextContent(/^Break time$/),
+			expect(within(el).getByText(/^Break time$/)).toBeInTheDocument(),
 		);
 	});
 
@@ -175,9 +173,13 @@ describe("Popover", () => {
 		// Assert
 		await waitFor(() =>
 			expect(
-				el.querySelectorAll(
-					".interval-timer-popover-set-ring-segment-filled",
-				),
+				within(el)
+					.getAllByTestId("popover-set-ring-segment")
+					.filter((segment) =>
+						segment.classList.contains(
+							"interval-timer-popover-set-ring-segment-filled",
+						),
+					),
 			).toHaveLength(2),
 		);
 	});
@@ -199,9 +201,13 @@ describe("Popover", () => {
 		// Assert
 		await waitFor(() =>
 			expect(
-				el.querySelectorAll(
-					".interval-timer-popover-set-ring-segment-filled",
-				),
+				within(el)
+					.getAllByTestId("popover-set-ring-segment")
+					.filter((segment) =>
+						segment.classList.contains(
+							"interval-timer-popover-set-ring-segment-filled",
+						),
+					),
 			).toHaveLength(4),
 		);
 	});
@@ -275,7 +281,7 @@ describe("Popover", () => {
 		await user.click(start);
 
 		// Assert
-		expect(el.querySelector(".interval-timer-popover")).not.toHaveClass(
+		expect(within(el).getByRole("group")).not.toHaveClass(
 			"interval-timer-popover-floating",
 		);
 	});
@@ -557,9 +563,7 @@ describe("Popover", () => {
 		const el = createDiv();
 		const options = createOptions();
 		await createPopover(el, options);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 24,
 			top: 36,
@@ -575,9 +579,9 @@ describe("Popover", () => {
 			left: "24px",
 			top: "36px",
 		});
-		expect(
-			el.querySelector(".interval-timer-popover-root"),
-		).toContainElement(popover);
+		expect(within(el).getByTestId("popover-root")).toContainElement(
+			popover,
+		);
 	});
 
 	it("enters floating mode from the keyboard", async () => {
@@ -585,9 +589,7 @@ describe("Popover", () => {
 		const user = userEvent.setup();
 		const el = createDiv();
 		await createPopover(el);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		popover.focus();
 
 		// Act
@@ -606,7 +608,7 @@ describe("Popover", () => {
 		await createPopover(el, options);
 
 		// Assert
-		const popover = el.querySelector(".interval-timer-popover");
+		const popover = within(el).getByRole("group");
 		expect(popover).toHaveClass("interval-timer-popover-floating");
 	});
 
@@ -633,9 +635,7 @@ describe("Popover", () => {
 		const user = userEvent.setup();
 		const el = createDiv();
 		await createPopover(el);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
@@ -660,9 +660,7 @@ describe("Popover", () => {
 		const user = userEvent.setup();
 		const el = createDiv();
 		await createPopover(el);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
@@ -698,9 +696,7 @@ describe("Popover", () => {
 		const el = createDiv();
 		const options = { ...createOptions(), floatOnMount: true };
 		await createPopover(el, options);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		const computedStyleSpy = mockComputedStyleFor(popover, {
 			left: "50px",
 			top: "60px",
@@ -738,9 +734,7 @@ describe("Popover", () => {
 		const user = userEvent.setup();
 		const el = createDiv();
 		await createPopover(el);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
@@ -752,9 +746,10 @@ describe("Popover", () => {
 		await user.click(popover);
 
 		// Assert
-		expect(
-			el.querySelector(".interval-timer-popover-return"),
-		).toHaveProperty("tabIndex", -1);
+		expect(within(el).getByTestId("popover-return")).toHaveProperty(
+			"tabIndex",
+			-1,
+		);
 		expect(popover).not.toHaveClass("interval-timer-popover-moved");
 	});
 
@@ -763,9 +758,7 @@ describe("Popover", () => {
 		const user = userEvent.setup();
 		const el = createDiv();
 		await createPopover(el);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
@@ -803,9 +796,7 @@ describe("Popover", () => {
 		const el = createDiv();
 		const options = { ...createOptions(), floatOnMount: true };
 		await createPopover(el, options);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		const computedStyleSpy = mockComputedStyleFor(popover, {
 			left: "50px",
 			top: "60px",
@@ -846,9 +837,7 @@ describe("Popover", () => {
 		const user = userEvent.setup();
 		const el = createDiv();
 		await createPopover(el);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
@@ -886,9 +875,7 @@ describe("Popover", () => {
 		await createPopover(el);
 
 		// Act
-		const close = el.querySelector(
-			".interval-timer-popover-close",
-		) as HTMLButtonElement;
+		const close = within(el).getByTestId("popover-close");
 
 		// Assert
 		expect(close).toHaveProperty("tabIndex", -1);
@@ -899,9 +886,7 @@ describe("Popover", () => {
 		const user = userEvent.setup();
 		const el = createDiv();
 		await createPopover(el);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 
 		// Act
 		await user.click(popover);
@@ -916,9 +901,7 @@ describe("Popover", () => {
 		const user = userEvent.setup();
 		const el = createDiv();
 		await createPopover(el);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		await user.click(popover);
 
 		// Act
@@ -934,9 +917,7 @@ describe("Popover", () => {
 		const el = createDiv();
 		const options = createOptions({ left: 925, top: 710 });
 		await createPopover(el, options);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
@@ -962,9 +943,7 @@ describe("Popover", () => {
 		const el = createDiv();
 		const options = createOptions({ left: 925, top: 710 });
 		await createPopover(el, options);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
@@ -990,9 +969,7 @@ describe("Popover", () => {
 		const el = createDiv();
 		const options = createOptions();
 		await createPopover(el, options);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		await user.click(popover);
 		const close = within(el).getByRole("button", { name: "Close" });
 		close.focus();
@@ -1010,9 +987,7 @@ describe("Popover", () => {
 		const el = createDiv();
 		const options = createOptions();
 		await createPopover(el, options);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		await user.click(popover);
 		const close = within(el).getByRole("button", { name: "Close" });
 		close.focus();
@@ -1033,9 +1008,7 @@ describe("Popover", () => {
 		const focusTarget = createEl("button");
 		el.append(focusTarget);
 		await createPopover(el);
-		const popover = el.querySelector(
-			".interval-timer-popover",
-		) as HTMLElement;
+		const popover = within(el).getByRole("group");
 		await user.click(popover);
 		await user.click(within(el).getByRole("button", { name: "Close" }));
 
