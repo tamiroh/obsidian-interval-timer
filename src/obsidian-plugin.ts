@@ -58,7 +58,7 @@ type ParseFocusBgmTypeResult = Result<FocusBgmType, "invalid_focus_bgm_type">;
 
 type ParseFocusBgmVolumeResult = Result<number, "invalid_focus_bgm_volume">;
 
-export default class Plugin extends BasePlugin {
+export class Plugin extends BasePlugin {
 	public override settings!: PluginSetting;
 
 	private timerDisplay: StatusBar | FloatingTimer;

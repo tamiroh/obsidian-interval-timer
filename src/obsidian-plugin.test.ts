@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { App, PluginManifest } from "obsidian";
 import { Notice } from "./obsidian-fake";
-import Plugin from "./obsidian-plugin";
+import { Plugin } from "./obsidian-plugin";
 import { defaultPluginSetting } from "./obsidian-plugin-setting";
 
 describe("Plugin", () => {

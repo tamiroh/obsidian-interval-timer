@@ -108,7 +108,7 @@ export default defineConfig(
 	{
 		name: "local/restrict-obsidian-imports",
 		files: ["**/*.{ts,tsx}"],
-		ignores: ["**/obsidian*.{ts,tsx}"],
+		ignores: ["**/obsidian*.{ts,tsx}", "index.ts"],
 		rules: {
 			"no-restricted-imports": [
 				"error",
