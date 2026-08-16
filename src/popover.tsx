@@ -221,6 +221,9 @@ const PopoverView = ({
 		touchAction,
 	} = useObservableStore(store);
 	const [isEditingTime, setIsEditingTime] = useState(false);
+	const [retimeValue, setRetimeValue] = useState(
+		String(currentTime.minutes),
+	);
 	const [expandedTask, setExpandedTask] = useState<ExpandedTask | null>(null);
 	const [closingAnimationState, setClosingAnimationState] =
 		useState<ClosingAnimationState>({ current: "idle" });
@@ -245,13 +248,11 @@ const PopoverView = ({
 
 	const handleMinutesClick = () => {
 		suppressBlurApplyRef.current = false;
+		setRetimeValue(String(currentTime.minutes));
 		setIsEditingTime(true);
 		window.requestAnimationFrame(() => {
-			if (!retimeInputRef.current) return;
-
-			retimeInputRef.current.value = String(currentTime.minutes);
-			retimeInputRef.current.focus({ preventScroll: true });
-			retimeInputRef.current.select();
+			retimeInputRef.current?.focus({ preventScroll: true });
+			retimeInputRef.current?.select();
 		});
 	};
 
@@ -264,14 +265,12 @@ const PopoverView = ({
 	};
 
 	const applyRetime = (restoreFocus = true) => {
-		if (!intervalTimer || !retimeInputRef.current) return;
+		if (!intervalTimer) return;
 
-		const result = intervalTimer.retime(
-			Number(retimeInputRef.current.value),
-		);
+		const result = intervalTimer.retime(Number(retimeValue));
 		if (!result.ok) {
 			if (!restoreFocus) {
-				retimeInputRef.current.value = String(currentTime.minutes);
+				setRetimeValue(String(currentTime.minutes));
 				stopEditingTime(false);
 				return;
 			}
@@ -293,7 +292,7 @@ const PopoverView = ({
 					)
 					.exhaustive(),
 			);
-			retimeInputRef.current.select();
+			retimeInputRef.current?.select();
 			return;
 		}
 
@@ -511,7 +510,12 @@ const PopoverView = ({
 										aria-label="Retime minutes"
 										autoComplete="off"
 										spellcheck={false}
-										defaultValue={currentTime.minutes}
+										value={retimeValue}
+										onInput={(event) => {
+											setRetimeValue(
+												event.currentTarget.value,
+											);
+										}}
 										onKeyDown={handleRetimeInputKeyDown}
 										onClick={(event) => {
 											event.currentTarget.select();
