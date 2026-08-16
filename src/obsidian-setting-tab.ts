@@ -1,4 +1,5 @@
 import { App, displayTooltip, PluginSettingTab, Setting } from "obsidian";
+import { match } from "ts-pattern";
 import type Plugin from "./obsidian-plugin";
 import type { PluginSetting } from "./obsidian-plugin";
 import {
@@ -230,22 +231,31 @@ export class SettingTab extends PluginSettingTab {
 			{ ok: false }
 		>["reason"],
 	): string {
-		switch (reason) {
-			case "invalid_number":
-				return `${settingLabel}: please enter a number.`;
-			case "non_positive_integer":
-				return `${settingLabel}: please enter a positive integer.`;
-			case "out_of_range_minutes":
-				return `${settingLabel}: please enter fewer than ${minutesUpperBound} minutes.`;
-			case "invalid_notification_style":
-				return `${settingLabel}: invalid option selected.`;
-			case "invalid_boolean":
-				return `${settingLabel}: invalid option selected.`;
-			case "invalid_focus_tick_sound_volume":
-			case "invalid_focus_bgm_volume":
-				return `${settingLabel}: please choose a value from 0 to 100.`;
-			case "invalid_focus_bgm_type":
-				return `${settingLabel}: invalid option selected.`;
-		}
+		return match(reason)
+			.with(
+				"invalid_number",
+				() => `${settingLabel}: please enter a number.`,
+			)
+			.with(
+				"non_positive_integer",
+				() => `${settingLabel}: please enter a positive integer.`,
+			)
+			.with(
+				"out_of_range_minutes",
+				() =>
+					`${settingLabel}: please enter fewer than ${minutesUpperBound} minutes.`,
+			)
+			.with(
+				"invalid_notification_style",
+				"invalid_boolean",
+				"invalid_focus_bgm_type",
+				() => `${settingLabel}: invalid option selected.`,
+			)
+			.with(
+				"invalid_focus_tick_sound_volume",
+				"invalid_focus_bgm_volume",
+				() => `${settingLabel}: please choose a value from 0 to 100.`,
+			)
+			.exhaustive();
 	}
 }
