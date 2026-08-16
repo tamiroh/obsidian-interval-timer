@@ -289,6 +289,9 @@ export class IntervalTimer {
 	}
 
 	public get canStart(): boolean {
+		if (this.pendingNextState !== null) {
+			return false;
+		}
 		return ["initialized", "paused"].includes(
 			this.currentInterval.timer.getCurrentTimerType(),
 		);

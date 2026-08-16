@@ -1351,6 +1351,7 @@ describe("IntervalTimer", () => {
 
 			// Assert
 			expect(intervalTimer.predictTouch()).toBe("next");
+			expect(intervalTimer.canStart).toBe(false);
 
 			intervalTimer.dispose();
 		});
