@@ -48,13 +48,13 @@
 	.interval-timer-popover:not(.interval-timer-popover-dismissed),
 .interval-timer-status-bar:focus-within
 	.interval-timer-popover:not(.interval-timer-popover-dismissed) {
-	opacity: 1;
 	visibility: visible;
+	opacity: 1;
 }
 
 .interval-timer-status-bar .interval-timer-popover-dismissed {
-	opacity: 0;
-	pointer-events: none;
-	transition: none;
 	visibility: hidden;
+	pointer-events: none;
+	opacity: 0;
+	transition: none;
 }
