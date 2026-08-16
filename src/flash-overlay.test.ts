@@ -70,7 +70,9 @@ describe("FlashOverlay", () => {
 			".interval-timer-flash-overlay",
 		);
 		expect(overlay).not.toBeNull();
-		expect(overlay).toHaveStyle({backgroundColor:"rgba(100, 255, 100, 0.9)"});
+		expect(overlay).toHaveStyle({
+			backgroundColor: "rgba(100, 255, 100, 0.9)",
+		});
 		expect(overlays.length).toBe(1);
 	});
 
