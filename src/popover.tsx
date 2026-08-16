@@ -4,7 +4,7 @@ import {
 	TargetedEvent,
 	TargetedMouseEvent,
 } from "preact";
-import { useRef, useState } from "preact/hooks";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { match } from "ts-pattern";
 import { TimerType } from "./countdown-timer";
 import {
@@ -224,6 +224,7 @@ const PopoverView = ({
 	const [retimeValue, setRetimeValue] = useState(
 		String(currentTime.minutes),
 	);
+	const [shouldRestoreFocus, setShouldRestoreFocus] = useState(false);
 	const [expandedTask, setExpandedTask] = useState<ExpandedTask | null>(null);
 	const [closingAnimationState, setClosingAnimationState] =
 		useState<ClosingAnimationState>({ current: "idle" });
@@ -246,14 +247,24 @@ const PopoverView = ({
 			: "Break time";
 	const isTaskNameExpanded = expandedTask?.name === taskName;
 
+	useLayoutEffect(() => {
+		if (isEditingTime) {
+			retimeInputRef.current?.focus({ preventScroll: true });
+			retimeInputRef.current?.select();
+		}
+	}, [isEditingTime]);
+
+	useLayoutEffect(() => {
+		if (shouldRestoreFocus) {
+			setShouldRestoreFocus(false);
+			onRestoreFocus();
+		}
+	}, [shouldRestoreFocus, onRestoreFocus]);
+
 	const handleMinutesClick = () => {
 		suppressBlurApplyRef.current = false;
 		setRetimeValue(String(currentTime.minutes));
 		setIsEditingTime(true);
-		window.requestAnimationFrame(() => {
-			retimeInputRef.current?.focus({ preventScroll: true });
-			retimeInputRef.current?.select();
-		});
 	};
 
 	const stopEditingTime = (restoreFocus: boolean) => {
@@ -319,9 +330,7 @@ const PopoverView = ({
 		store.update({ isFloating: false, isDismissed: true });
 		onFloatingChange(false);
 		if (restoreFocus) {
-			window.requestAnimationFrame(() => {
-				onRestoreFocus();
-			});
+			setShouldRestoreFocus(true);
 		}
 	};
 
