@@ -17,51 +17,26 @@ import {
 import { StatusBar } from "./status-bar";
 import { FloatingTimer } from "./obsidian-floating-timer";
 import { KeyValueStore } from "./key-value-store";
-import { NotificationStyle, Notifier } from "./notification";
+import { Notifier } from "./notification";
 import { createNotifier } from "./obsidian-notification";
 import { FlashOverlay } from "./flash-overlay";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
 import { TaskTracker } from "./obsidian-task-tracker";
 import { TaskLineController } from "./obsidian-task-line-controller";
 import {
-	parsePositiveInteger,
-	ParsePositiveIntegerResult,
-} from "./value-parser";
-import {
 	defaultPluginSetting,
-	isFocusBgmType,
-	isFocusBgmVolume,
-	isFocusTickSoundVolume,
 	parsePluginSetting,
 	PluginSetting,
-	type PluginSettingStore,
+	type PluginSettingUpdateResult,
+	PluginSettingStore,
 } from "./obsidian-plugin-setting";
-import { isMinutes, type Minutes } from "./time";
-import { err, ok, type Result } from "./result";
 import { FocusTickSound } from "./focus-tick-sound";
-import { FocusBgm, type FocusBgmType } from "./focus-bgm";
+import { FocusBgm } from "./focus-bgm";
 import { AudioOutput } from "./audio-output";
 import { registerCommands } from "./obsidian-plugin-commands";
 import type { TimerDisplay } from "./timer-display";
-import { ObservableStore } from "./observable-store";
 
 export type { PluginSetting } from "./obsidian-plugin-setting";
-
-type ParseNotificationStyleResult = Result<
-	NotificationStyle,
-	"invalid_notification_style"
->;
-
-type ParseBooleanResult = Result<boolean, "invalid_boolean">;
-
-type ParseFocusTickSoundVolumeResult = Result<
-	number,
-	"invalid_focus_tick_sound_volume"
->;
-
-type ParseFocusBgmTypeResult = Result<FocusBgmType, "invalid_focus_bgm_type">;
-
-type ParseFocusBgmVolumeResult = Result<number, "invalid_focus_bgm_volume">;
 
 type SettingsReload = {
 	readonly keys: readonly (keyof PluginSetting)[];
@@ -69,8 +44,9 @@ type SettingsReload = {
 };
 
 export class Plugin extends BasePlugin {
-	private readonly settingStore: PluginSettingStore =
-		new ObservableStore<PluginSetting>(defaultPluginSetting);
+	private readonly settingStore: PluginSettingStore = new PluginSettingStore(
+		defaultPluginSetting,
+	);
 
 	public get currentSettings(): Readonly<PluginSetting> {
 		return this.settingStore.state;
@@ -146,94 +122,8 @@ export class Plugin extends BasePlugin {
 	public updateSetting(
 		key: keyof PluginSetting,
 		value: unknown,
-	):
-		| ParsePositiveIntegerResult
-		| Result<Minutes, "out_of_range_minutes">
-		| ParseNotificationStyleResult
-		| ParseBooleanResult
-		| ParseFocusTickSoundVolumeResult
-		| ParseFocusBgmTypeResult
-		| ParseFocusBgmVolumeResult {
-		switch (key) {
-			case "focusIntervalDuration":
-			case "shortBreakDuration":
-			case "longBreakDuration": {
-				const parsed = parsePositiveInteger(value);
-				if (!parsed.ok) return parsed;
-				if (!isMinutes(parsed.value)) {
-					return err("out_of_range_minutes");
-				}
-
-				this.settingStore.update({ [key]: parsed.value });
-
-				return parsed;
-			}
-			case "longBreakAfter": {
-				const parsed = parsePositiveInteger(value);
-				if (!parsed.ok) return parsed;
-
-				this.settingStore.update({ longBreakAfter: parsed.value });
-
-				return parsed;
-			}
-			case "notificationStyle": {
-				const parsed: ParseNotificationStyleResult =
-					value === "system" || value === "simple"
-						? ok(value)
-						: err("invalid_notification_style");
-				if (!parsed.ok) return parsed;
-
-				this.settingStore.update({ notificationStyle: parsed.value });
-
-				return parsed;
-			}
-			case "flashOverlayEnabled": {
-				const parsed: ParseBooleanResult =
-					typeof value === "boolean"
-						? ok(value)
-						: err("invalid_boolean");
-				if (!parsed.ok) return parsed;
-
-				this.settingStore.update({ flashOverlayEnabled: parsed.value });
-
-				return parsed;
-			}
-			case "focusTickSoundVolume": {
-				const parsed: ParseFocusTickSoundVolumeResult =
-					isFocusTickSoundVolume(value)
-						? ok(value)
-						: err("invalid_focus_tick_sound_volume");
-				if (!parsed.ok) return parsed;
-
-				this.settingStore.update({
-					focusTickSoundVolume: parsed.value,
-				});
-
-				return parsed;
-			}
-			case "focusBgmType": {
-				const parsed: ParseFocusBgmTypeResult = isFocusBgmType(value)
-					? ok(value)
-					: err("invalid_focus_bgm_type");
-				if (!parsed.ok) return parsed;
-
-				this.settingStore.update({ focusBgmType: parsed.value });
-
-				return parsed;
-			}
-			case "focusBgmVolume": {
-				const parsed: ParseFocusBgmVolumeResult = isFocusBgmVolume(
-					value,
-				)
-					? ok(value)
-					: err("invalid_focus_bgm_volume");
-				if (!parsed.ok) return parsed;
-
-				this.settingStore.update({ focusBgmVolume: parsed.value });
-
-				return parsed;
-			}
-		}
+	): PluginSettingUpdateResult {
+		return this.settingStore.update(key, value);
 	}
 
 	private readonly settingsReloads: readonly SettingsReload[] = [
