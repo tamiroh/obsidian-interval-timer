@@ -44,6 +44,7 @@ export default defineConfig(
 		"node_modules",
 		"dist",
 		"esbuild.config.mjs",
+		"stylelint-plugin-local.mjs",
 		"bin/version-bump.mjs",
 		"versions.json",
 		"main.js",

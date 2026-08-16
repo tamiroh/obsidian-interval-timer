@@ -9,7 +9,8 @@ import {
 import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
 import { minutesUpperBound } from "./time";
 
-const VALIDATION_TOOLTIP_CLASS = "interval-timer-validation-tooltip";
+const VALIDATION_TOOLTIP_CLASS =
+	"interval-timer-setting-tab-validation-tooltip";
 
 const focusBgmTypeLabels: Record<FocusBgmType, string> = {
 	none: "None",

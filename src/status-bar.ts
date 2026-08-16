@@ -45,15 +45,15 @@ export class StatusBar {
 		});
 		this.compact.dataset.testid = "status-bar-compact";
 		this.compactIntervalCount = this.compact.createSpan({
-			cls: "interval-timer-compact-intervals",
+			cls: "interval-timer-status-bar-compact-intervals",
 		});
 		const compactTime = this.compact.createSpan({
-			cls: "interval-timer-compact-time",
+			cls: "interval-timer-status-bar-compact-time",
 		});
 		this.compactMinutes = document.createTextNode("");
 		compactTime.append(this.compactMinutes);
 		this.compactSeparator = compactTime.createSpan({
-			cls: "interval-timer-time-separator",
+			cls: "interval-timer-status-bar-time-separator",
 		});
 		this.compactSeparator.dataset.testid = "status-bar-separator";
 		this.compactSeparator.textContent = ":";
@@ -98,7 +98,7 @@ export class StatusBar {
 			longBreakAfter,
 		);
 		this.compactSeparator.classList.toggle(
-			"interval-timer-time-separator-running",
+			"interval-timer-status-bar-time-separator-running",
 			timerState === "running",
 		);
 		this.statusBarItem.classList.toggle(

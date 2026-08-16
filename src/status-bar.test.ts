@@ -110,7 +110,7 @@ describe("StatusBar", () => {
 
 		// Assert
 		expect(within(el).getByTestId("status-bar-separator")).toHaveClass(
-			"interval-timer-time-separator-running",
+			"interval-timer-status-bar-time-separator-running",
 		);
 		await waitFor(() =>
 			expect(
@@ -132,7 +132,7 @@ describe("StatusBar", () => {
 
 		// Assert
 		expect(within(el).getByTestId("status-bar-separator")).not.toHaveClass(
-			"interval-timer-time-separator-running",
+			"interval-timer-status-bar-time-separator-running",
 		);
 		expect(
 			await within(el).findByRole("button", { name: "Start" }),

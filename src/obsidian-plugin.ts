@@ -373,7 +373,7 @@ export default class Plugin extends BasePlugin {
 				return;
 			}
 			const startTaskButton = event.target.closest(
-				".interval-timer-start-task-button",
+				".interval-timer-task-line-highlight-start-task-button",
 			);
 			if (!startTaskButton) {
 				return;

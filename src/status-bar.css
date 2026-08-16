@@ -1,4 +1,4 @@
-.interval-timer-time-separator-running {
+.interval-timer-status-bar-time-separator-running {
 	animation: interval-timer-blink 1s steps(1, end) infinite;
 }
 
