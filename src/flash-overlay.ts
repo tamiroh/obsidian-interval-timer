@@ -1,27 +1,15 @@
 export type Color = { r: number; g: number; b: number };
 
 export class FlashOverlay {
-	private static instance: FlashOverlay | undefined;
-
 	private overlay: HTMLDivElement | undefined;
 
 	private styleElement: HTMLStyleElement | undefined;
 
-	private constructor() {}
-
-	public static getInstance(): FlashOverlay {
-		FlashOverlay.instance ??= new FlashOverlay();
-		return FlashOverlay.instance;
-	}
-
-	public static dispose(): void {
-		if (FlashOverlay.instance) {
-			FlashOverlay.instance.hide();
-			if (FlashOverlay.instance.styleElement !== undefined) {
-				FlashOverlay.instance.styleElement.remove();
-				FlashOverlay.instance.styleElement = undefined;
-			}
-			FlashOverlay.instance = undefined;
+	public dispose(): void {
+		this.hide();
+		if (this.styleElement !== undefined) {
+			this.styleElement.remove();
+			this.styleElement = undefined;
 		}
 	}
 

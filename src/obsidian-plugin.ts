@@ -70,6 +70,8 @@ export class Plugin extends BasePlugin {
 
 	private readonly focusBgm = new FocusBgm(this.audioOutput);
 
+	private readonly flashOverlay = new FlashOverlay();
+
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
 
@@ -116,7 +118,7 @@ export class Plugin extends BasePlugin {
 	}
 
 	public override onunload(): void {
-		FlashOverlay.dispose();
+		this.flashOverlay.dispose();
 		this.focusBgm.dispose();
 		this.audioOutput.dispose();
 		this.timerDisplay.dispose();
@@ -143,7 +145,7 @@ export class Plugin extends BasePlugin {
 				keys: ["flashOverlayEnabled"],
 				reload: (next) => {
 					if (!next.flashOverlayEnabled) {
-						FlashOverlay.getInstance().hide();
+						this.flashOverlay.hide();
 					}
 				},
 			},
@@ -226,7 +228,7 @@ export class Plugin extends BasePlugin {
 						b: 100,
 					}))
 					.exhaustive();
-				FlashOverlay.getInstance().show(overlayColor);
+				this.flashOverlay.show(overlayColor);
 			}
 			this.notifier.notify(message);
 		};
