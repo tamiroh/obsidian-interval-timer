@@ -117,7 +117,7 @@ export class PluginSettingStore extends ObservableStore<PluginSetting> {
 		}
 
 		const parsed = v.safeParse(
-			pluginSettingSchema.entries[patchOrKey],
+			v.unwrap(pluginSettingSchema.entries[patchOrKey]),
 			value,
 		);
 		if (!parsed.success) {
