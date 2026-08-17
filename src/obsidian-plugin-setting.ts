@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import * as v from "valibot";
-import { durationMinutesSchema } from "./time";
+import { isMinutes } from "./time";
 import { err, ok, type Result } from "./result";
 import { defaultLongBreakAfter } from "./interval-timer";
 import { notificationStyles } from "./notification";
@@ -20,6 +20,8 @@ const integerSchema = v.pipe(
 );
 
 const positiveIntegerSchema = v.pipe(integerSchema, v.minValue(1));
+
+const durationMinutesSchema = v.pipe(positiveIntegerSchema, v.guard(isMinutes));
 
 const volumeSchema = v.pipe(
 	integerSchema,

@@ -1,47 +1,41 @@
 import { describe, expect, it } from "vitest";
-import * as v from "valibot";
-import {
-	durationMinutesReason,
-	durationMinutesSchema,
-	minutesSchema,
-	secondsSchema,
-} from "./time";
+import { parseDurationMinutes, parseMinutes, parseSeconds } from "./time";
 
-describe("minutesSchema", () => {
+describe("parseMinutes", () => {
 	it.each([
 		{ input: 0, expected: 0 },
 		{ input: "25", expected: 25 },
 	])("should parse minutes: $input", ({ input, expected }) => {
-		expect(v.parse(minutesSchema, input)).toBe(expected);
+		expect(parseMinutes(input)).toBe(expected);
 	});
 
 	it.each([{ input: 600 }, { input: -1 }, { input: 1.5 }, { input: "abc" }])(
 		"should reject minutes: $input",
 		({ input }) => {
-			expect(v.safeParse(minutesSchema, input).success).toBe(false);
+			expect(parseMinutes(input)).toBeNull();
 		},
 	);
 });
 
-describe("secondsSchema", () => {
+describe("parseSeconds", () => {
 	it.each([
 		{ input: 0, expected: 0 },
 		{ input: "59", expected: 59 },
 	])("should parse seconds: $input", ({ input, expected }) => {
-		expect(v.parse(secondsSchema, input)).toBe(expected);
+		expect(parseSeconds(input)).toBe(expected);
 	});
 
 	it.each([{ input: 60 }, { input: "60" }, { input: -1 }, { input: 1.5 }])(
 		"should reject seconds: $input",
 		({ input }) => {
-			expect(v.safeParse(secondsSchema, input).success).toBe(false);
+			expect(parseSeconds(input)).toBeNull();
 		},
 	);
 });
 
-describe("durationMinutesSchema", () => {
+describe("parseDurationMinutes", () => {
 	it("should parse a positive duration", () => {
-		expect(v.parse(durationMinutesSchema, "25")).toBe(25);
+		expect(parseDurationMinutes("25")).toEqual({ ok: true, value: 25 });
 	});
 
 	it.each([
@@ -52,9 +46,9 @@ describe("durationMinutesSchema", () => {
 		{ input: -1, expected: "non_positive_integer" },
 		{ input: 600, expected: "out_of_range_minutes" },
 	])("should report $expected for $input", ({ input, expected }) => {
-		const result = v.safeParse(durationMinutesSchema, input);
-		if (result.success) throw new Error("expected a failure");
-
-		expect(durationMinutesReason(result.issues[0])).toBe(expected);
+		expect(parseDurationMinutes(input)).toEqual({
+			ok: false,
+			reason: expected,
+		});
 	});
 });

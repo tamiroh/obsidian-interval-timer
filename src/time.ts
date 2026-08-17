@@ -1,6 +1,7 @@
 import { match } from "ts-pattern";
 import * as v from "valibot";
 import type { Enumerate } from "./enumerate";
+import { err, ok, type Result } from "./result";
 
 //
 // Minutes and seconds
@@ -35,7 +36,7 @@ export const toSeconds = ({ minutes, seconds }: Time): number =>
 export const toMilliseconds = (value: Time): number => toSeconds(value) * 1000;
 
 //
-// Schemas
+// Parsing
 //
 
 const integerSchema = v.pipe(
@@ -44,15 +45,25 @@ const integerSchema = v.pipe(
 	v.integer(),
 );
 
-export const minutesSchema = v.pipe(integerSchema, v.guard(isMinutes));
+const minutesSchema = v.pipe(integerSchema, v.guard(isMinutes));
 
-export const secondsSchema = v.pipe(integerSchema, v.guard(isSeconds));
+const secondsSchema = v.pipe(integerSchema, v.guard(isSeconds));
 
-export const durationMinutesSchema = v.pipe(
+const durationMinutesSchema = v.pipe(
 	integerSchema,
 	v.minValue(1),
 	v.guard(isMinutes),
 );
+
+export const parseMinutes = (value: unknown): Minutes | null => {
+	const result = v.safeParse(minutesSchema, value);
+	return result.success ? result.output : null;
+};
+
+export const parseSeconds = (value: unknown): Seconds | null => {
+	const result = v.safeParse(secondsSchema, value);
+	return result.success ? result.output : null;
+};
 
 export type DurationMinutesReason =
 	| "invalid_number"
@@ -60,7 +71,16 @@ export type DurationMinutesReason =
 	| "non_positive_integer"
 	| "out_of_range_minutes";
 
-export const durationMinutesReason = (
+export const parseDurationMinutes = (
+	value: unknown,
+): Result<Minutes, DurationMinutesReason> => {
+	const result = v.safeParse(durationMinutesSchema, value);
+	return result.success
+		? ok(result.output)
+		: err(durationMinutesReason(result.issues[0]));
+};
+
+const durationMinutesReason = (
 	issue: v.InferIssue<typeof durationMinutesSchema>,
 ): DurationMinutesReason =>
 	match(issue.type)

@@ -1,11 +1,9 @@
 import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "./countdown-timer";
-import * as v from "valibot";
 import {
-	durationMinutesReason,
 	type DurationMinutesReason,
-	durationMinutesSchema,
 	Minutes,
+	parseDurationMinutes,
 	Seconds,
 	time,
 	Time,
@@ -203,16 +201,16 @@ export class IntervalTimer {
 	}
 
 	public retime(minutes: number): RetimeResult {
-		const parsed = v.safeParse(durationMinutesSchema, minutes);
-		if (!parsed.success) {
-			return err(durationMinutesReason(parsed.issues[0]));
+		const parsed = parseDurationMinutes(minutes);
+		if (!parsed.ok) {
+			return err(parsed.reason);
 		}
 		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
 			return err("timer_running");
 		}
 		this.enterInterval(
 			this.currentInterval.state,
-			time(parsed.output, this.currentInterval.timer.currentTime.seconds),
+			time(parsed.value, this.currentInterval.timer.currentTime.seconds),
 		);
 		return ok();
 	}
