@@ -39,25 +39,19 @@ export const toMilliseconds = (value: Time): number => toSeconds(value) * 1000;
 //
 
 const integerSchema = v.pipe(
-	v.union([v.number(), v.pipe(v.string(), v.toNumber())], "Enter a number."),
-	v.finite("Enter a number."),
-	v.integer("Enter a whole number."),
+	v.union([v.number(), v.pipe(v.string(), v.toNumber())]),
+	v.finite(),
+	v.integer(),
 );
 
-export const minutesSchema = v.pipe(
-	integerSchema,
-	v.guard(isMinutes, `Enter fewer than ${minutesUpperBound} minutes.`),
-);
+export const minutesSchema = v.pipe(integerSchema, v.guard(isMinutes));
 
-export const secondsSchema = v.pipe(
-	integerSchema,
-	v.guard(isSeconds, `Enter fewer than ${secondsUpperBound} seconds.`),
-);
+export const secondsSchema = v.pipe(integerSchema, v.guard(isSeconds));
 
 export const durationMinutesSchema = v.pipe(
 	integerSchema,
-	v.minValue(1, "Enter a positive whole number."),
-	v.guard(isMinutes, `Enter fewer than ${minutesUpperBound} minutes.`),
+	v.minValue(1),
+	v.guard(isMinutes),
 );
 
 export type DurationMinutesReason =

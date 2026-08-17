@@ -28,7 +28,7 @@ describe("Plugin", () => {
 
 		const result = plugin.updateSetting("focusIntervalDuration", "30");
 
-		expect(result.success).toBe(true);
+		expect(result.ok).toBe(true);
 		expect(plugin.currentSettings.focusIntervalDuration).toBe(30);
 	});
 
@@ -41,7 +41,7 @@ describe("Plugin", () => {
 			"not-a-number",
 		);
 
-		expect(result.success).toBe(false);
+		expect(result.ok).toBe(false);
 		expect(plugin.currentSettings.focusIntervalDuration).toBe(
 			defaultPluginSetting.focusIntervalDuration,
 		);
@@ -53,7 +53,7 @@ describe("Plugin", () => {
 
 		const result = plugin.updateSetting("notificationStyle", "unsupported");
 
-		expect(result.success).toBe(false);
+		expect(result.ok).toBe(false);
 	});
 
 	it("updates the flash overlay setting", async () => {
@@ -62,7 +62,7 @@ describe("Plugin", () => {
 
 		const result = plugin.updateSetting("flashOverlayEnabled", true);
 
-		expect(result.success).toBe(true);
+		expect(result.ok).toBe(true);
 		expect(plugin.currentSettings.flashOverlayEnabled).toBe(true);
 	});
 
@@ -72,7 +72,7 @@ describe("Plugin", () => {
 
 		const result = plugin.updateSetting("flashOverlayEnabled", "yes");
 
-		expect(result.success).toBe(false);
+		expect(result.ok).toBe(false);
 		expect(plugin.currentSettings.flashOverlayEnabled).toBe(
 			defaultPluginSetting.flashOverlayEnabled,
 		);
@@ -84,7 +84,7 @@ describe("Plugin", () => {
 
 		const result = plugin.updateSetting("focusTickSoundVolume", 65);
 
-		expect(result.success).toBe(true);
+		expect(result.ok).toBe(true);
 		expect(plugin.currentSettings.focusTickSoundVolume).toBe(65);
 	});
 
@@ -94,7 +94,7 @@ describe("Plugin", () => {
 
 		const result = plugin.updateSetting("focusTickSoundVolume", 101);
 
-		expect(result.success).toBe(false);
+		expect(result.ok).toBe(false);
 		expect(plugin.currentSettings.focusTickSoundVolume).toBe(
 			defaultPluginSetting.focusTickSoundVolume,
 		);

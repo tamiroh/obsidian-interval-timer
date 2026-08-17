@@ -1,5 +1,7 @@
+import { match } from "ts-pattern";
 import * as v from "valibot";
 import { durationMinutesSchema } from "./time";
+import { err, ok, type Result } from "./result";
 import { defaultLongBreakAfter } from "./interval-timer";
 import { notificationStyles } from "./notification";
 import { focusBgmTypes } from "./focus-bgm";
@@ -9,49 +11,31 @@ import { ObservableStore } from "./observable-store";
 // Schemas
 //
 
-export const focusTickSoundVolumeRange = { min: 0, max: 100 } as const;
-
-export const focusBgmVolumeRange = { min: 0, max: 100 } as const;
+export const volumeRange = { min: 0, max: 100 } as const;
 
 const integerSchema = v.pipe(
-	v.union([v.number(), v.pipe(v.string(), v.toNumber())], "Enter a number."),
-	v.finite("Enter a number."),
-	v.integer("Enter a whole number."),
+	v.union([v.number(), v.pipe(v.string(), v.toNumber())]),
+	v.finite(),
+	v.integer(),
 );
 
-const positiveIntegerSchema = v.pipe(
+const positiveIntegerSchema = v.pipe(integerSchema, v.minValue(1));
+
+const volumeSchema = v.pipe(
 	integerSchema,
-	v.minValue(1, "Enter a positive whole number."),
+	v.check((value) => value >= volumeRange.min && value <= volumeRange.max),
 );
-
-const volumeSchema = (range: { min: number; max: number }) => {
-	const message = `Choose a value from ${range.min} to ${range.max}.`;
-	return v.pipe(
-		integerSchema,
-		v.minValue(range.min, message),
-		v.maxValue(range.max, message),
-	);
-};
 
 const pluginSettingSchema = v.object({
 	focusIntervalDuration: v.optional(durationMinutesSchema, 25),
 	shortBreakDuration: v.optional(durationMinutesSchema, 5),
 	longBreakDuration: v.optional(durationMinutesSchema, 15),
 	longBreakAfter: v.optional(positiveIntegerSchema, defaultLongBreakAfter),
-	notificationStyle: v.optional(
-		v.picklist(notificationStyles, "Select a valid option."),
-		"simple",
-	),
-	flashOverlayEnabled: v.optional(v.boolean("Select a valid option."), false),
-	focusTickSoundVolume: v.optional(
-		volumeSchema(focusTickSoundVolumeRange),
-		0,
-	),
-	focusBgmType: v.optional(
-		v.picklist(focusBgmTypes, "Select a valid option."),
-		"none",
-	),
-	focusBgmVolume: v.optional(volumeSchema(focusBgmVolumeRange), 50),
+	notificationStyle: v.optional(v.picklist(notificationStyles), "simple"),
+	flashOverlayEnabled: v.optional(v.boolean(), false),
+	focusTickSoundVolume: v.optional(volumeSchema, 0),
+	focusBgmType: v.optional(v.picklist(focusBgmTypes), "none"),
+	focusBgmVolume: v.optional(volumeSchema, 50),
 });
 
 //
@@ -60,9 +44,39 @@ const pluginSettingSchema = v.object({
 
 export type PluginSetting = v.InferOutput<typeof pluginSettingSchema>;
 
-export type PluginSettingUpdateResult = v.SafeParseResult<
-	(typeof pluginSettingSchema.entries)[keyof PluginSetting]
+export type PluginSettingReason =
+	| "invalid_number"
+	| "non_integer"
+	| "non_positive_integer"
+	| "out_of_range_minutes"
+	| "out_of_range_volume"
+	| "invalid_option";
+
+export type PluginSettingUpdateResult = Result<
+	PluginSetting[keyof PluginSetting],
+	PluginSettingReason
 >;
+
+const settingReason = (
+	issue: v.InferIssue<
+		(typeof pluginSettingSchema.entries)[keyof PluginSetting]
+	>,
+): PluginSettingReason =>
+	match(issue.type)
+		.with(
+			"union",
+			"number",
+			"string",
+			"to_number",
+			"finite",
+			() => "invalid_number" as const,
+		)
+		.with("integer", () => "non_integer" as const)
+		.with("min_value", () => "non_positive_integer" as const)
+		.with("guard", () => "out_of_range_minutes" as const)
+		.with("check", () => "out_of_range_volume" as const)
+		.with("picklist", "boolean", () => "invalid_option" as const)
+		.exhaustive();
 
 export const defaultPluginSetting = v.parse(pluginSettingSchema, {});
 
@@ -104,9 +118,11 @@ export class PluginSettingStore extends ObservableStore<PluginSetting> {
 			pluginSettingSchema.entries[patchOrKey],
 			value,
 		);
-		if (parsed.success) {
-			super.update({ [patchOrKey]: parsed.output });
+		if (!parsed.success) {
+			return err(settingReason(parsed.issues[0]));
 		}
-		return parsed;
+
+		super.update({ [patchOrKey]: parsed.output });
+		return ok(parsed.output);
 	}
 }

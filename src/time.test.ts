@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import * as v from "valibot";
-import { durationMinutesSchema, minutesSchema, secondsSchema } from "./time";
+import {
+	durationMinutesReason,
+	durationMinutesSchema,
+	minutesSchema,
+	secondsSchema,
+} from "./time";
 
 describe("minutesSchema", () => {
 	it.each([
@@ -10,12 +15,10 @@ describe("minutesSchema", () => {
 		expect(v.parse(minutesSchema, input)).toBe(expected);
 	});
 
-	it.each([{ input: 600 }, { input: -1 }])(
-		"should reject out-of-range minutes: $input",
+	it.each([{ input: 600 }, { input: -1 }, { input: 1.5 }, { input: "abc" }])(
+		"should reject minutes: $input",
 		({ input }) => {
-			expect(() => v.parse(minutesSchema, input)).toThrow(
-				"Enter fewer than 600 minutes.",
-			);
+			expect(v.safeParse(minutesSchema, input).success).toBe(false);
 		},
 	);
 });
@@ -28,20 +31,12 @@ describe("secondsSchema", () => {
 		expect(v.parse(secondsSchema, input)).toBe(expected);
 	});
 
-	it.each([{ input: 60 }, { input: "60" }, { input: -1 }])(
-		"should reject out-of-range seconds: $input",
+	it.each([{ input: 60 }, { input: "60" }, { input: -1 }, { input: 1.5 }])(
+		"should reject seconds: $input",
 		({ input }) => {
-			expect(() => v.parse(secondsSchema, input)).toThrow(
-				"Enter fewer than 60 seconds.",
-			);
+			expect(v.safeParse(secondsSchema, input).success).toBe(false);
 		},
 	);
-
-	it("should reject a non-integer", () => {
-		expect(() => v.parse(secondsSchema, 1.5)).toThrow(
-			"Enter a whole number.",
-		);
-	});
 });
 
 describe("durationMinutesSchema", () => {
@@ -49,24 +44,17 @@ describe("durationMinutesSchema", () => {
 		expect(v.parse(durationMinutesSchema, "25")).toBe(25);
 	});
 
-	it.each([{ input: 0 }, { input: -1 }])(
-		"should reject a non-positive duration: $input",
-		({ input }) => {
-			expect(() => v.parse(durationMinutesSchema, input)).toThrow(
-				"Enter a positive whole number.",
-			);
-		},
-	);
+	it.each([
+		{ input: "abc", expected: "invalid_number" },
+		{ input: Number.POSITIVE_INFINITY, expected: "invalid_number" },
+		{ input: 1.5, expected: "non_integer" },
+		{ input: 0, expected: "non_positive_integer" },
+		{ input: -1, expected: "non_positive_integer" },
+		{ input: 600, expected: "out_of_range_minutes" },
+	])("should report $expected for $input", ({ input, expected }) => {
+		const result = v.safeParse(durationMinutesSchema, input);
+		if (result.success) throw new Error("expected a failure");
 
-	it("should reject a duration over the upper bound", () => {
-		expect(() => v.parse(durationMinutesSchema, 600)).toThrow(
-			"Enter fewer than 600 minutes.",
-		);
-	});
-
-	it("should reject a value that is not a number", () => {
-		expect(() => v.parse(durationMinutesSchema, "abc")).toThrow(
-			"Enter a number.",
-		);
+		expect(durationMinutesReason(result.issues[0])).toBe(expected);
 	});
 });

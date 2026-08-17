@@ -1,10 +1,12 @@
 import { App, displayTooltip, PluginSettingTab, Setting } from "obsidian";
+import { match } from "ts-pattern";
 import type { Plugin, PluginSetting } from "./obsidian-plugin";
 import {
-	focusBgmVolumeRange,
-	focusTickSoundVolumeRange,
+	type PluginSettingReason,
+	volumeRange,
 } from "./obsidian-plugin-setting";
 import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
+import { minutesUpperBound } from "./time";
 
 const VALIDATION_TOOLTIP_CLASS =
 	"interval-timer-setting-tab-validation-tooltip";
@@ -143,11 +145,7 @@ export class SettingTab extends PluginSettingTab {
 			.setDesc("Volume during focus intervals (0–100). Set to 0 to mute.")
 			.addSlider((slider) => {
 				slider
-					.setLimits(
-						focusTickSoundVolumeRange.min,
-						focusTickSoundVolumeRange.max,
-						5,
-					)
+					.setLimits(volumeRange.min, volumeRange.max, 5)
 					.setValue(this.plugin.currentSettings.focusTickSoundVolume);
 				slider.onChange((value) => {
 					this.updateSettingOrShowValidationError(
@@ -185,11 +183,7 @@ export class SettingTab extends PluginSettingTab {
 			)
 			.addSlider((slider) => {
 				slider
-					.setLimits(
-						focusBgmVolumeRange.min,
-						focusBgmVolumeRange.max,
-						5,
-					)
+					.setLimits(volumeRange.min, volumeRange.max, 5)
 					.setValue(this.plugin.currentSettings.focusBgmVolume);
 				slider.onChange((value) => {
 					this.updateSettingOrShowValidationError(
@@ -209,14 +203,14 @@ export class SettingTab extends PluginSettingTab {
 		settingLabel: string,
 	): void {
 		const result = this.plugin.updateSetting(key, value);
-		if (result.success) {
+		if (result.ok) {
 			this.clearValidationTooltips();
 			return;
 		}
 
 		displayTooltip(
 			targetEl,
-			`${settingLabel}: ${result.issues[0].message}`,
+			`${settingLabel}: ${validationMessage(result.reason)}`,
 			{
 				placement: "left",
 				classes: ["mod-error", VALIDATION_TOOLTIP_CLASS],
@@ -232,3 +226,20 @@ export class SettingTab extends PluginSettingTab {
 			});
 	}
 }
+
+const validationMessage = (reason: PluginSettingReason): string =>
+	match(reason)
+		.with("invalid_number", () => "Enter a number.")
+		.with("non_integer", () => "Enter a whole number.")
+		.with("non_positive_integer", () => "Enter a positive whole number.")
+		.with(
+			"out_of_range_minutes",
+			() => `Enter fewer than ${minutesUpperBound} minutes.`,
+		)
+		.with(
+			"out_of_range_volume",
+			() =>
+				`Choose a value from ${volumeRange.min} to ${volumeRange.max}.`,
+		)
+		.with("invalid_option", () => "Select a valid option.")
+		.exhaustive();
