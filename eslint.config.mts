@@ -85,6 +85,14 @@ export default defineConfig(
 			"@typescript-eslint/strict-boolean-expressions": "error",
 			"@typescript-eslint/no-shadow": "error",
 			eqeqeq: ["error", "always", { null: "ignore" }],
+			"no-restricted-properties": [
+				"error",
+				{
+					object: "Object",
+					property: "assign",
+					message: "Use object spread instead of Object.assign.",
+				},
+			],
 		},
 	},
 	{

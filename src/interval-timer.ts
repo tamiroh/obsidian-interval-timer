@@ -99,10 +99,7 @@ export class IntervalTimer {
 			state: "focus",
 		};
 		this.focusIntervals = { total: 0, set: 0 };
-		this.settings = {
-			...settings,
-			resetTime: { ...settings.resetTime },
-		};
+		this.settings = structuredClone(settings);
 		this.autoResetScheduler = new DailyScheduler(
 			this.settings.resetTime,
 			() => {
@@ -145,7 +142,7 @@ export class IntervalTimer {
 	public updateSettings(
 		settings: Partial<MutableIntervalTimerSetting>,
 	): void {
-		this.settings = { ...this.settings, ...settings };
+		this.settings = { ...structuredClone(this.settings), ...settings };
 	}
 
 	public start(): void {
@@ -359,7 +356,7 @@ export class IntervalTimer {
 
 	private emit(event: IntervalTimerEventDetails): void {
 		const timestampedEvent = {
-			...event,
+			...structuredClone(event),
 			occurredAt: new Date(),
 			snapshot: this.getSnapshot(),
 		};
@@ -370,9 +367,9 @@ export class IntervalTimer {
 
 	private getSnapshot(): Snapshot {
 		return {
-			...this.currentInterval.timer.currentTime,
+			...structuredClone(this.currentInterval.timer.currentTime),
 			state: this.currentInterval.state,
-			focusIntervals: { ...this.focusIntervals },
+			focusIntervals: structuredClone(this.focusIntervals),
 		};
 	}
 }

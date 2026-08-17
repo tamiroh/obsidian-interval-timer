@@ -232,7 +232,7 @@ export class CountdownTimer {
 
 	private emit(event: CountdownTimerEventDetails): void {
 		const timestampedEvent = {
-			...event,
+			...structuredClone(event),
 			occurredAt: new Date(),
 			currentTime: this.currentTime,
 		};
