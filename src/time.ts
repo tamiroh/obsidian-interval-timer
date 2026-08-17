@@ -40,6 +40,7 @@ export const toMilliseconds = (value: Time): number => toSeconds(value) * 1000;
 
 const integerSchema = v.pipe(
 	v.union([v.number(), v.pipe(v.string(), v.toNumber())], "Enter a number."),
+	v.finite("Enter a number."),
 	v.integer("Enter a whole number."),
 );
 
@@ -74,6 +75,7 @@ export const durationMinutesReason = (
 			"number",
 			"string",
 			"to_number",
+			"finite",
 			() => "invalid_number" as const,
 		)
 		.with("integer", () => "non_integer" as const)

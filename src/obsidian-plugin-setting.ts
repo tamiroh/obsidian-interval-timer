@@ -15,6 +15,7 @@ export const focusBgmVolumeRange = { min: 0, max: 100 } as const;
 
 const integerSchema = v.pipe(
 	v.union([v.number(), v.pipe(v.string(), v.toNumber())], "Enter a number."),
+	v.finite("Enter a number."),
 	v.integer("Enter a whole number."),
 );
 

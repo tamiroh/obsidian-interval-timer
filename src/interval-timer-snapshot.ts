@@ -12,6 +12,7 @@ const isIntervalTimerState = (value: string): value is IntervalTimerState =>
 
 const intervalCountSchema = v.pipe(
 	v.union([v.number(), v.pipe(v.string(), v.toNumber())]),
+	v.finite(),
 	v.integer(),
 	v.minValue(0),
 );
