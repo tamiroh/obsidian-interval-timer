@@ -5,12 +5,16 @@ import {
 } from "./interval-timer";
 import { KeyValueStore } from "./key-value-store";
 import * as v from "valibot";
-import { minutesSchema, secondsSchema, Time, wholeNumberSchema } from "./time";
+import { minutesSchema, secondsSchema, Time } from "./time";
 
 const isIntervalTimerState = (value: string): value is IntervalTimerState =>
 	intervalTimerStates.some((state) => state === value);
 
-const intervalCountSchema = v.pipe(wholeNumberSchema, v.minValue(0));
+const intervalCountSchema = v.pipe(
+	v.union([v.number(), v.pipe(v.string(), v.toNumber())]),
+	v.integer(),
+	v.minValue(0),
+);
 
 export class IntervalTimerSnapshotStore {
 	private readonly keyValueStore: KeyValueStore;

@@ -38,23 +38,23 @@ export const toMilliseconds = (value: Time): number => toSeconds(value) * 1000;
 // Schemas
 //
 
-export const wholeNumberSchema = v.pipe(
+const integerSchema = v.pipe(
 	v.union([v.number(), v.pipe(v.string(), v.toNumber())], "Enter a number."),
 	v.integer("Enter a whole number."),
 );
 
 export const minutesSchema = v.pipe(
-	wholeNumberSchema,
+	integerSchema,
 	v.guard(isMinutes, `Enter fewer than ${minutesUpperBound} minutes.`),
 );
 
 export const secondsSchema = v.pipe(
-	wholeNumberSchema,
+	integerSchema,
 	v.guard(isSeconds, `Enter fewer than ${secondsUpperBound} seconds.`),
 );
 
 export const durationMinutesSchema = v.pipe(
-	wholeNumberSchema,
+	integerSchema,
 	v.minValue(1, "Enter a positive whole number."),
 	v.guard(isMinutes, `Enter fewer than ${minutesUpperBound} minutes.`),
 );

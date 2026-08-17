@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import { durationMinutesSchema, wholeNumberSchema } from "./time";
+import { durationMinutesSchema } from "./time";
 import { defaultLongBreakAfter } from "./interval-timer";
 import { notificationStyles } from "./notification";
 import { focusBgmTypes } from "./focus-bgm";
@@ -13,15 +13,20 @@ export const focusTickSoundVolumeRange = { min: 0, max: 100 } as const;
 
 export const focusBgmVolumeRange = { min: 0, max: 100 } as const;
 
+const integerSchema = v.pipe(
+	v.union([v.number(), v.pipe(v.string(), v.toNumber())], "Enter a number."),
+	v.integer("Enter a whole number."),
+);
+
 const positiveIntegerSchema = v.pipe(
-	wholeNumberSchema,
+	integerSchema,
 	v.minValue(1, "Enter a positive whole number."),
 );
 
 const volumeSchema = (range: { min: number; max: number }) => {
 	const message = `Choose a value from ${range.min} to ${range.max}.`;
 	return v.pipe(
-		wholeNumberSchema,
+		integerSchema,
 		v.minValue(range.min, message),
 		v.maxValue(range.max, message),
 	);
