@@ -4,7 +4,7 @@ import {
 	TargetedEvent,
 	TargetedMouseEvent,
 } from "preact";
-import { useRef, useState } from "preact/hooks";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { match } from "ts-pattern";
 import { TimerType } from "./countdown-timer";
 import {
@@ -15,7 +15,7 @@ import {
 } from "./interval-timer";
 import { ObservableStore, useObservableStore } from "./observable-store";
 import { Position, usePopoverFloating } from "./popover-floating";
-import { minutesUpperBound, Time, toSeconds } from "./time";
+import { minutesUpperBound, time, Time, toSeconds } from "./time";
 
 //
 // Constants and types
@@ -77,7 +77,7 @@ export class Popover {
 		},
 	) {
 		this.store = new ObservableStore<PopoverSnapshot>({
-			time: { minutes: 0, seconds: 0 },
+			time: time(0, 0),
 			intervalTimerState: "focus",
 			timerState: "initialized",
 			intervalsSet: 0,
@@ -123,24 +123,24 @@ export class Popover {
 	}
 
 	public update(
-		time: Time,
+		currentTime: Time,
 		intervalTimerState: IntervalTimerState,
 		timerState: TimerType,
 		intervalsSet = 0,
 		longBreakAfter = defaultLongBreakAfter,
 	): void {
-		const remainingSeconds = toSeconds(time);
+		const remainingSeconds = toSeconds(currentTime);
 		if (timerState === "initialized" || this.intervalTotalSeconds === 0) {
 			this.intervalTotalSeconds = remainingSeconds;
 		}
 
 		this.store.update({
-			time,
+			time: currentTime,
 			intervalTimerState,
 			timerState,
 			intervalsSet,
 			longBreakAfter,
-			remainingPercent: time.negative
+			remainingPercent: currentTime.negative
 				? 0
 				: this.getRemainingPercent(remainingSeconds),
 			touchAction:
@@ -211,7 +211,7 @@ const PopoverView = ({
 }) => {
 	const {
 		intervalTimer,
-		time,
+		time: currentTime,
 		intervalTimerState,
 		timerState,
 		intervalsSet,
@@ -223,6 +223,8 @@ const PopoverView = ({
 		touchAction,
 	} = useObservableStore(store);
 	const [isEditingTime, setIsEditingTime] = useState(false);
+	const [retimeValue, setRetimeValue] = useState(String(currentTime.minutes));
+	const [shouldRestoreFocus, setShouldRestoreFocus] = useState(false);
 	const [expandedTask, setExpandedTask] = useState<ExpandedTask | null>(null);
 	const [closingAnimationState, setClosingAnimationState] =
 		useState<ClosingAnimationState>({ current: "idle" });
@@ -245,16 +247,24 @@ const PopoverView = ({
 			: "Break time";
 	const isTaskNameExpanded = expandedTask?.name === taskName;
 
+	useLayoutEffect(() => {
+		if (isEditingTime) {
+			retimeInputRef.current?.focus({ preventScroll: true });
+			retimeInputRef.current?.select();
+		}
+	}, [isEditingTime]);
+
+	useLayoutEffect(() => {
+		if (shouldRestoreFocus) {
+			setShouldRestoreFocus(false);
+			onRestoreFocus();
+		}
+	}, [shouldRestoreFocus, onRestoreFocus]);
+
 	const handleMinutesClick = () => {
 		suppressBlurApplyRef.current = false;
+		setRetimeValue(String(currentTime.minutes));
 		setIsEditingTime(true);
-		window.requestAnimationFrame(() => {
-			if (!retimeInputRef.current) return;
-
-			retimeInputRef.current.value = String(time.minutes);
-			retimeInputRef.current.focus({ preventScroll: true });
-			retimeInputRef.current.select();
-		});
 	};
 
 	const stopEditingTime = (restoreFocus: boolean) => {
@@ -266,14 +276,12 @@ const PopoverView = ({
 	};
 
 	const applyRetime = (restoreFocus = true) => {
-		if (!intervalTimer || !retimeInputRef.current) return;
+		if (!intervalTimer) return;
 
-		const result = intervalTimer.retime(
-			Number(retimeInputRef.current.value),
-		);
+		const result = intervalTimer.retime(Number(retimeValue));
 		if (!result.ok) {
 			if (!restoreFocus) {
-				retimeInputRef.current.value = String(time.minutes);
+				setRetimeValue(String(currentTime.minutes));
 				stopEditingTime(false);
 				return;
 			}
@@ -295,7 +303,7 @@ const PopoverView = ({
 					)
 					.exhaustive(),
 			);
-			retimeInputRef.current.select();
+			retimeInputRef.current?.select();
 			return;
 		}
 
@@ -322,9 +330,7 @@ const PopoverView = ({
 		store.update({ isFloating: false, isDismissed: true });
 		onFloatingChange(false);
 		if (restoreFocus) {
-			window.requestAnimationFrame(() => {
-				onRestoreFocus();
-			});
+			setShouldRestoreFocus(true);
 		}
 	};
 
@@ -419,6 +425,7 @@ const PopoverView = ({
 					aria-label="Close"
 					aria-hidden={!isFloating}
 					tabIndex={isFloating ? 0 : -1}
+					disabled={!isFloating}
 					onClick={handleCloseClick}
 				>
 					<Icon
@@ -435,6 +442,7 @@ const PopoverView = ({
 				aria-label="Return to original position"
 				aria-hidden={!floating.hasMovedFromOrigin}
 				tabIndex={floating.hasMovedFromOrigin ? 0 : -1}
+				disabled={!floating.hasMovedFromOrigin}
 				onClick={handleReturnToOrigin}
 			>
 				<Icon
@@ -478,13 +486,13 @@ const PopoverView = ({
 					<div className="interval-timer-popover-clock-readout">
 						<div
 							className={`interval-timer-popover-clock-time${
-								time.negative
+								currentTime.negative
 									? " interval-timer-popover-clock-time-negative"
 									: ""
 							}`}
 							data-testid="popover-clock-time"
 						>
-							{time.negative && (
+							{currentTime.negative && (
 								<span className="interval-timer-popover-clock-sign">
 									-
 								</span>
@@ -503,11 +511,15 @@ const PopoverView = ({
 									disabled={
 										!intervalTimer ||
 										timerState === "running" ||
-										time.negative
+										(currentTime.negative ?? false) ||
+										isEditingTime
 									}
 									onClick={handleMinutesClick}
 								>
-									{String(time.minutes).padStart(2, "0")}
+									{String(currentTime.minutes).padStart(
+										2,
+										"0",
+									)}
 								</button>
 								<form
 									className="interval-timer-popover-inline-retime-form"
@@ -523,7 +535,12 @@ const PopoverView = ({
 										aria-label="Retime minutes"
 										autoComplete="off"
 										spellcheck={false}
-										defaultValue={time.minutes}
+										value={retimeValue}
+										onInput={(event) => {
+											setRetimeValue(
+												event.currentTarget.value,
+											);
+										}}
 										onKeyDown={handleRetimeInputKeyDown}
 										onClick={(event) => {
 											event.currentTarget.select();
@@ -549,7 +566,7 @@ const PopoverView = ({
 								:
 							</span>
 							<span className="interval-timer-popover-clock-seconds">
-								{String(time.seconds).padStart(2, "0")}
+								{String(currentTime.seconds).padStart(2, "0")}
 							</span>
 						</div>
 					</div>

@@ -1,4 +1,7 @@
-import { parsePositiveInteger } from "./value-parser";
+import {
+	parsePositiveInteger,
+	type ParsePositiveIntegerResult,
+} from "./value-parser";
 import { isMinutes, type Minutes } from "./time";
 import {
 	defaultLongBreakAfter,
@@ -7,6 +10,8 @@ import {
 } from "./interval-timer";
 import type { NotificationStyle } from "./notification";
 import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
+import { ObservableStore } from "./observable-store";
+import { err, ok, type Result } from "./result";
 
 export type PluginSetting = {
 	focusIntervalDuration: Minutes;
@@ -20,6 +25,176 @@ export type PluginSetting = {
 	focusBgmType: FocusBgmType;
 	focusBgmVolume: number;
 };
+
+export type ParseNotificationStyleResult = Result<
+	NotificationStyle,
+	"invalid_notification_style"
+>;
+
+export type ParseBooleanResult = Result<boolean, "invalid_boolean">;
+
+export type ParseFocusTickSoundVolumeResult = Result<
+	number,
+	"invalid_focus_tick_sound_volume"
+>;
+
+export type ParseIntervalCompletionBehaviorResult = Result<
+	IntervalCompletionBehavior,
+	"invalid_interval_completion_behavior"
+>;
+
+export type ParseFocusBgmTypeResult = Result<
+	FocusBgmType,
+	"invalid_focus_bgm_type"
+>;
+
+export type ParseFocusBgmVolumeResult = Result<
+	number,
+	"invalid_focus_bgm_volume"
+>;
+
+export type ParseDurationResult = Result<
+	Minutes,
+	"invalid_number" | "non_positive_integer" | "out_of_range_minutes"
+>;
+
+export type PluginSettingUpdateResult =
+	| ParseDurationResult
+	| ParsePositiveIntegerResult
+	| ParseNotificationStyleResult
+	| ParseBooleanResult
+	| ParseFocusTickSoundVolumeResult
+	| ParseIntervalCompletionBehaviorResult
+	| ParseFocusBgmTypeResult
+	| ParseFocusBgmVolumeResult;
+
+export const parseDuration = (value: unknown): ParseDurationResult => {
+	const parsed = parsePositiveInteger(value);
+	if (!parsed.ok) return parsed;
+	if (!isMinutes(parsed.value)) {
+		return err("out_of_range_minutes");
+	}
+	return ok(parsed.value);
+};
+
+export const parseNotificationStyleValue = (
+	value: unknown,
+): ParseNotificationStyleResult =>
+	isNotificationStyle(value) ? ok(value) : err("invalid_notification_style");
+
+export const parseFlashOverlayEnabled = (value: unknown): ParseBooleanResult =>
+	typeof value === "boolean" ? ok(value) : err("invalid_boolean");
+
+export const parseFocusTickSoundVolumeValue = (
+	value: unknown,
+): ParseFocusTickSoundVolumeResult =>
+	isFocusTickSoundVolume(value)
+		? ok(value)
+		: err("invalid_focus_tick_sound_volume");
+
+export const parseIntervalCompletionBehaviorValue = (
+	value: unknown,
+): ParseIntervalCompletionBehaviorResult =>
+	isIntervalCompletionBehavior(value)
+		? ok(value)
+		: err("invalid_interval_completion_behavior");
+
+export const parseFocusBgmTypeValue = (
+	value: unknown,
+): ParseFocusBgmTypeResult =>
+	isFocusBgmType(value) ? ok(value) : err("invalid_focus_bgm_type");
+
+export const parseFocusBgmVolumeValue = (
+	value: unknown,
+): ParseFocusBgmVolumeResult =>
+	isFocusBgmVolume(value) ? ok(value) : err("invalid_focus_bgm_volume");
+
+export class PluginSettingStore extends ObservableStore<PluginSetting> {
+	public override update(patch: Partial<PluginSetting>): void;
+	public override update(
+		key: keyof PluginSetting,
+		value: unknown,
+	): PluginSettingUpdateResult;
+	public override update(
+		patchOrKey: Partial<PluginSetting> | keyof PluginSetting,
+		value?: unknown,
+	): void | PluginSettingUpdateResult {
+		if (typeof patchOrKey !== "string") {
+			super.update(patchOrKey);
+			return;
+		}
+
+		const key = patchOrKey;
+		switch (key) {
+			case "focusIntervalDuration":
+			case "shortBreakDuration":
+			case "longBreakDuration": {
+				const parsed = parseDuration(value);
+				if (!parsed.ok) return parsed;
+
+				super.update({ [key]: parsed.value });
+
+				return parsed;
+			}
+			case "longBreakAfter": {
+				const parsed = parsePositiveInteger(value);
+				if (!parsed.ok) return parsed;
+
+				super.update({ longBreakAfter: parsed.value });
+
+				return parsed;
+			}
+			case "notificationStyle": {
+				const parsed = parseNotificationStyleValue(value);
+				if (!parsed.ok) return parsed;
+
+				super.update({ notificationStyle: parsed.value });
+
+				return parsed;
+			}
+			case "flashOverlayEnabled": {
+				const parsed = parseFlashOverlayEnabled(value);
+				if (!parsed.ok) return parsed;
+
+				super.update({ flashOverlayEnabled: parsed.value });
+
+				return parsed;
+			}
+			case "focusTickSoundVolume": {
+				const parsed = parseFocusTickSoundVolumeValue(value);
+				if (!parsed.ok) return parsed;
+
+				super.update({ focusTickSoundVolume: parsed.value });
+
+				return parsed;
+			}
+			case "intervalCompletionBehavior": {
+				const parsed = parseIntervalCompletionBehaviorValue(value);
+				if (!parsed.ok) return parsed;
+
+				super.update({ intervalCompletionBehavior: parsed.value });
+
+				return parsed;
+			}
+			case "focusBgmType": {
+				const parsed = parseFocusBgmTypeValue(value);
+				if (!parsed.ok) return parsed;
+
+				super.update({ focusBgmType: parsed.value });
+
+				return parsed;
+			}
+			case "focusBgmVolume": {
+				const parsed = parseFocusBgmVolumeValue(value);
+				if (!parsed.ok) return parsed;
+
+				super.update({ focusBgmVolume: parsed.value });
+
+				return parsed;
+			}
+		}
+	}
+}
 
 export const focusTickSoundVolumeRange = { min: 0, max: 100 } as const;
 

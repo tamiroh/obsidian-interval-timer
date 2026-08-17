@@ -12,38 +12,38 @@
 	);
 }
 
-.interval-timer-start-task-button {
+.interval-timer-task-line-highlight-start-task-button {
 	position: absolute;
 	right: 6px;
 	bottom: 1px;
 	padding: 2px 7px;
-	border: 1px solid var(--background-modifier-border-hover);
-	border-radius: 999px;
-	background-color: var(--background-secondary);
-	color: var(--text-muted);
+	font-family: var(--font-interface);
 	font-size: 11px;
 	font-weight: 500;
 	line-height: 1;
-	text-decoration: none;
+	color: var(--text-muted);
 	white-space: nowrap;
-	cursor: pointer;
-	font-family: var(--font-interface);
+	text-decoration: none;
 	appearance: none;
+	cursor: pointer;
+	background-color: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border-hover);
+	border-radius: 999px;
 	transition:
 		background-color 100ms ease,
 		border-color 100ms ease,
 		color 100ms ease;
 }
 
-.interval-timer-start-task-button:hover,
-.interval-timer-start-task-button:focus-visible {
-	border-color: var(--background-modifier-border-focus);
-	background-color: var(--background-modifier-hover);
+.interval-timer-task-line-highlight-start-task-button:hover,
+.interval-timer-task-line-highlight-start-task-button:focus-visible {
 	color: var(--text-normal);
 	text-decoration: none;
+	background-color: var(--background-modifier-hover);
+	border-color: var(--background-modifier-border-focus);
 }
 
-.interval-timer-start-task-button:focus-visible {
+.interval-timer-task-line-highlight-start-task-button:focus-visible {
 	outline: 2px solid var(--interactive-accent);
 	outline-offset: 2px;
 }

@@ -11,17 +11,19 @@ import local from "./eslint-plugin-local.mts";
 export default defineConfig(
 	{
 		name: "local/base",
-		extends: [
-			obsidianmd.configs.recommended,
-			reactHooks.configs.flat.recommended,
-		],
+		extends: [obsidianmd.configs.recommended],
 		languageOptions: {
 			globals: {
 				...globals.browser,
 			},
 			parserOptions: {
 				projectService: {
-					allowDefaultProject: ["eslint.config.js", "manifest.json"],
+					allowDefaultProject: [
+						"eslint.config.mts",
+						"eslint-plugin-local.mts",
+						"stylelint.config.mjs",
+						"manifest.json",
+					],
 				},
 				tsconfigRootDir: import.meta.dirname,
 				extraFileExtensions: [".json"],
@@ -37,15 +39,12 @@ export default defineConfig(
 				"@typescript-eslint/parser": [".ts", ".tsx"],
 			},
 		},
-		rules: {
-			"import/no-cycle": "error",
-		},
 	},
 	globalIgnores([
 		"node_modules",
 		"dist",
 		"esbuild.config.mjs",
-		"eslint.config.js",
+		"stylelint-plugin-local.mjs",
 		"bin/version-bump.mjs",
 		"versions.json",
 		"main.js",
@@ -53,13 +52,25 @@ export default defineConfig(
 		"vitest.setup.ts",
 	]),
 	{
+		// This file sits outside tsconfig.json's project (see allowDefaultProject
+		// above), so typescript-eslint falls back to an isolated single-file
+		// program that can't resolve `import.meta.dirname`'s type.
+		name: "local/config-file-type-info",
+		files: ["eslint.config.mts"],
+		rules: {
+			"@typescript-eslint/no-unsafe-assignment": "off",
+		},
+	},
+	{
 		name: "local/ts",
 		files: ["**/*.{ts,tsx}"],
 		extends: [
 			tseslint.configs.strictTypeChecked,
 			tseslint.configs.stylisticTypeChecked,
+			reactHooks.configs.flat.recommended,
 		],
 		rules: {
+			"import/no-cycle": "error",
 			"@typescript-eslint/restrict-template-expressions": [
 				"error",
 				{ allowNumber: true },
@@ -70,6 +81,10 @@ export default defineConfig(
 			],
 			"@typescript-eslint/non-nullable-type-assertion-style": "off", // Conflicts with no-non-null-assertion
 			"@typescript-eslint/consistent-type-definitions": ["error", "type"],
+			"@typescript-eslint/switch-exhaustiveness-check": "error",
+			"@typescript-eslint/strict-boolean-expressions": "error",
+			"@typescript-eslint/no-shadow": "error",
+			eqeqeq: ["error", "always", { null: "ignore" }],
 		},
 	},
 	{
@@ -84,12 +99,16 @@ export default defineConfig(
 					optionalDependencies: false,
 				},
 			],
+			"@typescript-eslint/consistent-type-assertions": [
+				"error",
+				{ assertionStyle: "never" },
+			],
 		},
 	},
 	{
 		name: "local/restrict-obsidian-imports",
 		files: ["**/*.{ts,tsx}"],
-		ignores: ["**/obsidian*.{ts,tsx}"],
+		ignores: ["**/obsidian*.{ts,tsx}", "index.ts"],
 		rules: {
 			"no-restricted-imports": [
 				"error",

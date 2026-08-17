@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { App, PluginManifest } from "obsidian";
 import { Notice } from "./obsidian-fake";
-import Plugin from "./obsidian-plugin";
+import { Plugin } from "./obsidian-plugin";
 import { defaultPluginSetting } from "./obsidian-plugin-setting";
 
 describe("Plugin", () => {
@@ -19,33 +19,30 @@ describe("Plugin", () => {
 
 		await plugin.onload();
 
-		expect(plugin.settings).toEqual(defaultPluginSetting);
+		expect(plugin.currentSettings).toEqual(defaultPluginSetting);
 	});
 
 	it("updates a valid duration setting", async () => {
 		const plugin = createPlugin();
 		await plugin.onload();
 
-		const result = await plugin.updateSetting(
-			"focusIntervalDuration",
-			"30",
-		);
+		const result = plugin.updateSetting("focusIntervalDuration", "30");
 
 		expect(result).toEqual({ ok: true, value: 30 });
-		expect(plugin.settings.focusIntervalDuration).toBe(30);
+		expect(plugin.currentSettings.focusIntervalDuration).toBe(30);
 	});
 
 	it("rejects a non-positive-integer duration setting", async () => {
 		const plugin = createPlugin();
 		await plugin.onload();
 
-		const result = await plugin.updateSetting(
+		const result = plugin.updateSetting(
 			"focusIntervalDuration",
 			"not-a-number",
 		);
 
 		expect(result).toEqual({ ok: false, reason: "invalid_number" });
-		expect(plugin.settings.focusIntervalDuration).toBe(
+		expect(plugin.currentSettings.focusIntervalDuration).toBe(
 			defaultPluginSetting.focusIntervalDuration,
 		);
 	});
@@ -54,10 +51,7 @@ describe("Plugin", () => {
 		const plugin = createPlugin();
 		await plugin.onload();
 
-		const result = await plugin.updateSetting(
-			"notificationStyle",
-			"unsupported",
-		);
+		const result = plugin.updateSetting("notificationStyle", "unsupported");
 
 		expect(result).toEqual({
 			ok: false,
@@ -69,20 +63,20 @@ describe("Plugin", () => {
 		const plugin = createPlugin();
 		await plugin.onload();
 
-		const result = await plugin.updateSetting("flashOverlayEnabled", true);
+		const result = plugin.updateSetting("flashOverlayEnabled", true);
 
 		expect(result).toEqual({ ok: true, value: true });
-		expect(plugin.settings.flashOverlayEnabled).toBe(true);
+		expect(plugin.currentSettings.flashOverlayEnabled).toBe(true);
 	});
 
 	it("rejects a non-boolean flash overlay setting", async () => {
 		const plugin = createPlugin();
 		await plugin.onload();
 
-		const result = await plugin.updateSetting("flashOverlayEnabled", "yes");
+		const result = plugin.updateSetting("flashOverlayEnabled", "yes");
 
 		expect(result).toEqual({ ok: false, reason: "invalid_boolean" });
-		expect(plugin.settings.flashOverlayEnabled).toBe(
+		expect(plugin.currentSettings.flashOverlayEnabled).toBe(
 			defaultPluginSetting.flashOverlayEnabled,
 		);
 	});
@@ -91,23 +85,23 @@ describe("Plugin", () => {
 		const plugin = createPlugin();
 		await plugin.onload();
 
-		const result = await plugin.updateSetting("focusTickSoundVolume", 65);
+		const result = plugin.updateSetting("focusTickSoundVolume", 65);
 
 		expect(result).toEqual({ ok: true, value: 65 });
-		expect(plugin.settings.focusTickSoundVolume).toBe(65);
+		expect(plugin.currentSettings.focusTickSoundVolume).toBe(65);
 	});
 
 	it("rejects an out-of-range focus tick sound volume", async () => {
 		const plugin = createPlugin();
 		await plugin.onload();
 
-		const result = await plugin.updateSetting("focusTickSoundVolume", 101);
+		const result = plugin.updateSetting("focusTickSoundVolume", 101);
 
 		expect(result).toEqual({
 			ok: false,
 			reason: "invalid_focus_tick_sound_volume",
 		});
-		expect(plugin.settings.focusTickSoundVolume).toBe(
+		expect(plugin.currentSettings.focusTickSoundVolume).toBe(
 			defaultPluginSetting.focusTickSoundVolume,
 		);
 	});
@@ -116,13 +110,13 @@ describe("Plugin", () => {
 		const plugin = createPlugin();
 		await plugin.onload();
 
-		const result = await plugin.updateSetting(
+		const result = plugin.updateSetting(
 			"intervalCompletionBehavior",
 			"countDownPastZero",
 		);
 
 		expect(result).toEqual({ ok: true, value: "countDownPastZero" });
-		expect(plugin.settings.intervalCompletionBehavior).toBe(
+		expect(plugin.currentSettings.intervalCompletionBehavior).toBe(
 			"countDownPastZero",
 		);
 	});

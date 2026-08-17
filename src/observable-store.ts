@@ -3,7 +3,7 @@ import { useLayoutEffect, useState } from "preact/hooks";
 export class ObservableStore<T extends object> {
 	private currentState: T;
 
-	private readonly listeners = new Set<() => void>();
+	private readonly listeners = new Set<(previous: T, next: T) => void>();
 
 	constructor(initialState: T) {
 		this.currentState = initialState;
@@ -13,15 +13,18 @@ export class ObservableStore<T extends object> {
 		return this.currentState;
 	}
 
-	public readonly subscribe = (listener: () => void): (() => void) => {
+	public readonly subscribe = (
+		listener: (previous: T, next: T) => void,
+	): (() => void) => {
 		this.listeners.add(listener);
 		return () => this.listeners.delete(listener);
 	};
 
 	public update(patch: Partial<T>): void {
+		const previous = this.currentState;
 		this.currentState = { ...this.currentState, ...patch };
 		this.listeners.forEach((listener) => {
-			listener();
+			listener(previous, this.currentState);
 		});
 	}
 }

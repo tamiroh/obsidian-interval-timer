@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";
 import { StatusBar } from "./status-bar";
+import { time } from "./time";
 
 const statusBars = new Set<StatusBar>();
 
@@ -40,12 +41,7 @@ describe("StatusBar", () => {
 		const statusBar = await createStatusBar(el);
 
 		// Act
-		statusBar.update(
-			{ total: 4, set: 2 },
-			{ minutes: 7, seconds: 5 },
-			"focus",
-			"running",
-		);
+		statusBar.update({ total: 4, set: 2 }, time(7, 5), "focus", "running");
 
 		// Assert
 		expect(within(el).getByTestId("status-bar-compact")).toHaveTextContent(
@@ -93,7 +89,7 @@ describe("StatusBar", () => {
 		// Act
 		statusBar.update(
 			{ total: 4, set: 2 },
-			{ minutes: 5, seconds: 0 },
+			time(5, 0),
 			"shortBreak",
 			"paused",
 		);
@@ -113,18 +109,13 @@ describe("StatusBar", () => {
 		const statusBar = await createStatusBar(el);
 		statusBar.update(
 			{ total: 0, set: 0 },
-			{ minutes: 25, seconds: 0 },
+			time(25, 0),
 			"focus",
 			"initialized",
 		);
 
 		// Act
-		statusBar.update(
-			{ total: 0, set: 0 },
-			{ minutes: 15, seconds: 0 },
-			"focus",
-			"running",
-		);
+		statusBar.update({ total: 0, set: 0 }, time(15, 0), "focus", "running");
 
 		// Assert
 		await waitFor(() =>
@@ -142,16 +133,11 @@ describe("StatusBar", () => {
 		const statusBar = await createStatusBar(el);
 
 		// Act
-		statusBar.update(
-			{ total: 4, set: 0 },
-			{ minutes: 1, seconds: 0 },
-			"focus",
-			"running",
-		);
+		statusBar.update({ total: 4, set: 0 }, time(1, 0), "focus", "running");
 
 		// Assert
 		expect(within(el).getByTestId("status-bar-separator")).toHaveClass(
-			"interval-timer-time-separator-running",
+			"interval-timer-status-bar-time-separator-running",
 		);
 		await waitFor(() =>
 			expect(
@@ -166,24 +152,14 @@ describe("StatusBar", () => {
 		const statusBar = await createStatusBar(el);
 		const intervalTimer = createIntervalTimer();
 		statusBar.enableClick(intervalTimer);
-		statusBar.update(
-			{ total: 4, set: 0 },
-			{ minutes: 1, seconds: 0 },
-			"focus",
-			"running",
-		);
+		statusBar.update({ total: 4, set: 0 }, time(1, 0), "focus", "running");
 
 		// Act
-		statusBar.update(
-			{ total: 4, set: 0 },
-			{ minutes: 1, seconds: 0 },
-			"focus",
-			"paused",
-		);
+		statusBar.update({ total: 4, set: 0 }, time(1, 0), "focus", "paused");
 
 		// Assert
 		expect(within(el).getByTestId("status-bar-separator")).not.toHaveClass(
-			"interval-timer-time-separator-running",
+			"interval-timer-status-bar-time-separator-running",
 		);
 		expect(
 			await within(el).findByRole("button", { name: "Start" }),
@@ -298,7 +274,7 @@ describe("StatusBar", () => {
 		statusBar.enableClick(intervalTimer);
 		statusBar.update(
 			{ total: 0, set: 0 },
-			{ minutes: 7, seconds: 0 },
+			time(7, 0),
 			"focus",
 			"initialized",
 		);

@@ -9,7 +9,7 @@
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"lint": "eslint \"src/**/*.{ts,tsx}\" && npm run lint:styles",
+		"lint": "npx eslint . && npm run lint:styles",
 		"lint:styles": "stylelint \"src/**/*.css\" \"index.css\"",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
@@ -41,7 +41,9 @@
 		"obsidian": "^1.13.1",
 		"prettier": "^3.9.6",
 		"stylelint": "^17.14.1",
+		"stylelint-config-recess-order": "^7.8.0",
 		"stylelint-config-standard": "^40.0.0",
+		"stylelint-order": "^8.1.1",
 		"tslib": "2.8.1",
 		"typescript": "6.0.3",
 		"typescript-eslint": "^8.65.0",

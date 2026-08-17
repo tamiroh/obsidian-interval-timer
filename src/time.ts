@@ -12,16 +12,21 @@ export type Time = {
 	negative?: true;
 };
 
+export const time = (minutes: Minutes, seconds: Seconds): Time => ({
+	minutes,
+	seconds,
+});
+
 export const isMinutes = (value: number): value is Minutes =>
 	Number.isInteger(value) && value >= 0 && value < minutesUpperBound;
 
 export const isSeconds = (value: number): value is Seconds =>
 	Number.isInteger(value) && value >= 0 && value < secondsUpperBound;
 
-export const toSeconds = (time: Time): number =>
-	time.minutes * 60 + time.seconds;
+export const toSeconds = ({ minutes, seconds }: Time): number =>
+	minutes * 60 + seconds;
 
-export const toSignedSeconds = (time: Time): number =>
-	(time.negative ? -1 : 1) * toSeconds(time);
+export const toSignedSeconds = (value: Time): number =>
+	(value.negative ? -1 : 1) * toSeconds(value);
 
-export const toMilliseconds = (time: Time): number => toSeconds(time) * 1000;
+export const toMilliseconds = (value: Time): number => toSeconds(value) * 1000;
