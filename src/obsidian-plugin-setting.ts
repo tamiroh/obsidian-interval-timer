@@ -21,75 +21,17 @@ export type PluginSetting = {
 	focusBgmVolume: number;
 };
 
-export type ParseNotificationStyleResult = Result<
-	NotificationStyle,
-	"invalid_notification_style"
->;
-
-export type ParseBooleanResult = Result<boolean, "invalid_boolean">;
-
-export type ParseFocusTickSoundVolumeResult = Result<
-	number,
-	"invalid_focus_tick_sound_volume"
->;
-
-export type ParseFocusBgmTypeResult = Result<
-	FocusBgmType,
-	"invalid_focus_bgm_type"
->;
-
-export type ParseFocusBgmVolumeResult = Result<
-	number,
-	"invalid_focus_bgm_volume"
->;
-
-export type ParseDurationResult = Result<
-	Minutes,
-	"invalid_number" | "non_positive_integer" | "out_of_range_minutes"
->;
-
 export type PluginSettingUpdateResult =
-	| ParseDurationResult
+	| Result<
+			Minutes,
+			"invalid_number" | "non_positive_integer" | "out_of_range_minutes"
+	  >
 	| ParsePositiveIntegerResult
-	| ParseNotificationStyleResult
-	| ParseBooleanResult
-	| ParseFocusTickSoundVolumeResult
-	| ParseFocusBgmTypeResult
-	| ParseFocusBgmVolumeResult;
-
-export const parseDuration = (value: unknown): ParseDurationResult => {
-	const parsed = parsePositiveInteger(value);
-	if (!parsed.ok) return parsed;
-	if (!isMinutes(parsed.value)) {
-		return err("out_of_range_minutes");
-	}
-	return ok(parsed.value);
-};
-
-export const parseNotificationStyleValue = (
-	value: unknown,
-): ParseNotificationStyleResult =>
-	isNotificationStyle(value) ? ok(value) : err("invalid_notification_style");
-
-export const parseFlashOverlayEnabled = (value: unknown): ParseBooleanResult =>
-	typeof value === "boolean" ? ok(value) : err("invalid_boolean");
-
-export const parseFocusTickSoundVolumeValue = (
-	value: unknown,
-): ParseFocusTickSoundVolumeResult =>
-	isFocusTickSoundVolume(value)
-		? ok(value)
-		: err("invalid_focus_tick_sound_volume");
-
-export const parseFocusBgmTypeValue = (
-	value: unknown,
-): ParseFocusBgmTypeResult =>
-	isFocusBgmType(value) ? ok(value) : err("invalid_focus_bgm_type");
-
-export const parseFocusBgmVolumeValue = (
-	value: unknown,
-): ParseFocusBgmVolumeResult =>
-	isFocusBgmVolume(value) ? ok(value) : err("invalid_focus_bgm_volume");
+	| Result<NotificationStyle, "invalid_notification_style">
+	| Result<boolean, "invalid_boolean">
+	| Result<number, "invalid_focus_tick_sound_volume">
+	| Result<FocusBgmType, "invalid_focus_bgm_type">
+	| Result<number, "invalid_focus_bgm_volume">;
 
 export class PluginSettingStore extends ObservableStore<PluginSetting> {
 	public override update(patch: Partial<PluginSetting>): void;
@@ -111,12 +53,15 @@ export class PluginSettingStore extends ObservableStore<PluginSetting> {
 			case "focusIntervalDuration":
 			case "shortBreakDuration":
 			case "longBreakDuration": {
-				const parsed = parseDuration(value);
+				const parsed = parsePositiveInteger(value);
 				if (!parsed.ok) return parsed;
+				if (!isMinutes(parsed.value)) {
+					return err("out_of_range_minutes");
+				}
 
 				super.update({ [key]: parsed.value });
 
-				return parsed;
+				return ok(parsed.value);
 			}
 			case "longBreakAfter": {
 				const parsed = parsePositiveInteger(value);
@@ -127,44 +72,45 @@ export class PluginSettingStore extends ObservableStore<PluginSetting> {
 				return parsed;
 			}
 			case "notificationStyle": {
-				const parsed = parseNotificationStyleValue(value);
-				if (!parsed.ok) return parsed;
+				if (!isNotificationStyle(value)) {
+					return err("invalid_notification_style");
+				}
 
-				super.update({ notificationStyle: parsed.value });
+				super.update({ notificationStyle: value });
 
-				return parsed;
+				return ok(value);
 			}
 			case "flashOverlayEnabled": {
-				const parsed = parseFlashOverlayEnabled(value);
-				if (!parsed.ok) return parsed;
+				if (typeof value !== "boolean") return err("invalid_boolean");
 
-				super.update({ flashOverlayEnabled: parsed.value });
+				super.update({ flashOverlayEnabled: value });
 
-				return parsed;
+				return ok(value);
 			}
 			case "focusTickSoundVolume": {
-				const parsed = parseFocusTickSoundVolumeValue(value);
-				if (!parsed.ok) return parsed;
+				if (!isFocusTickSoundVolume(value)) {
+					return err("invalid_focus_tick_sound_volume");
+				}
 
-				super.update({ focusTickSoundVolume: parsed.value });
+				super.update({ focusTickSoundVolume: value });
 
-				return parsed;
+				return ok(value);
 			}
 			case "focusBgmType": {
-				const parsed = parseFocusBgmTypeValue(value);
-				if (!parsed.ok) return parsed;
+				if (!isFocusBgmType(value)) return err("invalid_focus_bgm_type");
 
-				super.update({ focusBgmType: parsed.value });
+				super.update({ focusBgmType: value });
 
-				return parsed;
+				return ok(value);
 			}
 			case "focusBgmVolume": {
-				const parsed = parseFocusBgmVolumeValue(value);
-				if (!parsed.ok) return parsed;
+				if (!isFocusBgmVolume(value)) {
+					return err("invalid_focus_bgm_volume");
+				}
 
-				super.update({ focusBgmVolume: parsed.value });
+				super.update({ focusBgmVolume: value });
 
-				return parsed;
+				return ok(value);
 			}
 		}
 	}
