@@ -1,37 +1,83 @@
-import {
-	parsePositiveInteger,
-	type ParsePositiveIntegerResult,
-} from "./value-parser";
-import { isMinutes, type Minutes } from "./time";
+import * as v from "valibot";
+import { durationMinutesSchema, wholeNumberSchema } from "./time";
 import { defaultLongBreakAfter } from "./interval-timer";
-import type { NotificationStyle } from "./notification";
-import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
+import { notificationStyles } from "./notification";
+import { focusBgmTypes } from "./focus-bgm";
 import { ObservableStore } from "./observable-store";
-import { err, ok, type Result } from "./result";
 
-export type PluginSetting = {
-	focusIntervalDuration: Minutes;
-	shortBreakDuration: Minutes;
-	longBreakDuration: Minutes;
-	longBreakAfter: number;
-	notificationStyle: NotificationStyle;
-	flashOverlayEnabled: boolean;
-	focusTickSoundVolume: number;
-	focusBgmType: FocusBgmType;
-	focusBgmVolume: number;
+//
+// Schemas
+//
+
+export const focusTickSoundVolumeRange = { min: 0, max: 100 } as const;
+
+export const focusBgmVolumeRange = { min: 0, max: 100 } as const;
+
+const positiveIntegerSchema = v.pipe(
+	wholeNumberSchema,
+	v.minValue(1, "Enter a positive whole number."),
+);
+
+const volumeSchema = (range: { min: number; max: number }) => {
+	const message = `Choose a value from ${range.min} to ${range.max}.`;
+	return v.pipe(
+		wholeNumberSchema,
+		v.minValue(range.min, message),
+		v.maxValue(range.max, message),
+	);
 };
 
-export type PluginSettingUpdateResult =
-	| Result<
-			Minutes,
-			"invalid_number" | "non_positive_integer" | "out_of_range_minutes"
-	  >
-	| ParsePositiveIntegerResult
-	| Result<NotificationStyle, "invalid_notification_style">
-	| Result<boolean, "invalid_boolean">
-	| Result<number, "invalid_focus_tick_sound_volume">
-	| Result<FocusBgmType, "invalid_focus_bgm_type">
-	| Result<number, "invalid_focus_bgm_volume">;
+const pluginSettingSchema = v.object({
+	focusIntervalDuration: v.optional(durationMinutesSchema, 25),
+	shortBreakDuration: v.optional(durationMinutesSchema, 5),
+	longBreakDuration: v.optional(durationMinutesSchema, 15),
+	longBreakAfter: v.optional(positiveIntegerSchema, defaultLongBreakAfter),
+	notificationStyle: v.optional(
+		v.picklist(notificationStyles, "Select a valid option."),
+		"simple",
+	),
+	flashOverlayEnabled: v.optional(v.boolean("Select a valid option."), false),
+	focusTickSoundVolume: v.optional(
+		volumeSchema(focusTickSoundVolumeRange),
+		0,
+	),
+	focusBgmType: v.optional(
+		v.picklist(focusBgmTypes, "Select a valid option."),
+		"none",
+	),
+	focusBgmVolume: v.optional(volumeSchema(focusBgmVolumeRange), 50),
+});
+
+//
+// Settings
+//
+
+export type PluginSetting = v.InferOutput<typeof pluginSettingSchema>;
+
+export type PluginSettingUpdateResult = v.SafeParseResult<
+	(typeof pluginSettingSchema.entries)[keyof PluginSetting]
+>;
+
+export const defaultPluginSetting = v.parse(pluginSettingSchema, {});
+
+const storedSchema = v.fallback(v.record(v.string(), v.unknown()), {});
+
+export const parsePluginSetting = (value: unknown): PluginSetting => {
+	const stored = v.parse(storedSchema, value);
+
+	const accepted: Record<string, unknown> = {};
+	for (const [key, entry] of Object.entries(pluginSettingSchema.entries)) {
+		const parsed = v.safeParse(entry, stored[key]);
+		if (parsed.success) {
+			accepted[key] = parsed.output;
+		}
+	}
+	return v.parse(pluginSettingSchema, accepted);
+};
+
+//
+// Store
+//
 
 export class PluginSettingStore extends ObservableStore<PluginSetting> {
 	public override update(patch: Partial<PluginSetting>): void;
@@ -48,164 +94,13 @@ export class PluginSettingStore extends ObservableStore<PluginSetting> {
 			return;
 		}
 
-		const key = patchOrKey;
-		switch (key) {
-			case "focusIntervalDuration":
-			case "shortBreakDuration":
-			case "longBreakDuration": {
-				const parsed = parsePositiveInteger(value);
-				if (!parsed.ok) return parsed;
-				if (!isMinutes(parsed.value)) {
-					return err("out_of_range_minutes");
-				}
-
-				super.update({ [key]: parsed.value });
-
-				return ok(parsed.value);
-			}
-			case "longBreakAfter": {
-				const parsed = parsePositiveInteger(value);
-				if (!parsed.ok) return parsed;
-
-				super.update({ longBreakAfter: parsed.value });
-
-				return parsed;
-			}
-			case "notificationStyle": {
-				if (!isNotificationStyle(value)) {
-					return err("invalid_notification_style");
-				}
-
-				super.update({ notificationStyle: value });
-
-				return ok(value);
-			}
-			case "flashOverlayEnabled": {
-				if (typeof value !== "boolean") return err("invalid_boolean");
-
-				super.update({ flashOverlayEnabled: value });
-
-				return ok(value);
-			}
-			case "focusTickSoundVolume": {
-				if (!isFocusTickSoundVolume(value)) {
-					return err("invalid_focus_tick_sound_volume");
-				}
-
-				super.update({ focusTickSoundVolume: value });
-
-				return ok(value);
-			}
-			case "focusBgmType": {
-				if (!isFocusBgmType(value)) return err("invalid_focus_bgm_type");
-
-				super.update({ focusBgmType: value });
-
-				return ok(value);
-			}
-			case "focusBgmVolume": {
-				if (!isFocusBgmVolume(value)) {
-					return err("invalid_focus_bgm_volume");
-				}
-
-				super.update({ focusBgmVolume: value });
-
-				return ok(value);
-			}
+		const parsed = v.safeParse(
+			pluginSettingSchema.entries[patchOrKey],
+			value,
+		);
+		if (parsed.success) {
+			super.update({ [patchOrKey]: parsed.output });
 		}
+		return parsed;
 	}
 }
-
-export const focusTickSoundVolumeRange = { min: 0, max: 100 } as const;
-
-export const focusBgmVolumeRange = { min: 0, max: 100 } as const;
-
-export const defaultPluginSetting = {
-	focusIntervalDuration: 25,
-	shortBreakDuration: 5,
-	longBreakDuration: 15,
-	longBreakAfter: defaultLongBreakAfter,
-	notificationStyle: "simple",
-	flashOverlayEnabled: false,
-	focusTickSoundVolume: 0,
-	focusBgmType: "none",
-	focusBgmVolume: 50,
-} satisfies PluginSetting;
-
-export const parsePluginSetting = (value: unknown): PluginSetting => {
-	const stored = isRecord(value) ? value : {};
-
-	return {
-		focusIntervalDuration: parseDurationOrDefault(
-			stored.focusIntervalDuration,
-			defaultPluginSetting.focusIntervalDuration,
-		),
-		shortBreakDuration: parseDurationOrDefault(
-			stored.shortBreakDuration,
-			defaultPluginSetting.shortBreakDuration,
-		),
-		longBreakDuration: parseDurationOrDefault(
-			stored.longBreakDuration,
-			defaultPluginSetting.longBreakDuration,
-		),
-		longBreakAfter: parsePositiveIntegerOrDefault(
-			stored.longBreakAfter,
-			defaultPluginSetting.longBreakAfter,
-		),
-		notificationStyle: isNotificationStyle(stored.notificationStyle)
-			? stored.notificationStyle
-			: defaultPluginSetting.notificationStyle,
-		flashOverlayEnabled:
-			typeof stored.flashOverlayEnabled === "boolean"
-				? stored.flashOverlayEnabled
-				: defaultPluginSetting.flashOverlayEnabled,
-		focusTickSoundVolume: isFocusTickSoundVolume(
-			stored.focusTickSoundVolume,
-		)
-			? stored.focusTickSoundVolume
-			: defaultPluginSetting.focusTickSoundVolume,
-		focusBgmType: isFocusBgmType(stored.focusBgmType)
-			? stored.focusBgmType
-			: defaultPluginSetting.focusBgmType,
-		focusBgmVolume: isFocusBgmVolume(stored.focusBgmVolume)
-			? stored.focusBgmVolume
-			: defaultPluginSetting.focusBgmVolume,
-	};
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-	typeof value === "object" && value !== null && !Array.isArray(value);
-
-const parsePositiveIntegerOrDefault = (
-	value: unknown,
-	fallback: number,
-): number => {
-	const parsed = parsePositiveInteger(value);
-	return parsed.ok ? parsed.value : fallback;
-};
-
-const parseDurationOrDefault = (value: unknown, fallback: Minutes): Minutes => {
-	const parsed = parsePositiveInteger(value);
-	return parsed.ok && isMinutes(parsed.value) ? parsed.value : fallback;
-};
-
-const isNotificationStyle = (value: unknown): value is NotificationStyle =>
-	value === "system" || value === "simple";
-
-const isVolume = (
-	value: unknown,
-	range: { min: number; max: number },
-): value is number =>
-	typeof value === "number" &&
-	Number.isInteger(value) &&
-	value >= range.min &&
-	value <= range.max;
-
-export const isFocusTickSoundVolume = (value: unknown): value is number =>
-	isVolume(value, focusTickSoundVolumeRange);
-
-export const isFocusBgmVolume = (value: unknown): value is number =>
-	isVolume(value, focusBgmVolumeRange);
-
-export const isFocusBgmType = (value: unknown): value is FocusBgmType =>
-	focusBgmTypes.some((type) => type === value);

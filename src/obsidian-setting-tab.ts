@@ -1,12 +1,10 @@
 import { App, displayTooltip, PluginSettingTab, Setting } from "obsidian";
-import { match } from "ts-pattern";
 import type { Plugin, PluginSetting } from "./obsidian-plugin";
 import {
 	focusBgmVolumeRange,
 	focusTickSoundVolumeRange,
 } from "./obsidian-plugin-setting";
 import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
-import { minutesUpperBound } from "./time";
 
 const VALIDATION_TOOLTIP_CLASS =
 	"interval-timer-setting-tab-validation-tooltip";
@@ -211,14 +209,14 @@ export class SettingTab extends PluginSettingTab {
 		settingLabel: string,
 	): void {
 		const result = this.plugin.updateSetting(key, value);
-		if (result.ok) {
+		if (result.success) {
 			this.clearValidationTooltips();
 			return;
 		}
 
 		displayTooltip(
 			targetEl,
-			this.formatParseErrorMessage(settingLabel, result.reason),
+			`${settingLabel}: ${result.issues[0].message}`,
 			{
 				placement: "left",
 				classes: ["mod-error", VALIDATION_TOOLTIP_CLASS],
@@ -232,40 +230,5 @@ export class SettingTab extends PluginSettingTab {
 			.forEach((tooltipEl) => {
 				tooltipEl.remove();
 			});
-	}
-
-	private formatParseErrorMessage(
-		settingLabel: string,
-		reason: Extract<
-			Awaited<ReturnType<Plugin["updateSetting"]>>,
-			{ ok: false }
-		>["reason"],
-	): string {
-		return match(reason)
-			.with(
-				"invalid_number",
-				() => `${settingLabel}: please enter a number.`,
-			)
-			.with(
-				"non_positive_integer",
-				() => `${settingLabel}: please enter a positive integer.`,
-			)
-			.with(
-				"out_of_range_minutes",
-				() =>
-					`${settingLabel}: please enter fewer than ${minutesUpperBound} minutes.`,
-			)
-			.with(
-				"invalid_notification_style",
-				"invalid_boolean",
-				"invalid_focus_bgm_type",
-				() => `${settingLabel}: invalid option selected.`,
-			)
-			.with(
-				"invalid_focus_tick_sound_volume",
-				"invalid_focus_bgm_volume",
-				() => `${settingLabel}: please choose a value from 0 to 100.`,
-			)
-			.exhaustive();
 	}
 }

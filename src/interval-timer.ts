@@ -1,8 +1,8 @@
 import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "./countdown-timer";
-import { isMinutes, Minutes, Seconds, time, Time } from "./time";
+import * as v from "valibot";
+import { durationMinutesSchema, Minutes, Seconds, time, Time } from "./time";
 import { DailyScheduler } from "./daily-scheduler";
-import { parsePositiveInteger } from "./value-parser";
 import { err, ok, type Result } from "./result";
 
 export type IntervalTimerSetting = {
@@ -70,10 +70,7 @@ export type NotifierContext = {
 	state: IntervalTimerState;
 };
 
-export type RetimeResult = Result<
-	void,
-	"invalid_minutes" | "out_of_range_minutes" | "timer_running"
->;
+export type RetimeResult = Result<void, string>;
 
 export type TouchAction = "start" | "resume" | "reset" | "skip";
 
@@ -195,19 +192,16 @@ export class IntervalTimer {
 	}
 
 	public retime(minutes: number): RetimeResult {
-		const parsed = parsePositiveInteger(minutes);
-		if (!parsed.ok) {
-			return err("invalid_minutes");
-		}
-		if (!isMinutes(parsed.value)) {
-			return err("out_of_range_minutes");
+		const parsed = v.safeParse(durationMinutesSchema, minutes);
+		if (!parsed.success) {
+			return err(parsed.issues[0].message);
 		}
 		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
-			return err("timer_running");
+			return err("Pause the timer before changing the remaining time.");
 		}
 		this.enterInterval(
 			this.currentInterval.state,
-			time(parsed.value, this.currentInterval.timer.currentTime.seconds),
+			time(parsed.output, this.currentInterval.timer.currentTime.seconds),
 		);
 		return ok();
 	}

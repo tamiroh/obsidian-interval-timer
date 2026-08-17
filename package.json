@@ -51,6 +51,7 @@
 	},
 	"dependencies": {
 		"preact": "^10.29.8",
-		"ts-pattern": "^5.9.0"
+		"ts-pattern": "^5.9.0",
+		"valibot": "^1.4.2"
 	}
 }

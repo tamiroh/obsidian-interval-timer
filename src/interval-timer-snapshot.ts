@@ -4,16 +4,13 @@ import {
 	Snapshot,
 } from "./interval-timer";
 import { KeyValueStore } from "./key-value-store";
-import { Time } from "./time";
-import type { Result } from "./result";
-import {
-	parseMinutes,
-	parseNonNegativeInteger,
-	parseSeconds,
-} from "./value-parser";
+import * as v from "valibot";
+import { minutesSchema, secondsSchema, Time, wholeNumberSchema } from "./time";
 
 const isIntervalTimerState = (value: string): value is IntervalTimerState =>
 	intervalTimerStates.some((state) => state === value);
+
+const intervalCountSchema = v.pipe(wholeNumberSchema, v.minValue(0));
 
 export class IntervalTimerSnapshotStore {
 	private readonly keyValueStore: KeyValueStore;
@@ -26,19 +23,16 @@ export class IntervalTimerSnapshotStore {
 		const state = this.keyValueStore.get("timerState");
 		if (state === null || !isIntervalTimerState(state)) return null;
 
-		const minutes = this.parseField("time-minutes", parseMinutes);
+		const minutes = this.parseField("time-minutes", minutesSchema);
 		if (minutes === null) return null;
 
-		const seconds = this.parseField("time-seconds", parseSeconds);
+		const seconds = this.parseField("time-seconds", secondsSchema);
 		if (seconds === null) return null;
 
-		const total = this.parseField(
-			"intervals-total",
-			parseNonNegativeInteger,
-		);
+		const total = this.parseField("intervals-total", intervalCountSchema);
 		if (total === null) return null;
 
-		const set = this.parseField("intervals-set", parseNonNegativeInteger);
+		const set = this.parseField("intervals-set", intervalCountSchema);
 		if (set === null || set > total) return null;
 
 		return {
@@ -49,15 +43,15 @@ export class IntervalTimerSnapshotStore {
 		};
 	}
 
-	private parseField<T>(
+	private parseField<TSchema extends v.GenericSchema>(
 		key: string,
-		parse: (value: string) => Result<T, string>,
-	): T | null {
+		fieldSchema: TSchema,
+	): v.InferOutput<TSchema> | null {
 		const raw = this.keyValueStore.get(key);
 		if (raw === null) return null;
 
-		const parsed = parse(raw);
-		return parsed.ok ? parsed.value : null;
+		const parsed = v.safeParse(fieldSchema, raw);
+		return parsed.success ? parsed.output : null;
 	}
 
 	public save(

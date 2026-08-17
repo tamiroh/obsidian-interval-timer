@@ -623,7 +623,10 @@ describe("IntervalTimer", () => {
 			const result = intervalTimer.retime(7);
 
 			// Assert
-			expect(result).toEqual({ ok: false, reason: "timer_running" });
+			expect(result).toEqual({
+				ok: false,
+				reason: "Pause the timer before changing the remaining time.",
+			});
 			expect(stateChangedEvents(events)).toHaveLength(0);
 
 			intervalTimer.dispose();
@@ -652,15 +655,15 @@ describe("IntervalTimer", () => {
 			// Act & Assert
 			expect(intervalTimer.retime(1.5)).toEqual({
 				ok: false,
-				reason: "invalid_minutes",
+				reason: "Enter a whole number.",
 			});
 			expect(intervalTimer.retime(0)).toEqual({
 				ok: false,
-				reason: "invalid_minutes",
+				reason: "Enter a positive whole number.",
 			});
 			expect(intervalTimer.retime(-5)).toEqual({
 				ok: false,
-				reason: "invalid_minutes",
+				reason: "Enter a positive whole number.",
 			});
 			expect(stateChangedEvents(events)).toHaveLength(0);
 
@@ -690,7 +693,7 @@ describe("IntervalTimer", () => {
 			// Act & Assert
 			expect(intervalTimer.retime(minutesUpperBound)).toEqual({
 				ok: false,
-				reason: "out_of_range_minutes",
+				reason: `Enter fewer than ${minutesUpperBound} minutes.`,
 			});
 			expect(stateChangedEvents(events)).toHaveLength(0);
 
