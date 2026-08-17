@@ -3,7 +3,11 @@ import {
 	type ParsePositiveIntegerResult,
 } from "./value-parser";
 import { isMinutes, type Minutes } from "./time";
-import { defaultLongBreakAfter } from "./interval-timer";
+import {
+	defaultLongBreakAfter,
+	intervalCompletionBehaviors,
+	type IntervalCompletionBehavior,
+} from "./interval-timer";
 import type { NotificationStyle } from "./notification";
 import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
 import { ObservableStore } from "./observable-store";
@@ -17,6 +21,7 @@ export type PluginSetting = {
 	notificationStyle: NotificationStyle;
 	flashOverlayEnabled: boolean;
 	focusTickSoundVolume: number;
+	intervalCompletionBehavior: IntervalCompletionBehavior;
 	focusBgmType: FocusBgmType;
 	focusBgmVolume: number;
 };
@@ -31,6 +36,11 @@ export type ParseBooleanResult = Result<boolean, "invalid_boolean">;
 export type ParseFocusTickSoundVolumeResult = Result<
 	number,
 	"invalid_focus_tick_sound_volume"
+>;
+
+export type ParseIntervalCompletionBehaviorResult = Result<
+	IntervalCompletionBehavior,
+	"invalid_interval_completion_behavior"
 >;
 
 export type ParseFocusBgmTypeResult = Result<
@@ -54,6 +64,7 @@ export type PluginSettingUpdateResult =
 	| ParseNotificationStyleResult
 	| ParseBooleanResult
 	| ParseFocusTickSoundVolumeResult
+	| ParseIntervalCompletionBehaviorResult
 	| ParseFocusBgmTypeResult
 	| ParseFocusBgmVolumeResult;
 
@@ -80,6 +91,13 @@ export const parseFocusTickSoundVolumeValue = (
 	isFocusTickSoundVolume(value)
 		? ok(value)
 		: err("invalid_focus_tick_sound_volume");
+
+export const parseIntervalCompletionBehaviorValue = (
+	value: unknown,
+): ParseIntervalCompletionBehaviorResult =>
+	isIntervalCompletionBehavior(value)
+		? ok(value)
+		: err("invalid_interval_completion_behavior");
 
 export const parseFocusBgmTypeValue = (
 	value: unknown,
@@ -150,6 +168,14 @@ export class PluginSettingStore extends ObservableStore<PluginSetting> {
 
 				return parsed;
 			}
+			case "intervalCompletionBehavior": {
+				const parsed = parseIntervalCompletionBehaviorValue(value);
+				if (!parsed.ok) return parsed;
+
+				super.update({ intervalCompletionBehavior: parsed.value });
+
+				return parsed;
+			}
 			case "focusBgmType": {
 				const parsed = parseFocusBgmTypeValue(value);
 				if (!parsed.ok) return parsed;
@@ -182,6 +208,7 @@ export const defaultPluginSetting = {
 	notificationStyle: "simple",
 	flashOverlayEnabled: false,
 	focusTickSoundVolume: 0,
+	intervalCompletionBehavior: "advanceToNextInterval",
 	focusBgmType: "none",
 	focusBgmVolume: 50,
 } satisfies PluginSetting;
@@ -213,11 +240,12 @@ export const parsePluginSetting = (value: unknown): PluginSetting => {
 			typeof stored.flashOverlayEnabled === "boolean"
 				? stored.flashOverlayEnabled
 				: defaultPluginSetting.flashOverlayEnabled,
-		focusTickSoundVolume: isFocusTickSoundVolume(
-			stored.focusTickSoundVolume,
+		focusTickSoundVolume: parseFocusTickSoundVolume(stored),
+		intervalCompletionBehavior: isIntervalCompletionBehavior(
+			stored.intervalCompletionBehavior,
 		)
-			? stored.focusTickSoundVolume
-			: defaultPluginSetting.focusTickSoundVolume,
+			? stored.intervalCompletionBehavior
+			: defaultPluginSetting.intervalCompletionBehavior,
 		focusBgmType: isFocusBgmType(stored.focusBgmType)
 			? stored.focusBgmType
 			: defaultPluginSetting.focusBgmType,
@@ -246,6 +274,11 @@ const parseDurationOrDefault = (value: unknown, fallback: Minutes): Minutes => {
 const isNotificationStyle = (value: unknown): value is NotificationStyle =>
 	value === "system" || value === "simple";
 
+export const isIntervalCompletionBehavior = (
+	value: unknown,
+): value is IntervalCompletionBehavior =>
+	intervalCompletionBehaviors.some((behavior) => behavior === value);
+
 const isVolume = (
 	value: unknown,
 	range: { min: number; max: number },
@@ -263,3 +296,10 @@ export const isFocusBgmVolume = (value: unknown): value is number =>
 
 export const isFocusBgmType = (value: unknown): value is FocusBgmType =>
 	focusBgmTypes.some((type) => type === value);
+
+const parseFocusTickSoundVolume = (stored: Record<string, unknown>): number => {
+	if (isFocusTickSoundVolume(stored.focusTickSoundVolume)) {
+		return stored.focusTickSoundVolume;
+	}
+	return defaultPluginSetting.focusTickSoundVolume;
+};

@@ -153,6 +153,7 @@ export class Plugin extends BasePlugin {
 					"shortBreakDuration",
 					"longBreakDuration",
 					"longBreakAfter",
+					"intervalCompletionBehavior",
 				],
 				reload: (next) => {
 					this.intervalTimer.updateSettings({
@@ -160,6 +161,8 @@ export class Plugin extends BasePlugin {
 						shortBreakDuration: next.shortBreakDuration,
 						longBreakDuration: next.longBreakDuration,
 						longBreakAfter: next.longBreakAfter,
+						intervalCompletionBehavior:
+							next.intervalCompletionBehavior,
 					});
 				},
 			},
@@ -245,6 +248,8 @@ export class Plugin extends BasePlugin {
 			shortBreakDuration: this.currentSettings.shortBreakDuration,
 			longBreakDuration: this.currentSettings.longBreakDuration,
 			longBreakAfter: this.currentSettings.longBreakAfter,
+			intervalCompletionBehavior:
+				this.currentSettings.intervalCompletionBehavior,
 			resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
 		});
 		this.intervalTimer.subscribe((event) => {
@@ -254,7 +259,9 @@ export class Plugin extends BasePlugin {
 
 					const isFocusRunning =
 						event.snapshot.state === "focus" &&
-						event.timerState === "running";
+						event.timerState === "running" &&
+						!event.snapshot.negative &&
+						event.snapshot.nextState === undefined;
 					const { focusBgmType, focusBgmVolume } =
 						this.currentSettings;
 					if (isFocusRunning) {

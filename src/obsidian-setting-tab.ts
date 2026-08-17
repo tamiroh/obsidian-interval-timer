@@ -105,6 +105,28 @@ export class SettingTab extends PluginSettingTab {
 					}),
 			);
 
+		new Setting(containerEl).setHeading().setName("Behavior");
+
+		new Setting(containerEl)
+			.setName("When an interval ends")
+			.addDropdown((dropdown) => {
+				dropdown
+					.addOption("advanceToNextInterval", "Go to next interval")
+					.addOption(
+						"countDownPastZero",
+						"Continue counting past zero",
+					)
+					.setValue(this.plugin.currentSettings.intervalCompletionBehavior)
+					.onChange((value) => {
+						this.updateSettingOrShowValidationError(
+							"intervalCompletionBehavior",
+							value,
+							dropdown.selectEl,
+							"When an interval ends",
+						);
+					});
+			});
+
 		new Setting(containerEl).setHeading().setName("Notification");
 
 		new Setting(containerEl).setName("Style").addDropdown((dropdown) => {
@@ -258,6 +280,7 @@ export class SettingTab extends PluginSettingTab {
 			.with(
 				"invalid_notification_style",
 				"invalid_boolean",
+				"invalid_interval_completion_behavior",
 				"invalid_focus_bgm_type",
 				() => `${settingLabel}: invalid option selected.`,
 			)

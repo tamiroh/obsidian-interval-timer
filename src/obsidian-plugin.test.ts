@@ -105,6 +105,21 @@ describe("Plugin", () => {
 			defaultPluginSetting.focusTickSoundVolume,
 		);
 	});
+
+	it("updates the interval completion behavior", async () => {
+		const plugin = createPlugin();
+		await plugin.onload();
+
+		const result = plugin.updateSetting(
+			"intervalCompletionBehavior",
+			"countDownPastZero",
+		);
+
+		expect(result).toEqual({ ok: true, value: "countDownPastZero" });
+		expect(plugin.currentSettings.intervalCompletionBehavior).toBe(
+			"countDownPastZero",
+		);
+	});
 });
 
 const createPlugin = (): Plugin => {

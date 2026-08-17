@@ -54,6 +54,33 @@ describe("StatusBar", () => {
 		);
 	});
 
+	it("renders overtime as a negative duration", async () => {
+		// Arrange
+		const el = createDiv();
+		const statusBar = await createStatusBar(el);
+
+		// Act
+		statusBar.update(
+			{ total: 1, set: 1 },
+			{ minutes: 7, seconds: 5, negative: true },
+			"focus",
+			"running",
+		);
+
+		// Assert
+		expect(within(el).getByTestId("status-bar-compact")).toHaveTextContent(
+			"1/1 -07:05",
+		);
+		expect(within(el).getByTestId("popover-clock-time")).toHaveClass(
+			"interval-timer-popover-clock-time-negative",
+		);
+		await waitFor(() =>
+			expect(
+				within(el).getByTestId("popover-clock-time"),
+			).toHaveTextContent("-07:05"),
+		);
+	});
+
 	it("uses the break color without showing a phase label", async () => {
 		// Arrange
 		const el = createDiv();

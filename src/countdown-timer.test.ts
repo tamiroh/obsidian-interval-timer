@@ -429,4 +429,38 @@ describe("CountdownTimer", () => {
 		// Assert
 		expect(countdownTimer.currentTime).toEqual(time(1, 0));
 	});
+
+	it("should continue counting down past zero and resume when enabled", () => {
+		const handleSubtract = vi.fn<(event: CountdownTimerEvent) => void>();
+		const handleComplete = vi.fn();
+		const countdownTimer = new CountdownTimer({
+			initialTime: { minutes: 0, seconds: 1 },
+			continuePastZero: true,
+		});
+		subscribeTo(countdownTimer, "tick", handleSubtract);
+		subscribeTo(countdownTimer, "completed", handleComplete);
+
+		countdownTimer.start();
+		vi.advanceTimersByTime(2000);
+		countdownTimer.pause();
+		countdownTimer.start();
+		vi.advanceTimersByTime(1000);
+
+		expect(handleComplete).toHaveBeenCalledOnce();
+		expect(handleSubtract).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				currentTime: {
+					minutes: 0,
+					seconds: 2,
+					negative: true,
+				},
+			}),
+		);
+		expect(countdownTimer.currentTime).toEqual({
+			minutes: 0,
+			seconds: 2,
+			negative: true,
+		});
+		expect(countdownTimer.getCurrentTimerType()).toBe("running");
+	});
 });
