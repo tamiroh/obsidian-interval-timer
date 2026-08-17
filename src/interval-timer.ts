@@ -1,7 +1,15 @@
 import { match } from "ts-pattern";
 import { CountdownTimer, TimerType } from "./countdown-timer";
 import * as v from "valibot";
-import { durationMinutesSchema, Minutes, Seconds, time, Time } from "./time";
+import {
+	durationMinutesReason,
+	type DurationMinutesReason,
+	durationMinutesSchema,
+	Minutes,
+	Seconds,
+	time,
+	Time,
+} from "./time";
 import { DailyScheduler } from "./daily-scheduler";
 import { err, ok, type Result } from "./result";
 
@@ -70,7 +78,10 @@ export type NotifierContext = {
 	state: IntervalTimerState;
 };
 
-export type RetimeResult = Result<void, string>;
+export type RetimeResult = Result<
+	void,
+	DurationMinutesReason | "timer_running"
+>;
 
 export type TouchAction = "start" | "resume" | "reset" | "skip";
 
@@ -194,10 +205,10 @@ export class IntervalTimer {
 	public retime(minutes: number): RetimeResult {
 		const parsed = v.safeParse(durationMinutesSchema, minutes);
 		if (!parsed.success) {
-			return err(parsed.issues[0].message);
+			return err(durationMinutesReason(parsed.issues[0]));
 		}
 		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
-			return err("Pause the timer before changing the remaining time.");
+			return err("timer_running");
 		}
 		this.enterInterval(
 			this.currentInterval.state,

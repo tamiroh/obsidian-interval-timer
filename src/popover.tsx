@@ -15,7 +15,7 @@ import {
 } from "./interval-timer";
 import { ObservableStore, useObservableStore } from "./observable-store";
 import { Position, usePopoverFloating } from "./popover-floating";
-import { time, Time, toSeconds } from "./time";
+import { minutesUpperBound, time, Time, toSeconds } from "./time";
 
 //
 // Constants and types
@@ -284,7 +284,25 @@ const PopoverView = ({
 				return;
 			}
 
-			notify(result.reason);
+			notify(
+				match(result.reason)
+					.with(
+						"timer_running",
+						() =>
+							"Pause the timer before changing the remaining time.",
+					)
+					.with(
+						"out_of_range_minutes",
+						() => `Enter fewer than ${minutesUpperBound} minutes.`,
+					)
+					.with(
+						"non_positive_integer",
+						() => "Enter a positive whole number.",
+					)
+					.with("non_integer", () => "Enter a whole number.")
+					.with("invalid_number", () => "Enter a number.")
+					.exhaustive(),
+			);
 			retimeInputRef.current?.select();
 			return;
 		}

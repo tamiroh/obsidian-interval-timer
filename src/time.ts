@@ -1,3 +1,4 @@
+import { match } from "ts-pattern";
 import * as v from "valibot";
 import type { Enumerate } from "./enumerate";
 
@@ -57,3 +58,25 @@ export const durationMinutesSchema = v.pipe(
 	v.minValue(1, "Enter a positive whole number."),
 	v.guard(isMinutes, `Enter fewer than ${minutesUpperBound} minutes.`),
 );
+
+export type DurationMinutesReason =
+	| "invalid_number"
+	| "non_integer"
+	| "non_positive_integer"
+	| "out_of_range_minutes";
+
+export const durationMinutesReason = (
+	issue: v.InferIssue<typeof durationMinutesSchema>,
+): DurationMinutesReason =>
+	match(issue.type)
+		.with(
+			"union",
+			"number",
+			"string",
+			"to_number",
+			() => "invalid_number" as const,
+		)
+		.with("integer", () => "non_integer" as const)
+		.with("min_value", () => "non_positive_integer" as const)
+		.with("guard", () => "out_of_range_minutes" as const)
+		.exhaustive();
