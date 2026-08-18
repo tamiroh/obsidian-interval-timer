@@ -93,7 +93,7 @@ export class Plugin extends BasePlugin {
 	}
 
 	public override async onload(): Promise<void> {
-		await this.loadSettings();
+		this.settingStore.loadFromUnknown(await this.loadData());
 		this.notifier = createNotifier(this.currentSettings.notificationStyle);
 		this.setupIntervalTimer();
 		this.settingStore.subscribe((previous, next) => {
@@ -298,9 +298,5 @@ export class Plugin extends BasePlugin {
 			this.intervalTimer.applySnapshot(snapshot);
 		}
 		this.intervalTimer.enableAutoReset();
-	}
-
-	private async loadSettings(): Promise<void> {
-		this.settingStore.loadFromUnknown(await this.loadData());
 	}
 }
