@@ -56,7 +56,10 @@ export class Plugin extends BasePlugin {
 	}
 
 	public override async onload(): Promise<void> {
+		// Load settings
 		this.settingStore.loadFromUnknown(await this.loadData());
+
+		// Initialize the timer host
 		this.intervalTimerHost = new IntervalTimerHost({
 			settingStore: this.settingStore,
 			timerDisplay: this.timerDisplay,
@@ -64,13 +67,18 @@ export class Plugin extends BasePlugin {
 			taskLineController: this.taskLineController,
 		});
 		this.intervalTimerHost.initialize();
+
+		// Persist settings changes
 		this.settingStore.subscribe(
 			(_previous, next) => void this.saveData(next),
 		);
+
+		// Register timer integrations
 		this.taskLineController.setup(this, this.intervalTimerHost.timer);
 		registerCommands(this, this.intervalTimerHost.timer);
-		this.addSettingTab(new SettingTab(this.app, this, this.settingStore));
 
+		// Register UI integrations
+		this.addSettingTab(new SettingTab(this.app, this, this.settingStore));
 		this.timerDisplay.enableClick(this.intervalTimerHost.timer);
 		this.registerDomEvent(window, "focus", () => {
 			this.intervalTimerHost.clearNotification();
