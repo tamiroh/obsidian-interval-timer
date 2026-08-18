@@ -201,18 +201,22 @@ export class IntervalTimer {
 	}
 
 	public retime(minutes: number): RetimeResult {
-		const parsed = parseDurationMinutes(minutes);
-		if (!parsed.ok) {
-			return err(parsed.reason);
-		}
-		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
-			return err("timer_running");
-		}
-		this.enterInterval(
-			this.currentInterval.state,
-			time(parsed.value, this.currentInterval.timer.currentTime.seconds),
-		);
-		return ok();
+		return match(parseDurationMinutes(minutes))
+			.with({ ok: false }, ({ reason }) => err(reason))
+			.with({ ok: true }, ({ value }) => {
+				if (
+					this.currentInterval.timer.getCurrentTimerType() ===
+					"running"
+				) {
+					return err("timer_running");
+				}
+				this.enterInterval(
+					this.currentInterval.state,
+					time(value, this.currentInterval.timer.currentTime.seconds),
+				);
+				return ok();
+			})
+			.exhaustive();
 	}
 
 	public touch(): void {

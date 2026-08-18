@@ -73,12 +73,13 @@ export type DurationMinutesReason =
 
 export const parseDurationMinutes = (
 	value: unknown,
-): Result<Minutes, DurationMinutesReason> => {
-	const result = v.safeParse(durationMinutesSchema, value);
-	return result.success
-		? ok(result.output)
-		: err(durationMinutesReason(result.issues[0]));
-};
+): Result<Minutes, DurationMinutesReason> =>
+	match(v.safeParse(durationMinutesSchema, value))
+		.with({ success: false }, ({ issues }) =>
+			err(durationMinutesReason(issues[0])),
+		)
+		.with({ success: true }, ({ output }) => ok(output))
+		.exhaustive();
 
 const durationMinutesReason = (
 	issue: v.InferIssue<typeof durationMinutesSchema>,

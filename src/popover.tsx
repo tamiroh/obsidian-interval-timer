@@ -11,10 +11,12 @@ import {
 	defaultLongBreakAfter,
 	IntervalTimer,
 	IntervalTimerState,
+	type RetimeResult,
 	TouchAction,
 } from "./interval-timer";
 import { ObservableStore, useObservableStore } from "./observable-store";
 import { Position, usePopoverFloating } from "./popover-floating";
+import type { ResultFailureReason } from "./result";
 import { minutesUpperBound, time, Time, toSeconds } from "./time";
 
 //
@@ -52,6 +54,23 @@ type ClosingAnimationState =
 			restoreFocus: boolean;
 	  }
 	| { current: "completed" };
+
+const retimeValidationMessage = (
+	reason: ResultFailureReason<RetimeResult>,
+): string =>
+	match(reason)
+		.with(
+			"timer_running",
+			() => "Pause the timer before changing the remaining time.",
+		)
+		.with(
+			"out_of_range_minutes",
+			() => `Enter fewer than ${minutesUpperBound} minutes.`,
+		)
+		.with("non_positive_integer", () => "Enter a positive whole number.")
+		.with("non_integer", () => "Enter a whole number.")
+		.with("invalid_number", () => "Enter a number.")
+		.exhaustive();
 
 //
 // Mounting
@@ -276,38 +295,21 @@ const PopoverView = ({
 	const applyRetime = (restoreFocus = true) => {
 		if (!intervalTimer) return;
 
-		const result = intervalTimer.retime(Number(retimeValue));
-		if (!result.ok) {
-			if (!restoreFocus) {
-				setRetimeValue(String(currentTime.minutes));
-				stopEditingTime(false);
-				return;
-			}
+		match(intervalTimer.retime(Number(retimeValue)))
+			.with({ ok: false }, ({ reason }) => {
+				if (!restoreFocus) {
+					setRetimeValue(String(currentTime.minutes));
+					stopEditingTime(false);
+					return;
+				}
 
-			notify(
-				match(result.reason)
-					.with(
-						"timer_running",
-						() =>
-							"Pause the timer before changing the remaining time.",
-					)
-					.with(
-						"out_of_range_minutes",
-						() => `Enter fewer than ${minutesUpperBound} minutes.`,
-					)
-					.with(
-						"non_positive_integer",
-						() => "Enter a positive whole number.",
-					)
-					.with("non_integer", () => "Enter a whole number.")
-					.with("invalid_number", () => "Enter a number.")
-					.exhaustive(),
-			);
-			retimeInputRef.current?.select();
-			return;
-		}
-
-		stopEditingTime(restoreFocus);
+				notify(retimeValidationMessage(reason));
+				retimeInputRef.current?.select();
+			})
+			.with({ ok: true }, () => {
+				stopEditingTime(restoreFocus);
+			})
+			.exhaustive();
 	};
 
 	const handleRetimeSubmit = (

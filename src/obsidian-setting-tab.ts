@@ -202,20 +202,21 @@ export class SettingTab extends PluginSettingTab {
 		targetEl: HTMLElement,
 		settingLabel: string,
 	): void {
-		const result = this.plugin.updateSetting(key, value);
-		if (result.ok) {
-			this.clearValidationTooltips();
-			return;
-		}
-
-		displayTooltip(
-			targetEl,
-			`${settingLabel}: ${validationMessage(result.reason)}`,
-			{
-				placement: "left",
-				classes: ["mod-error", VALIDATION_TOOLTIP_CLASS],
-			},
-		);
+		match(this.plugin.updateSetting(key, value))
+			.with({ ok: true }, () => {
+				this.clearValidationTooltips();
+			})
+			.with({ ok: false }, ({ reason }) => {
+				displayTooltip(
+					targetEl,
+					`${settingLabel}: ${validationMessage(reason)}`,
+					{
+						placement: "left",
+						classes: ["mod-error", VALIDATION_TOOLTIP_CLASS],
+					},
+				);
+			})
+			.exhaustive();
 	}
 
 	private clearValidationTooltips(): void {
