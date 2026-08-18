@@ -106,6 +106,31 @@ export class Plugin extends BasePlugin {
 			void this.saveData(next);
 		});
 		this.taskLineController.setup(this, this.intervalTimer);
+		this.registerCommands();
+		this.addSettingTab(new SettingTab(this.app, this));
+
+		this.timerDisplay.enableClick(this.intervalTimer);
+		this.registerDomEvent(window, "focus", () => {
+			this.notifier.clearNotification();
+		});
+	}
+
+	public override onunload(): void {
+		this.flashOverlay.dispose();
+		this.focusBgm.dispose();
+		this.audioOutput.dispose();
+		this.timerDisplay.dispose();
+		this.intervalTimer.dispose();
+	}
+
+	public updateSetting(
+		key: keyof PluginSetting,
+		value: unknown,
+	): PluginSettingUpdateResult {
+		return this.settingStore.updateFromUnknown(key, value);
+	}
+
+	private registerCommands(): void {
 		this.addCommand({
 			id: "start-timer",
 			name: "Start timer",
@@ -154,27 +179,6 @@ export class Plugin extends BasePlugin {
 				return canSkip;
 			},
 		});
-		this.addSettingTab(new SettingTab(this.app, this));
-
-		this.timerDisplay.enableClick(this.intervalTimer);
-		this.registerDomEvent(window, "focus", () => {
-			this.notifier.clearNotification();
-		});
-	}
-
-	public override onunload(): void {
-		this.flashOverlay.dispose();
-		this.focusBgm.dispose();
-		this.audioOutput.dispose();
-		this.timerDisplay.dispose();
-		this.intervalTimer.dispose();
-	}
-
-	public updateSetting(
-		key: keyof PluginSetting,
-		value: unknown,
-	): PluginSettingUpdateResult {
-		return this.settingStore.updateFromUnknown(key, value);
 	}
 
 	private settingsReloads(): readonly SettingsReload[] {
