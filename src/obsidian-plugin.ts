@@ -25,7 +25,6 @@ import { TaskTracker } from "./obsidian-task-tracker";
 import { TaskLineController } from "./obsidian-task-line-controller";
 import {
 	defaultPluginSetting,
-	parsePluginSetting,
 	PluginSetting,
 	type PluginSettingUpdateResult,
 	PluginSettingStore,
@@ -302,6 +301,6 @@ export class Plugin extends BasePlugin {
 	}
 
 	private async loadSettings(): Promise<void> {
-		this.settingStore.update(parsePluginSetting(await this.loadData()));
+		this.settingStore.loadFromUnknown(await this.loadData());
 	}
 }

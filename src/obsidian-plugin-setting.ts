@@ -98,19 +98,6 @@ export const defaultPluginSetting = v.parse(pluginSettingSchema, {});
 
 const storedSchema = v.fallback(v.record(v.string(), v.unknown()), {});
 
-export const parsePluginSetting = (value: unknown): PluginSetting => {
-	const stored = v.parse(storedSchema, value);
-
-	const accepted: Record<string, unknown> = {};
-	for (const [key, entry] of Object.entries(pluginSettingSchema.entries)) {
-		const parsed = v.safeParse(entry, stored[key]);
-		if (parsed.success) {
-			accepted[key] = parsed.output;
-		}
-	}
-	return v.parse(pluginSettingSchema, accepted);
-};
-
 //
 // Store
 //
@@ -145,5 +132,19 @@ export class PluginSettingStore extends ObservableStore<PluginSetting> {
 				return ok(output);
 			})
 			.exhaustive();
+	}
+
+	public loadFromUnknown(value: unknown): void {
+		const stored = v.parse(storedSchema, value);
+		const accepted: Record<string, unknown> = {};
+		for (const [key, entry] of Object.entries(
+			pluginSettingSchema.entries,
+		)) {
+			const parsed = v.safeParse(entry, stored[key]);
+			if (parsed.success) {
+				accepted[key] = parsed.output;
+			}
+		}
+		super.update(v.parse(pluginSettingSchema, accepted));
 	}
 }

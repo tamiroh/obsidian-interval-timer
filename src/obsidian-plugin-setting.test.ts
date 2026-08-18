@@ -1,18 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
 	defaultPluginSetting,
-	parsePluginSetting,
 	PluginSettingStore,
 } from "./obsidian-plugin-setting";
 
-describe("parsePluginSetting", () => {
+describe("PluginSettingStore.loadFromUnknown", () => {
 	it("returns defaults when stored data is missing", () => {
-		expect(parsePluginSetting(null)).toEqual(defaultPluginSetting);
+		expect(loadFromUnknown(null)).toEqual(defaultPluginSetting);
 	});
 
 	it("loads valid stored settings", () => {
 		expect(
-			parsePluginSetting({
+			loadFromUnknown({
 				focusIntervalDuration: 50,
 				shortBreakDuration: 10,
 				longBreakDuration: 30,
@@ -38,7 +37,7 @@ describe("parsePluginSetting", () => {
 
 	it("replaces only invalid settings with defaults", () => {
 		expect(
-			parsePluginSetting({
+			loadFromUnknown({
 				focusIntervalDuration: 0,
 				shortBreakDuration: -1,
 				longBreakDuration: 7.5,
@@ -54,7 +53,7 @@ describe("parsePluginSetting", () => {
 
 	it("preserves valid settings when other fields are invalid", () => {
 		expect(
-			parsePluginSetting({
+			loadFromUnknown({
 				focusIntervalDuration: 45,
 				notificationStyle: "unknown",
 			}),
@@ -66,7 +65,7 @@ describe("parsePluginSetting", () => {
 
 	it("normalizes numeric strings from older stored data", () => {
 		expect(
-			parsePluginSetting({
+			loadFromUnknown({
 				focusIntervalDuration: "30",
 			}),
 		).toEqual({
@@ -75,6 +74,12 @@ describe("parsePluginSetting", () => {
 		});
 	});
 });
+
+const loadFromUnknown = (value: unknown) => {
+	const store = new PluginSettingStore(defaultPluginSetting);
+	store.loadFromUnknown(value);
+	return store.state;
+};
 
 describe("PluginSettingStore", () => {
 	it("returns the validated patch after a typed update", () => {
