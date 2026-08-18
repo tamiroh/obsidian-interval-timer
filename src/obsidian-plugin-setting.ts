@@ -67,9 +67,8 @@ export type PluginSettingReason =
 	| "invalid_option"
 	| "unknown_setting";
 
-export type PluginSettingUpdateResult<
-	T = PluginSetting[keyof PluginSetting],
-> = Result<T, PluginSettingReason>;
+export type PluginSettingUpdateResult<T = PluginSetting[keyof PluginSetting]> =
+	Result<T, PluginSettingReason>;
 
 const settingReason = (
 	issue:
@@ -120,31 +119,31 @@ export class PluginSettingStore extends ObservableStore<PluginSetting> {
 	public override update(
 		patch: Partial<PluginSetting>,
 	): PluginSettingUpdateResult<Partial<PluginSetting>> {
-		const parsed = v.safeParse(pluginSettingPatchSchema, patch);
-		if (!parsed.success) {
-			return err(settingReason(parsed.issues[0]));
-		}
-
-		super.update(parsed.output);
-		return ok(parsed.output);
+		return match(v.safeParse(pluginSettingPatchSchema, patch))
+			.with({ success: false }, ({ issues }) =>
+				err(settingReason(issues[0])),
+			)
+			.with({ success: true }, ({ output }) => {
+				super.update(output);
+				return ok(output);
+			})
+			.exhaustive();
 	}
 
 	public updateFromUnknown(
 		key: keyof PluginSetting,
 		value: unknown,
 	): PluginSettingUpdateResult {
-		const parsed = v.safeParse(
-			v.unwrap(pluginSettingSchema.entries[key]),
-			value,
-		);
-		if (!parsed.success) {
-			return err(settingReason(parsed.issues[0]));
-		}
-
-		const updateResult = this.update({ [key]: parsed.output });
-		if (!updateResult.ok) {
-			return updateResult;
-		}
-		return ok(parsed.output);
+		return match(
+			v.safeParse(v.unwrap(pluginSettingSchema.entries[key]), value),
+		)
+			.with({ success: false }, ({ issues }) =>
+				err(settingReason(issues[0])),
+			)
+			.with({ success: true }, ({ output }) => {
+				super.update({ [key]: output });
+				return ok(output);
+			})
+			.exhaustive();
 	}
 }
