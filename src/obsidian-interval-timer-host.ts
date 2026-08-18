@@ -9,18 +9,17 @@ import {
 	type IntervalTimerStatus,
 	type NotifierContext,
 } from "./interval-timer";
-import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
-import { Notifier } from "./notification";
+import type { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
 import { createNotifier } from "./obsidian-notification";
 import type { PluginSetting } from "./obsidian-plugin-setting";
-import { TaskLineController } from "./obsidian-task-line-controller";
+import type { TaskLineController } from "./obsidian-task-line-controller";
 import type { TimerDisplay } from "./timer-display";
 
 type IntervalTimerHostOptions = {
-	settings: Readonly<PluginSetting>;
-	timerDisplay: TimerDisplay;
-	snapshotStore: IntervalTimerSnapshotStore;
-	taskLineController: TaskLineController;
+	readonly settings: Readonly<PluginSetting>;
+	readonly timerDisplay: TimerDisplay;
+	readonly snapshotStore: IntervalTimerSnapshotStore;
+	readonly taskLineController: TaskLineController;
 };
 
 type SettingsReload = {
@@ -29,17 +28,17 @@ type SettingsReload = {
 };
 
 export class IntervalTimerHost {
-	private currentSettings: Readonly<PluginSetting>;
+	private currentSettings;
 
-	private readonly timerDisplay: TimerDisplay;
+	private readonly timerDisplay;
 
-	private readonly snapshotStore: IntervalTimerSnapshotStore;
+	private readonly snapshotStore;
 
-	private readonly taskLineController: TaskLineController;
+	private readonly taskLineController;
 
 	private intervalTimer!: IntervalTimer;
 
-	private notifier: Notifier;
+	private notifier;
 
 	private readonly audioOutput = new AudioOutput();
 
@@ -49,7 +48,7 @@ export class IntervalTimerHost {
 
 	private readonly flashOverlay = new FlashOverlay();
 
-	private readonly settingsReloads: readonly SettingsReload[];
+	private readonly settingsReloads;
 
 	constructor({
 		settings,

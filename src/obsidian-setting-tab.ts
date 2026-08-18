@@ -9,7 +9,7 @@ import { match } from "ts-pattern";
 import {
 	type PluginSetting,
 	type PluginSettingReason,
-	PluginSettingStore,
+	type PluginSettingStore,
 	volumeRange,
 } from "./obsidian-plugin-setting";
 import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
@@ -24,15 +24,12 @@ const focusBgmTypeLabels: Record<FocusBgmType, string> = {
 };
 
 export class SettingTab extends PluginSettingTab {
-	private readonly settingStore: PluginSettingStore;
-
 	constructor(
 		app: App,
 		plugin: BasePlugin,
-		settingStore: PluginSettingStore,
+		private readonly settingStore: PluginSettingStore,
 	) {
 		super(app, plugin);
-		this.settingStore = settingStore;
 	}
 
 	public override display(): void {

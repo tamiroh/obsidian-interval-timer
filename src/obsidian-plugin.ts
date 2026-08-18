@@ -19,22 +19,21 @@ import {
 } from "./obsidian-plugin-setting";
 import { IntervalTimerHost } from "./obsidian-interval-timer-host";
 import { registerCommands } from "./obsidian-plugin-commands";
-import type { TimerDisplay } from "./timer-display";
 
 export class Plugin extends BasePlugin {
-	private readonly settingStore: PluginSettingStore = new PluginSettingStore(
+	private readonly settingStore = new PluginSettingStore(
 		defaultPluginSetting,
 	);
 
-	private timerDisplay: TimerDisplay;
+	private readonly timerDisplay;
 
 	private intervalTimerHost!: IntervalTimerHost;
 
-	private keyValueStore: KeyValueStore;
+	private readonly keyValueStore;
 
-	private intervalTimerSnapshotStore: IntervalTimerSnapshotStore;
+	private readonly intervalTimerSnapshotStore;
 
-	private readonly taskLineController: TaskLineController;
+	private readonly taskLineController;
 
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
