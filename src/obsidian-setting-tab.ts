@@ -1,8 +1,15 @@
-import { App, displayTooltip, PluginSettingTab, Setting } from "obsidian";
-import { match } from "ts-pattern";
-import type { Plugin, PluginSetting } from "./obsidian-plugin";
 import {
+	App,
+	displayTooltip,
+	type Plugin as BasePlugin,
+	PluginSettingTab,
+	Setting,
+} from "obsidian";
+import { match } from "ts-pattern";
+import {
+	type PluginSetting,
 	type PluginSettingReason,
+	PluginSettingStore,
 	volumeRange,
 } from "./obsidian-plugin-setting";
 import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
@@ -17,11 +24,15 @@ const focusBgmTypeLabels: Record<FocusBgmType, string> = {
 };
 
 export class SettingTab extends PluginSettingTab {
-	private plugin: Plugin;
+	private readonly settingStore: PluginSettingStore;
 
-	constructor(app: App, plugin: Plugin) {
+	constructor(
+		app: App,
+		plugin: BasePlugin,
+		settingStore: PluginSettingStore,
+	) {
 		super(app, plugin);
-		this.plugin = plugin;
+		this.settingStore = settingStore;
 	}
 
 	public override display(): void {
@@ -37,9 +48,7 @@ export class SettingTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Example: 25")
 					.setValue(
-						String(
-							this.plugin.currentSettings.focusIntervalDuration,
-						),
+						String(this.settingStore.state.focusIntervalDuration),
 					)
 					.onChange((value) => {
 						this.updateSettingOrShowValidationError(
@@ -57,7 +66,7 @@ export class SettingTab extends PluginSettingTab {
 				text
 					.setPlaceholder("Example: 5")
 					.setValue(
-						String(this.plugin.currentSettings.shortBreakDuration),
+						String(this.settingStore.state.shortBreakDuration),
 					)
 					.onChange((value) => {
 						this.updateSettingOrShowValidationError(
@@ -74,9 +83,7 @@ export class SettingTab extends PluginSettingTab {
 			.addText((text) =>
 				text
 					.setPlaceholder("Example: 15")
-					.setValue(
-						String(this.plugin.currentSettings.longBreakDuration),
-					)
+					.setValue(String(this.settingStore.state.longBreakDuration))
 					.onChange((value) => {
 						this.updateSettingOrShowValidationError(
 							"longBreakDuration",
@@ -92,9 +99,7 @@ export class SettingTab extends PluginSettingTab {
 			.addText((text) =>
 				text
 					.setPlaceholder("Example: 4")
-					.setValue(
-						String(this.plugin.currentSettings.longBreakAfter),
-					)
+					.setValue(String(this.settingStore.state.longBreakAfter))
 					.onChange((value) => {
 						this.updateSettingOrShowValidationError(
 							"longBreakAfter",
@@ -111,7 +116,7 @@ export class SettingTab extends PluginSettingTab {
 			dropdown
 				.addOption("system", "System")
 				.addOption("simple", "Simple")
-				.setValue(this.plugin.currentSettings.notificationStyle)
+				.setValue(this.settingStore.state.notificationStyle)
 				.onChange((value) => {
 					this.updateSettingOrShowValidationError(
 						"notificationStyle",
@@ -127,7 +132,7 @@ export class SettingTab extends PluginSettingTab {
 			.setDesc("Flash the screen with a color when an interval ends.")
 			.addToggle((toggle) => {
 				toggle
-					.setValue(this.plugin.currentSettings.flashOverlayEnabled)
+					.setValue(this.settingStore.state.flashOverlayEnabled)
 					.onChange((value) => {
 						this.updateSettingOrShowValidationError(
 							"flashOverlayEnabled",
@@ -146,7 +151,7 @@ export class SettingTab extends PluginSettingTab {
 			.addSlider((slider) => {
 				slider
 					.setLimits(volumeRange.min, volumeRange.max, 5)
-					.setValue(this.plugin.currentSettings.focusTickSoundVolume);
+					.setValue(this.settingStore.state.focusTickSoundVolume);
 				slider.onChange((value) => {
 					this.updateSettingOrShowValidationError(
 						"focusTickSoundVolume",
@@ -165,7 +170,7 @@ export class SettingTab extends PluginSettingTab {
 					dropdown.addOption(type, focusBgmTypeLabels[type]);
 				});
 				dropdown
-					.setValue(this.plugin.currentSettings.focusBgmType)
+					.setValue(this.settingStore.state.focusBgmType)
 					.onChange((value) => {
 						this.updateSettingOrShowValidationError(
 							"focusBgmType",
@@ -184,7 +189,7 @@ export class SettingTab extends PluginSettingTab {
 			.addSlider((slider) => {
 				slider
 					.setLimits(volumeRange.min, volumeRange.max, 5)
-					.setValue(this.plugin.currentSettings.focusBgmVolume);
+					.setValue(this.settingStore.state.focusBgmVolume);
 				slider.onChange((value) => {
 					this.updateSettingOrShowValidationError(
 						"focusBgmVolume",
@@ -202,7 +207,7 @@ export class SettingTab extends PluginSettingTab {
 		targetEl: HTMLElement,
 		settingLabel: string,
 	): void {
-		match(this.plugin.updateSetting(key, value))
+		match(this.settingStore.updateFromUnknown(key, value))
 			.with({ ok: true }, () => {
 				this.clearValidationTooltips();
 			})

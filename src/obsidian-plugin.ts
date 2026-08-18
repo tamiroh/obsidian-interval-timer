@@ -15,24 +15,16 @@ import { TaskTracker } from "./obsidian-task-tracker";
 import { TaskLineController } from "./obsidian-task-line-controller";
 import {
 	defaultPluginSetting,
-	PluginSetting,
-	type PluginSettingUpdateResult,
 	PluginSettingStore,
 } from "./obsidian-plugin-setting";
 import { IntervalTimerHost } from "./obsidian-interval-timer-host";
 import { registerCommands } from "./obsidian-plugin-commands";
 import type { TimerDisplay } from "./timer-display";
 
-export type { PluginSetting } from "./obsidian-plugin-setting";
-
 export class Plugin extends BasePlugin {
 	private readonly settingStore: PluginSettingStore = new PluginSettingStore(
 		defaultPluginSetting,
 	);
-
-	public get currentSettings(): Readonly<PluginSetting> {
-		return this.settingStore.state;
-	}
 
 	private timerDisplay: TimerDisplay;
 
@@ -68,7 +60,7 @@ export class Plugin extends BasePlugin {
 	public override async onload(): Promise<void> {
 		this.settingStore.loadFromUnknown(await this.loadData());
 		this.intervalTimerHost = new IntervalTimerHost({
-			settings: this.currentSettings,
+			settings: this.settingStore.state,
 			timerDisplay: this.timerDisplay,
 			snapshotStore: this.intervalTimerSnapshotStore,
 			taskLineController: this.taskLineController,
@@ -80,7 +72,7 @@ export class Plugin extends BasePlugin {
 		});
 		this.taskLineController.setup(this, this.intervalTimerHost.timer);
 		registerCommands(this, this.intervalTimerHost.timer);
-		this.addSettingTab(new SettingTab(this.app, this));
+		this.addSettingTab(new SettingTab(this.app, this, this.settingStore));
 
 		this.timerDisplay.enableClick(this.intervalTimerHost.timer);
 		this.registerDomEvent(window, "focus", () => {
@@ -90,12 +82,5 @@ export class Plugin extends BasePlugin {
 
 	public override onunload(): void {
 		this.intervalTimerHost.dispose();
-	}
-
-	public updateSetting(
-		key: keyof PluginSetting,
-		value: unknown,
-	): PluginSettingUpdateResult {
-		return this.settingStore.updateFromUnknown(key, value);
 	}
 }

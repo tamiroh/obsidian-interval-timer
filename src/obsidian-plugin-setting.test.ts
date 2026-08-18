@@ -82,6 +82,83 @@ const loadFromUnknown = (value: unknown) => {
 };
 
 describe("PluginSettingStore", () => {
+	it("updates a valid duration from an unknown value", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+
+		const result = store.updateFromUnknown("focusIntervalDuration", "30");
+
+		expect(result).toEqual({ ok: true, value: 30 });
+		expect(store.state.focusIntervalDuration).toBe(30);
+	});
+
+	it("rejects an invalid duration from an unknown value", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+
+		const result = store.updateFromUnknown(
+			"focusIntervalDuration",
+			"not-a-number",
+		);
+
+		expect(result).toEqual({ ok: false, reason: "invalid_number" });
+		expect(store.state.focusIntervalDuration).toBe(
+			defaultPluginSetting.focusIntervalDuration,
+		);
+	});
+
+	it("rejects an invalid notification style", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+
+		const result = store.updateFromUnknown(
+			"notificationStyle",
+			"unsupported",
+		);
+
+		expect(result).toEqual({ ok: false, reason: "invalid_option" });
+	});
+
+	it("updates a valid boolean from an unknown value", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+
+		const result = store.updateFromUnknown("flashOverlayEnabled", true);
+
+		expect(result).toEqual({ ok: true, value: true });
+		expect(store.state.flashOverlayEnabled).toBe(true);
+	});
+
+	it("rejects an invalid boolean from an unknown value", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+
+		const result = store.updateFromUnknown("flashOverlayEnabled", "yes");
+
+		expect(result).toEqual({ ok: false, reason: "invalid_option" });
+		expect(store.state.flashOverlayEnabled).toBe(
+			defaultPluginSetting.flashOverlayEnabled,
+		);
+	});
+
+	it("updates a valid volume from an unknown value", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+
+		const result = store.updateFromUnknown("focusTickSoundVolume", 65);
+
+		expect(result).toEqual({ ok: true, value: 65 });
+		expect(store.state.focusTickSoundVolume).toBe(65);
+	});
+
+	it("rejects an out-of-range volume from an unknown value", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+
+		const result = store.updateFromUnknown("focusTickSoundVolume", 101);
+
+		expect(result).toEqual({
+			ok: false,
+			reason: "out_of_range_volume",
+		});
+		expect(store.state.focusTickSoundVolume).toBe(
+			defaultPluginSetting.focusTickSoundVolume,
+		);
+	});
+
 	it("returns the validated patch after a typed update", () => {
 		const store = new PluginSettingStore(defaultPluginSetting);
 

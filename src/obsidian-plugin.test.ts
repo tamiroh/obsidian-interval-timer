@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { App, PluginManifest } from "obsidian";
 import { Notice } from "./obsidian-fake";
 import { Plugin } from "./obsidian-plugin";
-import { defaultPluginSetting } from "./obsidian-plugin-setting";
 
 describe("Plugin", () => {
 	beforeEach(() => {
@@ -14,90 +13,13 @@ describe("Plugin", () => {
 		window.localStorage.clear();
 	});
 
-	it("loads default settings on load when nothing is stored yet", async () => {
+	it("loads and unloads with default settings", async () => {
 		const plugin = createPlugin();
 
 		await plugin.onload();
+		plugin.onunload();
 
-		expect(plugin.currentSettings).toEqual(defaultPluginSetting);
-	});
-
-	it("updates a valid duration setting", async () => {
-		const plugin = createPlugin();
-		await plugin.onload();
-
-		const result = plugin.updateSetting("focusIntervalDuration", "30");
-
-		expect(result.ok).toBe(true);
-		expect(plugin.currentSettings.focusIntervalDuration).toBe(30);
-	});
-
-	it("rejects a non-positive-integer duration setting", async () => {
-		const plugin = createPlugin();
-		await plugin.onload();
-
-		const result = plugin.updateSetting(
-			"focusIntervalDuration",
-			"not-a-number",
-		);
-
-		expect(result.ok).toBe(false);
-		expect(plugin.currentSettings.focusIntervalDuration).toBe(
-			defaultPluginSetting.focusIntervalDuration,
-		);
-	});
-
-	it("rejects an invalid notification style", async () => {
-		const plugin = createPlugin();
-		await plugin.onload();
-
-		const result = plugin.updateSetting("notificationStyle", "unsupported");
-
-		expect(result.ok).toBe(false);
-	});
-
-	it("updates the flash overlay setting", async () => {
-		const plugin = createPlugin();
-		await plugin.onload();
-
-		const result = plugin.updateSetting("flashOverlayEnabled", true);
-
-		expect(result.ok).toBe(true);
-		expect(plugin.currentSettings.flashOverlayEnabled).toBe(true);
-	});
-
-	it("rejects a non-boolean flash overlay setting", async () => {
-		const plugin = createPlugin();
-		await plugin.onload();
-
-		const result = plugin.updateSetting("flashOverlayEnabled", "yes");
-
-		expect(result.ok).toBe(false);
-		expect(plugin.currentSettings.flashOverlayEnabled).toBe(
-			defaultPluginSetting.flashOverlayEnabled,
-		);
-	});
-
-	it("updates the focus tick sound volume", async () => {
-		const plugin = createPlugin();
-		await plugin.onload();
-
-		const result = plugin.updateSetting("focusTickSoundVolume", 65);
-
-		expect(result.ok).toBe(true);
-		expect(plugin.currentSettings.focusTickSoundVolume).toBe(65);
-	});
-
-	it("rejects an out-of-range focus tick sound volume", async () => {
-		const plugin = createPlugin();
-		await plugin.onload();
-
-		const result = plugin.updateSetting("focusTickSoundVolume", 101);
-
-		expect(result.ok).toBe(false);
-		expect(plugin.currentSettings.focusTickSoundVolume).toBe(
-			defaultPluginSetting.focusTickSoundVolume,
-		);
+		expect(Notice.messages).toEqual([]);
 	});
 });
 
