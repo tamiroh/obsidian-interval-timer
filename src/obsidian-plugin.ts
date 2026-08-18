@@ -58,16 +58,15 @@ export class Plugin extends BasePlugin {
 	public override async onload(): Promise<void> {
 		this.settingStore.loadFromUnknown(await this.loadData());
 		this.intervalTimerHost = new IntervalTimerHost({
-			settings: this.settingStore.state,
+			settingStore: this.settingStore,
 			timerDisplay: this.timerDisplay,
 			snapshotStore: this.intervalTimerSnapshotStore,
 			taskLineController: this.taskLineController,
 		});
 		this.intervalTimerHost.initialize();
-		this.settingStore.subscribe((previous, next) => {
-			this.intervalTimerHost.applySettings(previous, next);
-			void this.saveData(next);
-		});
+		this.settingStore.subscribe(
+			(_previous, next) => void this.saveData(next),
+		);
 		this.taskLineController.setup(this, this.intervalTimerHost.timer);
 		registerCommands(this, this.intervalTimerHost.timer);
 		this.addSettingTab(new SettingTab(this.app, this, this.settingStore));

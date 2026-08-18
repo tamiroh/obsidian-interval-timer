@@ -11,12 +11,15 @@ import {
 } from "./interval-timer";
 import type { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
 import { createNotifier } from "./obsidian-notification";
-import type { PluginSetting } from "./obsidian-plugin-setting";
+import type {
+	PluginSetting,
+	PluginSettingStore,
+} from "./obsidian-plugin-setting";
 import type { TaskLineController } from "./obsidian-task-line-controller";
 import type { TimerDisplay } from "./timer-display";
 
 type IntervalTimerHostOptions = {
-	readonly settings: Readonly<PluginSetting>;
+	readonly settingStore: PluginSettingStore;
 	readonly timerDisplay: TimerDisplay;
 	readonly snapshotStore: IntervalTimerSnapshotStore;
 	readonly taskLineController: TaskLineController;
@@ -50,18 +53,28 @@ export class IntervalTimerHost {
 
 	private readonly settingsReloads;
 
+	private readonly unsubscribeSettings;
+
 	constructor({
-		settings,
+		settingStore,
 		timerDisplay,
 		snapshotStore,
 		taskLineController,
 	}: IntervalTimerHostOptions) {
-		this.currentSettings = settings;
+		this.currentSettings = settingStore.state;
 		this.timerDisplay = timerDisplay;
 		this.snapshotStore = snapshotStore;
 		this.taskLineController = taskLineController;
-		this.notifier = createNotifier(settings.notificationStyle);
+		this.notifier = createNotifier(this.currentSettings.notificationStyle);
 		this.settingsReloads = this.settingsReloadsDefinition();
+		this.unsubscribeSettings = settingStore.subscribe((previous, next) => {
+			this.currentSettings = next;
+			this.settingsReloads.forEach(({ keys, reload }) => {
+				if (keys.some((key) => previous[key] !== next[key])) {
+					reload(next);
+				}
+			});
+		});
 	}
 
 	public get timer(): IntervalTimer {
@@ -87,23 +100,12 @@ export class IntervalTimerHost {
 		this.intervalTimer.enableAutoReset();
 	}
 
-	public applySettings(
-		previous: Readonly<PluginSetting>,
-		next: Readonly<PluginSetting>,
-	): void {
-		this.currentSettings = next;
-		this.settingsReloads.forEach(({ keys, reload }) => {
-			if (keys.some((key) => previous[key] !== next[key])) {
-				reload(next);
-			}
-		});
-	}
-
 	public clearNotification(): void {
 		this.notifier.clearNotification();
 	}
 
 	public dispose(): void {
+		this.unsubscribeSettings();
 		this.flashOverlay.dispose();
 		this.focusBgm.dispose();
 		this.audioOutput.dispose();
