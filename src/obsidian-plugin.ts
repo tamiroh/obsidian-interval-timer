@@ -21,9 +21,7 @@ import { IntervalTimerHost } from "./obsidian-interval-timer-host";
 import { registerCommands } from "./obsidian-plugin-commands";
 
 export class Plugin extends BasePlugin {
-	private readonly settingStore = new PluginSettingStore(
-		defaultPluginSetting,
-	);
+	private readonly settingStore;
 
 	private readonly timerDisplay;
 
@@ -38,6 +36,7 @@ export class Plugin extends BasePlugin {
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
 
+		this.settingStore = new PluginSettingStore(defaultPluginSetting);
 		this.keyValueStore = new KeyValueStore(manifest.id);
 		this.intervalTimerSnapshotStore = new IntervalTimerSnapshotStore(
 			this.keyValueStore,
