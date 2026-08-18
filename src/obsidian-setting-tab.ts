@@ -242,4 +242,5 @@ const validationMessage = (reason: PluginSettingReason): string =>
 				`Choose a value from ${volumeRange.min} to ${volumeRange.max}.`,
 		)
 		.with("invalid_option", () => "Select a valid option.")
+		.with("unknown_setting", () => "Select a valid setting.")
 		.exhaustive();

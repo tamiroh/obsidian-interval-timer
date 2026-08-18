@@ -40,6 +40,18 @@ const pluginSettingSchema = v.object({
 	focusBgmVolume: v.optional(volumeSchema, 50),
 });
 
+const pluginSettingPatchSchema = v.strictObject({
+	focusIntervalDuration: v.exactOptional(durationMinutesSchema),
+	shortBreakDuration: v.exactOptional(durationMinutesSchema),
+	longBreakDuration: v.exactOptional(durationMinutesSchema),
+	longBreakAfter: v.exactOptional(positiveIntegerSchema),
+	notificationStyle: v.exactOptional(v.picklist(notificationStyles)),
+	flashOverlayEnabled: v.exactOptional(v.boolean()),
+	focusTickSoundVolume: v.exactOptional(volumeSchema),
+	focusBgmType: v.exactOptional(v.picklist(focusBgmTypes)),
+	focusBgmVolume: v.exactOptional(volumeSchema),
+});
+
 //
 // Settings
 //
@@ -52,17 +64,19 @@ export type PluginSettingReason =
 	| "non_positive_integer"
 	| "out_of_range_minutes"
 	| "out_of_range_volume"
-	| "invalid_option";
+	| "invalid_option"
+	| "unknown_setting";
 
-export type PluginSettingUpdateResult = Result<
-	PluginSetting[keyof PluginSetting],
-	PluginSettingReason
->;
+export type PluginSettingUpdateResult<
+	T = PluginSetting[keyof PluginSetting],
+> = Result<T, PluginSettingReason>;
 
 const settingReason = (
-	issue: v.InferIssue<
-		(typeof pluginSettingSchema.entries)[keyof PluginSetting]
-	>,
+	issue:
+		| v.InferIssue<
+				(typeof pluginSettingSchema.entries)[keyof PluginSetting]
+		  >
+		| v.InferIssue<typeof pluginSettingPatchSchema>,
 ): PluginSettingReason =>
 	match(issue.type)
 		.with(
@@ -78,6 +92,7 @@ const settingReason = (
 		.with("guard", () => "out_of_range_minutes" as const)
 		.with("check", () => "out_of_range_volume" as const)
 		.with("picklist", "boolean", () => "invalid_option" as const)
+		.with("strict_object", () => "unknown_setting" as const)
 		.exhaustive();
 
 export const defaultPluginSetting = v.parse(pluginSettingSchema, {});
@@ -102,29 +117,34 @@ export const parsePluginSetting = (value: unknown): PluginSetting => {
 //
 
 export class PluginSettingStore extends ObservableStore<PluginSetting> {
-	public override update(patch: Partial<PluginSetting>): void;
 	public override update(
-		key: keyof PluginSetting,
-		value: unknown,
-	): PluginSettingUpdateResult;
-	public override update(
-		patchOrKey: Partial<PluginSetting> | keyof PluginSetting,
-		value?: unknown,
-	): void | PluginSettingUpdateResult {
-		if (typeof patchOrKey !== "string") {
-			super.update(patchOrKey);
-			return;
+		patch: Partial<PluginSetting>,
+	): PluginSettingUpdateResult<Partial<PluginSetting>> {
+		const parsed = v.safeParse(pluginSettingPatchSchema, patch);
+		if (!parsed.success) {
+			return err(settingReason(parsed.issues[0]));
 		}
 
+		super.update(parsed.output);
+		return ok(parsed.output);
+	}
+
+	public updateFromUnknown(
+		key: keyof PluginSetting,
+		value: unknown,
+	): PluginSettingUpdateResult {
 		const parsed = v.safeParse(
-			v.unwrap(pluginSettingSchema.entries[patchOrKey]),
+			v.unwrap(pluginSettingSchema.entries[key]),
 			value,
 		);
 		if (!parsed.success) {
 			return err(settingReason(parsed.issues[0]));
 		}
 
-		super.update({ [patchOrKey]: parsed.output });
+		const updateResult = this.update({ [key]: parsed.output });
+		if (!updateResult.ok) {
+			return updateResult;
+		}
 		return ok(parsed.output);
 	}
 }

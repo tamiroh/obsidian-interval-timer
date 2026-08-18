@@ -129,7 +129,7 @@ export class Plugin extends BasePlugin {
 		key: keyof PluginSetting,
 		value: unknown,
 	): PluginSettingUpdateResult {
-		return this.settingStore.update(key, value);
+		return this.settingStore.updateFromUnknown(key, value);
 	}
 
 	private settingsReloads(): readonly SettingsReload[] {

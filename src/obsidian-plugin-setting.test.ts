@@ -77,13 +77,39 @@ describe("parsePluginSetting", () => {
 });
 
 describe("PluginSettingStore", () => {
+	it("returns the validated patch after a typed update", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+
+		const result = store.update({ focusBgmVolume: 80 });
+
+		expect(result).toEqual({
+			ok: true,
+			value: { focusBgmVolume: 80 },
+		});
+		expect(store.state.focusBgmVolume).toBe(80);
+	});
+
+	it("validates a typed update before changing the current settings", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+
+		const result = store.update({ focusBgmVolume: 101 });
+
+		expect(result).toEqual({
+			ok: false,
+			reason: "out_of_range_volume",
+		});
+		expect(store.state.focusBgmVolume).toBe(
+			defaultPluginSetting.focusBgmVolume,
+		);
+	});
+
 	it("rejects an undefined value without touching the current setting", () => {
 		const store = new PluginSettingStore({
 			...defaultPluginSetting,
 			focusBgmVolume: 80,
 		});
 
-		const result = store.update("focusBgmVolume", undefined);
+		const result = store.updateFromUnknown("focusBgmVolume", undefined);
 
 		expect(result).toEqual({ ok: false, reason: "invalid_number" });
 		expect(store.state.focusBgmVolume).toBe(80);
