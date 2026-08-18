@@ -20,6 +20,7 @@ import {
 	PluginSettingStore,
 } from "./obsidian-plugin-setting";
 import { IntervalTimerHost } from "./obsidian-interval-timer-host";
+import { registerCommands } from "./obsidian-plugin-commands";
 import type { TimerDisplay } from "./timer-display";
 
 export type { PluginSetting } from "./obsidian-plugin-setting";
@@ -78,7 +79,7 @@ export class Plugin extends BasePlugin {
 			void this.saveData(next);
 		});
 		this.taskLineController.setup(this, this.intervalTimerHost.timer);
-		this.registerCommands();
+		registerCommands(this, this.intervalTimerHost.timer);
 		this.addSettingTab(new SettingTab(this.app, this));
 
 		this.timerDisplay.enableClick(this.intervalTimerHost.timer);
@@ -96,63 +97,5 @@ export class Plugin extends BasePlugin {
 		value: unknown,
 	): PluginSettingUpdateResult {
 		return this.settingStore.updateFromUnknown(key, value);
-	}
-
-	private registerCommands(): void {
-		const intervalTimer = this.intervalTimerHost.timer;
-		this.addCommand({
-			id: "start-timer",
-			name: "Start timer",
-			checkCallback: (checking) => {
-				const canStart = intervalTimer.canStart;
-				if (!checking && canStart) {
-					intervalTimer.start();
-				}
-				return canStart;
-			},
-		});
-		this.addCommand({
-			id: "pause-timer",
-			name: "Pause timer",
-			checkCallback: (checking) => {
-				const canPause = intervalTimer.canPause;
-				if (!checking && canPause) {
-					intervalTimer.pause();
-				}
-				return canPause;
-			},
-		});
-		this.addCommand({
-			id: "reset-timer",
-			name: "Reset timer",
-			callback: () => {
-				intervalTimer.reset();
-			},
-		});
-		this.addCommand({
-			id: "reset-intervals-set",
-			name: "Reset intervals set",
-			callback: () => {
-				intervalTimer.resetIntervalsSet();
-			},
-		});
-		this.addCommand({
-			id: "reset-total-intervals",
-			name: "Reset total intervals",
-			callback: () => {
-				intervalTimer.resetTotalIntervals();
-			},
-		});
-		this.addCommand({
-			id: "skip-interval",
-			name: "Skip interval",
-			checkCallback: (checking) => {
-				const canSkip = intervalTimer.state !== "focus";
-				if (!checking && canSkip) {
-					intervalTimer.skipInterval();
-				}
-				return canSkip;
-			},
-		});
 	}
 }
