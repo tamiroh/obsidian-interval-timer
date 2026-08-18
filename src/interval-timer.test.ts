@@ -652,15 +652,15 @@ describe("IntervalTimer", () => {
 			// Act & Assert
 			expect(intervalTimer.retime(1.5)).toEqual({
 				ok: false,
-				reason: "invalid_minutes",
+				reason: "non_integer",
 			});
 			expect(intervalTimer.retime(0)).toEqual({
 				ok: false,
-				reason: "invalid_minutes",
+				reason: "non_positive_integer",
 			});
 			expect(intervalTimer.retime(-5)).toEqual({
 				ok: false,
-				reason: "invalid_minutes",
+				reason: "non_positive_integer",
 			});
 			expect(stateChangedEvents(events)).toHaveLength(0);
 

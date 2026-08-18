@@ -4,16 +4,23 @@ import {
 	Snapshot,
 } from "./interval-timer";
 import { KeyValueStore } from "./key-value-store";
-import { Time } from "./time";
-import type { Result } from "./result";
-import {
-	parseMinutes,
-	parseNonNegativeInteger,
-	parseSeconds,
-} from "./value-parser";
+import * as v from "valibot";
+import { parseMinutes, parseSeconds, Time } from "./time";
 
 const isIntervalTimerState = (value: string): value is IntervalTimerState =>
 	intervalTimerStates.some((state) => state === value);
+
+const intervalCountSchema = v.pipe(
+	v.union([v.number(), v.pipe(v.string(), v.toNumber())]),
+	v.finite(),
+	v.integer(),
+	v.minValue(0),
+);
+
+const parseIntervalCount = (value: unknown): number | null => {
+	const result = v.safeParse(intervalCountSchema, value);
+	return result.success ? result.output : null;
+};
 
 export class IntervalTimerSnapshotStore {
 	private readonly keyValueStore: KeyValueStore;
@@ -32,13 +39,10 @@ export class IntervalTimerSnapshotStore {
 		const seconds = this.parseField("time-seconds", parseSeconds);
 		if (seconds === null) return null;
 
-		const total = this.parseField(
-			"intervals-total",
-			parseNonNegativeInteger,
-		);
+		const total = this.parseField("intervals-total", parseIntervalCount);
 		if (total === null) return null;
 
-		const set = this.parseField("intervals-set", parseNonNegativeInteger);
+		const set = this.parseField("intervals-set", parseIntervalCount);
 		if (set === null || set > total) return null;
 
 		return {
@@ -51,13 +55,10 @@ export class IntervalTimerSnapshotStore {
 
 	private parseField<T>(
 		key: string,
-		parse: (value: string) => Result<T, string>,
+		parse: (value: unknown) => T | null,
 	): T | null {
 		const raw = this.keyValueStore.get(key);
-		if (raw === null) return null;
-
-		const parsed = parse(raw);
-		return parsed.ok ? parsed.value : null;
+		return raw === null ? null : parse(raw);
 	}
 
 	public save(

@@ -1,16 +1,17 @@
+import { match } from "ts-pattern";
+import * as v from "valibot";
 import type { Enumerate } from "./enumerate";
+import { err, ok, type Result } from "./result";
+
+//
+// Minutes and seconds
+//
 
 export const minutesUpperBound = 600;
 export const secondsUpperBound = 60;
 
 export type Minutes = Enumerate<typeof minutesUpperBound>;
 export type Seconds = Enumerate<typeof secondsUpperBound>;
-export type Time = { minutes: Minutes; seconds: Seconds };
-
-export const time = (minutes: Minutes, seconds: Seconds): Time => ({
-	minutes,
-	seconds,
-});
 
 export const isMinutes = (value: number): value is Minutes =>
 	Number.isInteger(value) && value >= 0 && value < minutesUpperBound;
@@ -18,7 +19,80 @@ export const isMinutes = (value: number): value is Minutes =>
 export const isSeconds = (value: number): value is Seconds =>
 	Number.isInteger(value) && value >= 0 && value < secondsUpperBound;
 
+//
+// Time
+//
+
+export type Time = { minutes: Minutes; seconds: Seconds };
+
+export const time = (minutes: Minutes, seconds: Seconds): Time => ({
+	minutes,
+	seconds,
+});
+
 export const toSeconds = ({ minutes, seconds }: Time): number =>
 	minutes * 60 + seconds;
 
 export const toMilliseconds = (value: Time): number => toSeconds(value) * 1000;
+
+//
+// Parsing
+//
+
+const integerSchema = v.pipe(
+	v.union([v.number(), v.pipe(v.string(), v.toNumber())]),
+	v.finite(),
+	v.integer(),
+);
+
+const minutesSchema = v.pipe(integerSchema, v.guard(isMinutes));
+
+const secondsSchema = v.pipe(integerSchema, v.guard(isSeconds));
+
+const durationMinutesSchema = v.pipe(
+	integerSchema,
+	v.minValue(1),
+	v.guard(isMinutes),
+);
+
+export const parseMinutes = (value: unknown): Minutes | null => {
+	const result = v.safeParse(minutesSchema, value);
+	return result.success ? result.output : null;
+};
+
+export const parseSeconds = (value: unknown): Seconds | null => {
+	const result = v.safeParse(secondsSchema, value);
+	return result.success ? result.output : null;
+};
+
+export type DurationMinutesReason =
+	| "invalid_number"
+	| "non_integer"
+	| "non_positive_integer"
+	| "out_of_range_minutes";
+
+export const parseDurationMinutes = (
+	value: unknown,
+): Result<Minutes, DurationMinutesReason> => {
+	const result = v.safeParse(durationMinutesSchema, value);
+	return result.success
+		? ok(result.output)
+		: err(durationMinutesReason(result.issues[0]));
+};
+
+const durationMinutesReason = (
+	issue: v.InferIssue<typeof durationMinutesSchema>,
+): DurationMinutesReason =>
+	match(issue.type)
+		.with(
+			"union",
+			"number",
+			"string",
+			"to_number",
+			"finite",
+			() => "invalid_number" as const,
+		)
+		.with("integer", () => "non_integer" as const)
+		.with("min_value", () => "non_positive_integer" as const)
+		.with("guard", () => "out_of_range_minutes" as const)
+		.exhaustive();

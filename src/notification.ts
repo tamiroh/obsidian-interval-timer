@@ -1,4 +1,6 @@
-export type NotificationStyle = "system" | "simple";
+export const notificationStyles = ["system", "simple"] as const;
+
+export type NotificationStyle = (typeof notificationStyles)[number];
 
 export abstract class Notifier {
 	abstract notify(message: string): void;

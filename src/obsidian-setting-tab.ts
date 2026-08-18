@@ -2,8 +2,8 @@ import { App, displayTooltip, PluginSettingTab, Setting } from "obsidian";
 import { match } from "ts-pattern";
 import type { Plugin, PluginSetting } from "./obsidian-plugin";
 import {
-	focusBgmVolumeRange,
-	focusTickSoundVolumeRange,
+	type PluginSettingReason,
+	volumeRange,
 } from "./obsidian-plugin-setting";
 import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
 import { minutesUpperBound } from "./time";
@@ -145,11 +145,7 @@ export class SettingTab extends PluginSettingTab {
 			.setDesc("Volume during focus intervals (0–100). Set to 0 to mute.")
 			.addSlider((slider) => {
 				slider
-					.setLimits(
-						focusTickSoundVolumeRange.min,
-						focusTickSoundVolumeRange.max,
-						5,
-					)
+					.setLimits(volumeRange.min, volumeRange.max, 5)
 					.setValue(this.plugin.currentSettings.focusTickSoundVolume);
 				slider.onChange((value) => {
 					this.updateSettingOrShowValidationError(
@@ -187,11 +183,7 @@ export class SettingTab extends PluginSettingTab {
 			)
 			.addSlider((slider) => {
 				slider
-					.setLimits(
-						focusBgmVolumeRange.min,
-						focusBgmVolumeRange.max,
-						5,
-					)
+					.setLimits(volumeRange.min, volumeRange.max, 5)
 					.setValue(this.plugin.currentSettings.focusBgmVolume);
 				slider.onChange((value) => {
 					this.updateSettingOrShowValidationError(
@@ -218,7 +210,7 @@ export class SettingTab extends PluginSettingTab {
 
 		displayTooltip(
 			targetEl,
-			this.formatParseErrorMessage(settingLabel, result.reason),
+			`${settingLabel}: ${validationMessage(result.reason)}`,
 			{
 				placement: "left",
 				classes: ["mod-error", VALIDATION_TOOLTIP_CLASS],
@@ -233,39 +225,21 @@ export class SettingTab extends PluginSettingTab {
 				tooltipEl.remove();
 			});
 	}
-
-	private formatParseErrorMessage(
-		settingLabel: string,
-		reason: Extract<
-			Awaited<ReturnType<Plugin["updateSetting"]>>,
-			{ ok: false }
-		>["reason"],
-	): string {
-		return match(reason)
-			.with(
-				"invalid_number",
-				() => `${settingLabel}: please enter a number.`,
-			)
-			.with(
-				"non_positive_integer",
-				() => `${settingLabel}: please enter a positive integer.`,
-			)
-			.with(
-				"out_of_range_minutes",
-				() =>
-					`${settingLabel}: please enter fewer than ${minutesUpperBound} minutes.`,
-			)
-			.with(
-				"invalid_notification_style",
-				"invalid_boolean",
-				"invalid_focus_bgm_type",
-				() => `${settingLabel}: invalid option selected.`,
-			)
-			.with(
-				"invalid_focus_tick_sound_volume",
-				"invalid_focus_bgm_volume",
-				() => `${settingLabel}: please choose a value from 0 to 100.`,
-			)
-			.exhaustive();
-	}
 }
+
+const validationMessage = (reason: PluginSettingReason): string =>
+	match(reason)
+		.with("invalid_number", () => "Enter a number.")
+		.with("non_integer", () => "Enter a whole number.")
+		.with("non_positive_integer", () => "Enter a positive whole number.")
+		.with(
+			"out_of_range_minutes",
+			() => `Enter fewer than ${minutesUpperBound} minutes.`,
+		)
+		.with(
+			"out_of_range_volume",
+			() =>
+				`Choose a value from ${volumeRange.min} to ${volumeRange.max}.`,
+		)
+		.with("invalid_option", () => "Select a valid option.")
+		.exhaustive();

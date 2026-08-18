@@ -296,9 +296,11 @@ const PopoverView = ({
 						() => `Enter fewer than ${minutesUpperBound} minutes.`,
 					)
 					.with(
-						"invalid_minutes",
-						() => "Enter a positive whole number of minutes.",
+						"non_positive_integer",
+						() => "Enter a positive whole number.",
 					)
+					.with("non_integer", () => "Enter a whole number.")
+					.with("invalid_number", () => "Enter a number.")
 					.exhaustive(),
 			);
 			retimeInputRef.current?.select();

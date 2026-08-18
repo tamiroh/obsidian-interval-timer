@@ -521,9 +521,7 @@ describe("Popover", () => {
 		fireEvent.submit(getRetimeForm(el));
 
 		// Assert
-		expect(notify).toHaveBeenCalledWith(
-			"Enter a positive whole number of minutes.",
-		);
+		expect(notify).toHaveBeenCalledWith("Enter a whole number.");
 	});
 
 	it("keeps a minute click from triggering the status bar click", async () => {

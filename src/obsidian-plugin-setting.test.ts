@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	defaultPluginSetting,
 	parsePluginSetting,
+	PluginSettingStore,
 } from "./obsidian-plugin-setting";
 
 describe("parsePluginSetting", () => {
@@ -72,5 +73,19 @@ describe("parsePluginSetting", () => {
 			...defaultPluginSetting,
 			focusIntervalDuration: 30,
 		});
+	});
+});
+
+describe("PluginSettingStore", () => {
+	it("rejects an undefined value without touching the current setting", () => {
+		const store = new PluginSettingStore({
+			...defaultPluginSetting,
+			focusBgmVolume: 80,
+		});
+
+		const result = store.update("focusBgmVolume", undefined);
+
+		expect(result).toEqual({ ok: false, reason: "invalid_number" });
+		expect(store.state.focusBgmVolume).toBe(80);
 	});
 });
