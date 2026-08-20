@@ -68,15 +68,15 @@ export class Plugin extends BasePlugin {
 		});
 		this.intervalTimerHost.initialize();
 
-		// Persist settings changes
-		this.settingStore.subscribe(
-			(_previous, next) => void this.saveData(next),
-		);
-
 		// Register timer integrations
 		this.taskLineController.setup(this, this.intervalTimerHost.timer);
 		registerCommands(this, this.intervalTimerHost.timer);
 		this.timerDisplay.enableClick(this.intervalTimerHost.timer);
+
+		// Persist settings changes
+		this.settingStore.subscribe(
+			(_previous, next) => void this.saveData(next),
+		);
 
 		// Register the setting tab
 		this.addSettingTab(new SettingTab(this.app, this, this.settingStore));
