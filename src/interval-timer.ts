@@ -72,10 +72,6 @@ export type IntervalTimerEvent = IntervalTimerEventDetails & {
 	snapshot: Snapshot;
 };
 
-export type NotifierContext = {
-	state: IntervalTimerState;
-};
-
 export type RetimeResult = Result<
 	void,
 	DurationMinutesReason | "timer_running"

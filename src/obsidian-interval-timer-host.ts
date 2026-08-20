@@ -7,7 +7,6 @@ import {
 	IntervalTimer,
 	type IntervalTimerEvent,
 	type IntervalTimerStatus,
-	type NotifierContext,
 } from "./interval-timer";
 import type { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
 import { createNotifier } from "./obsidian-notification";
@@ -215,7 +214,19 @@ export class IntervalTimerHost {
 				void this.taskLineController.completeFocusInterval();
 				break;
 			case "interval-completed":
-				this.notify(event.notificationMessage, { state: event.to });
+				if (this.currentSettings.flashOverlayEnabled) {
+					this.flashOverlay.show(
+						match(event.to)
+							.with("focus", () => ({ r: 255, g: 100, b: 100 }))
+							.with("shortBreak", "longBreak", () => ({
+								r: 100,
+								g: 255,
+								b: 100,
+							}))
+							.exhaustive(),
+					);
+				}
+				this.notifier.notify(event.notificationMessage);
 				break;
 			case "timer-paused":
 			case "timer-reset":
@@ -244,21 +255,5 @@ export class IntervalTimerHost {
 		if (timerState === "initialized") {
 			this.taskLineController.untrackCurrentTask();
 		}
-	}
-
-	private notify(message: string, context: NotifierContext): void {
-		if (this.currentSettings.flashOverlayEnabled) {
-			this.flashOverlay.show(
-				match(context.state)
-					.with("focus", () => ({ r: 255, g: 100, b: 100 }))
-					.with("shortBreak", "longBreak", () => ({
-						r: 100,
-						g: 255,
-						b: 100,
-					}))
-					.exhaustive(),
-			);
-		}
-		this.notifier.notify(message);
 	}
 }
