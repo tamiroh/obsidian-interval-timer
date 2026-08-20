@@ -84,5 +84,6 @@ export class Plugin extends BasePlugin {
 
 	public override onunload(): void {
 		this.intervalTimerHost.dispose();
+		this.timerDisplay.dispose();
 	}
 }

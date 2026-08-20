@@ -107,7 +107,6 @@ export class IntervalTimerHost {
 		this.flashOverlay.dispose();
 		this.focusBgm.dispose();
 		this.audioOutput.dispose();
-		this.timerDisplay.dispose();
 		this.intervalTimer.dispose();
 	}
 
