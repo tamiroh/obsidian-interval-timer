@@ -59,8 +59,10 @@ export class TaskTracker {
 	}
 
 	public async incrementTrackedTask(): Promise<IncrementTrackedTaskResult> {
-		const name = this.keyValueStore.get("current-task-name");
-		const filePath = this.keyValueStore.get("current-task-path");
+		const name = this.keyValueStore.get("current-task-name")?.as("string");
+		const filePath = this.keyValueStore
+			.get("current-task-path")
+			?.as("string");
 		if (isBlank(name) || isBlank(filePath)) {
 			return err("tracked_task_not_found");
 		}
@@ -90,6 +92,8 @@ export class TaskTracker {
 	}
 
 	public getTrackedTaskName(): string | null {
-		return this.keyValueStore.get("current-task-name");
+		return (
+			this.keyValueStore.get("current-task-name")?.as("string") ?? null
+		);
 	}
 }

@@ -30,7 +30,8 @@ export class IntervalTimerSnapshotStore {
 	}
 
 	public load(): Snapshot | null {
-		const state = this.keyValueStore.get("timerState");
+		const state =
+			this.keyValueStore.get("timerState")?.as("string") ?? null;
 		if (state === null || !isIntervalTimerState(state)) return null;
 
 		const minutes = this.parseField("time-minutes", parseMinutes);
@@ -57,8 +58,7 @@ export class IntervalTimerSnapshotStore {
 		key: string,
 		parse: (value: unknown) => T | null,
 	): T | null {
-		const raw = this.keyValueStore.get(key);
-		return raw === null ? null : parse(raw);
+		return parse(this.keyValueStore.get(key)?.as("unknown"));
 	}
 
 	public save(

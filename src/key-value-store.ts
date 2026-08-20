@@ -1,3 +1,58 @@
+//
+// Value
+//
+
+export type StorableValue =
+	| string
+	| number
+	| boolean
+	| null
+	| StorableValue[]
+	| { [key: string]: StorableValue };
+
+type StoredTypes = {
+	string: string;
+	number: number;
+	boolean: boolean;
+	object: Record<string, StorableValue>;
+	unknown: unknown;
+};
+
+export type StoredType = keyof StoredTypes;
+
+export class StoredValue {
+	private readonly value: unknown;
+
+	constructor(value: unknown) {
+		this.value = value;
+	}
+
+	public as<TType extends StoredType>(
+		type: TType,
+	): StoredTypes[TType] | null {
+		return StoredValue.hasType(this.value, type) ? this.value : null;
+	}
+
+	private static hasType<TType extends StoredType>(
+		value: unknown,
+		type: TType,
+	): value is StoredTypes[TType] {
+		if (type === "unknown") return true;
+		if (type === "object") {
+			return (
+				typeof value === "object" &&
+				value !== null &&
+				!Array.isArray(value)
+			);
+		}
+		return typeof value === type;
+	}
+}
+
+//
+// Store
+//
+
 export class KeyValueStore {
 	private readonly uniqueKey: string;
 
@@ -8,15 +63,27 @@ export class KeyValueStore {
 		this.localStorage = window.localStorage;
 	}
 
-	public set(key: string, value: string): void {
-		this.localStorage.setItem(`${this.uniqueKey}:${key}`, value);
+	public set(key: string, value: StorableValue): void {
+		this.localStorage.setItem(this.storageKey(key), JSON.stringify(value));
 	}
 
-	public get(key: string): string | null {
-		return this.localStorage.getItem(`${this.uniqueKey}:${key}`);
+	public get(key: string): StoredValue | null {
+		const raw = this.localStorage.getItem(this.storageKey(key));
+		if (raw === null) return null;
+
+		try {
+			const parsed: unknown = JSON.parse(raw);
+			return new StoredValue(parsed);
+		} catch {
+			return null;
+		}
 	}
 
 	public delete(key: string): void {
-		this.localStorage.removeItem(`${this.uniqueKey}:${key}`);
+		this.localStorage.removeItem(this.storageKey(key));
+	}
+
+	private storageKey(key: string): string {
+		return `${this.uniqueKey}:${key}`;
 	}
 }
