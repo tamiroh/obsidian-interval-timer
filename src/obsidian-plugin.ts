@@ -76,10 +76,10 @@ export class Plugin extends BasePlugin {
 		// Register timer integrations
 		this.taskLineController.setup(this, this.intervalTimerHost.timer);
 		registerCommands(this, this.intervalTimerHost.timer);
-
-		// Register UI integrations
-		this.addSettingTab(new SettingTab(this.app, this, this.settingStore));
 		this.timerDisplay.enableClick(this.intervalTimerHost.timer);
+
+		// Register the setting tab
+		this.addSettingTab(new SettingTab(this.app, this, this.settingStore));
 	}
 
 	public override onunload(): void {
