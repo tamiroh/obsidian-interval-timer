@@ -80,9 +80,6 @@ export class Plugin extends BasePlugin {
 		// Register UI integrations
 		this.addSettingTab(new SettingTab(this.app, this, this.settingStore));
 		this.timerDisplay.enableClick(this.intervalTimerHost.timer);
-		this.registerDomEvent(window, "focus", () => {
-			this.intervalTimerHost.clearNotification();
-		});
 	}
 
 	public override onunload(): void {

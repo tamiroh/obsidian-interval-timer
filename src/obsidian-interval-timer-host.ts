@@ -66,6 +66,7 @@ export class IntervalTimerHost {
 		this.snapshotStore = snapshotStore;
 		this.taskLineController = taskLineController;
 		this.notifier = createNotifier(this.currentSettings.notificationStyle);
+		this.notifier.enableAutoClear();
 		this.settingsReloads = this.settingsReloadsDefinition();
 		this.unsubscribeSettings = settingStore.subscribe((previous, next) => {
 			this.currentSettings = next;
@@ -100,12 +101,9 @@ export class IntervalTimerHost {
 		this.intervalTimer.enableAutoReset();
 	}
 
-	public clearNotification(): void {
-		this.notifier.clearNotification();
-	}
-
 	public dispose(): void {
 		this.unsubscribeSettings();
+		this.notifier.dispose();
 		this.flashOverlay.dispose();
 		this.focusBgm.dispose();
 		this.audioOutput.dispose();
@@ -118,8 +116,9 @@ export class IntervalTimerHost {
 			{
 				keys: ["notificationStyle"],
 				reload: (next) => {
-					this.notifier.clearNotification();
+					this.notifier.dispose();
 					this.notifier = createNotifier(next.notificationStyle);
+					this.notifier.enableAutoClear();
 				},
 			},
 			{
