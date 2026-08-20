@@ -13,7 +13,7 @@ jobs:
             - name: Use Node.js
               uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
               with:
-                  node-version: "20.x"
+                  node-version-file: ".tool-versions"
             - name: Update draft
               id: release-drafter-prepare
               uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v7.7.0
@@ -35,7 +35,7 @@ jobs:
             - name: Build
               id: build
               run: |
-                  npm install
+                  npm ci
                   npm run build --if-present
                   mkdir ${{ env.PLUGIN_NAME }}
                   cp main.js manifest.json styles.css ${{ env.PLUGIN_NAME }}
