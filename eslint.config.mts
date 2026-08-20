@@ -99,7 +99,11 @@ export default defineConfig(
 		name: "local/ts-prodonly",
 		files: ["src/**/*.{ts,tsx}"],
 		ignores: ["**/*.test.{ts,tsx}"],
+		plugins: {
+			local,
+		},
 		rules: {
+			"local/require-dispose": "error",
 			"import/no-extraneous-dependencies": [
 				"error",
 				{

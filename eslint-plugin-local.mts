@@ -3,6 +3,7 @@ import {
 	ESLintUtils,
 	TSESTree,
 } from "@typescript-eslint/utils";
+import type * as ts from "typescript";
 
 const createRule = ESLintUtils.RuleCreator((name) => `local/${name}`);
 
@@ -75,6 +76,94 @@ const vitestAaaOrder = createRule({
 	},
 });
 
+const hasMethod = (
+	type: ts.Type,
+	checker: ts.TypeChecker,
+	name: string,
+): boolean => {
+	const method = type.getProperty(name);
+	if (method === undefined) return false;
+	return checker.getTypeOfSymbol(method).getCallSignatures().length > 0;
+};
+
+const teardownMethods = ["dispose", "onunload"];
+
+const getEnclosingClass = (
+	node: TSESTree.Node,
+): TSESTree.ClassDeclaration | TSESTree.ClassExpression | null => {
+	for (
+		let current: TSESTree.Node | undefined = node.parent;
+		current != null;
+		current = current.parent
+	) {
+		if (
+			current.type === AST_NODE_TYPES.ClassDeclaration ||
+			current.type === AST_NODE_TYPES.ClassExpression
+		) {
+			return current;
+		}
+	}
+	return null;
+};
+
+const requireDispose = createRule({
+	name: "require-dispose",
+	meta: {
+		type: "problem",
+		docs: {
+			description:
+				"Require a class that constructs a disposable to implement dispose() itself, so teardown propagates down the whole ownership chain. Disposables built elsewhere and injected are the caller's to tear down, and are ignored.",
+		},
+		messages: {
+			missingDispose:
+				"`{{constructed}}` is disposable, so `{{className}}` must implement dispose() and tear it down there.",
+		},
+		schema: [],
+	},
+	defaultOptions: [],
+	create(context) {
+		const services = ESLintUtils.getParserServices(context);
+		const checker = services.program.getTypeChecker();
+
+		return {
+			NewExpression(node) {
+				if (
+					!hasMethod(
+						services.getTypeAtLocation(node),
+						checker,
+						"dispose",
+					)
+				) {
+					return;
+				}
+
+				const enclosingClass = getEnclosingClass(node);
+				if (enclosingClass === null) return;
+
+				const instanceType = checker.getDeclaredTypeOfSymbol(
+					services.getTypeAtLocation(enclosingClass).symbol,
+				);
+				if (
+					teardownMethods.some((name) =>
+						hasMethod(instanceType, checker, name),
+					)
+				) {
+					return;
+				}
+
+				context.report({
+					node,
+					messageId: "missingDispose",
+					data: {
+						constructed: context.sourceCode.getText(node.callee),
+						className: enclosingClass.id?.name ?? "this class",
+					},
+				});
+			},
+		};
+	},
+});
+
 //
 // Plugin
 //
@@ -86,5 +175,6 @@ export default {
 	},
 	rules: {
 		"vitest-aaa-order": vitestAaaOrder,
+		"require-dispose": requireDispose,
 	},
 };
