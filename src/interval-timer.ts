@@ -181,11 +181,9 @@ export class IntervalTimer {
 	}
 
 	public reset(): void {
-		const result = this.currentInterval.timer.reset();
-		if (result.ok) {
-			this.emitStateChanged("initialized");
-			this.emit({ type: "timer-reset" });
-		}
+		this.currentInterval.timer.reset();
+		this.emitStateChanged("initialized");
+		this.emit({ type: "timer-reset" });
 	}
 
 	public resetIntervalsSet(): void {

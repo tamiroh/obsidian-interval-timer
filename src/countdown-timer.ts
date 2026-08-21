@@ -25,8 +25,6 @@ export type StartTimerResult = Result<
 
 export type PauseTimerResult = Result<void, "timer_not_running">;
 
-export type ResetTimerResult = Result<Time, never>;
-
 export type TimerState =
 	| {
 			type: (typeof timerTypes)[0];
@@ -150,7 +148,7 @@ export class CountdownTimer {
 		return ok();
 	}
 
-	public reset(): ResetTimerResult {
+	public reset(): Time {
 		if (this.state.type === "running") {
 			window.clearTimeout(this.state.timeoutId);
 		}
@@ -161,7 +159,7 @@ export class CountdownTimer {
 				this.initialTime.seconds,
 			),
 		};
-		return ok(time(this.initialTime.minutes, this.initialTime.seconds));
+		return time(this.initialTime.minutes, this.initialTime.seconds);
 	}
 
 	public dispose(): void {

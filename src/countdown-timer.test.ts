@@ -312,10 +312,7 @@ describe("CountdownTimer", () => {
 		const result = countdownTimer.reset();
 
 		// Assert
-		expect(result).toStrictEqual({
-			ok: true,
-			value: time(0, 5),
-		});
+		expect(result).toStrictEqual(time(0, 5));
 		expect(countdownTimer.getCurrentTimerType()).toBe("initialized");
 	});
 
