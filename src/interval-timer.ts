@@ -79,11 +79,13 @@ export type RetimeResult = Result<
 
 export type TouchAction = "start" | "resume" | "reset" | "skip";
 
+type CurrentInterval = {
+	timer: CountdownTimer;
+	state: IntervalTimerState;
+};
+
 export class IntervalTimer {
-	private currentInterval: {
-		timer: CountdownTimer;
-		state: IntervalTimerState;
-	};
+	private currentInterval: CurrentInterval;
 
 	private focusIntervals: { total: number; set: number };
 
@@ -96,22 +98,17 @@ export class IntervalTimer {
 	private readonly autoResetScheduler: DailyScheduler;
 
 	constructor(settings: IntervalTimerSetting) {
-		this.currentInterval = {
-			timer: this.createTimer(0, 0), // dummy timer, replaced by enterInterval() below
-			state: "focus",
-		};
 		this.focusIntervals = { total: 0, set: 0 };
 		this.settings = structuredClone(settings);
+		this.currentInterval = this.createInterval(
+			"focus",
+			time(this.settings.focusIntervalDuration, 0),
+		);
 		this.autoResetScheduler = new DailyScheduler(
 			this.settings.resetTime,
 			() => {
 				this.resetTotalIntervals();
 			},
-		);
-
-		this.enterInterval(
-			"focus",
-			time(this.settings.focusIntervalDuration, 0),
 		);
 	}
 
@@ -344,12 +341,19 @@ export class IntervalTimer {
 		return timer;
 	}
 
-	private enterInterval(state: IntervalTimerState, nextTime: Time): void {
-		this.currentInterval.timer.dispose();
-		this.currentInterval = {
-			timer: this.createTimer(nextTime.minutes, nextTime.seconds),
+	private createInterval(
+		state: IntervalTimerState,
+		startFrom: Time,
+	): CurrentInterval {
+		return {
+			timer: this.createTimer(startFrom.minutes, startFrom.seconds),
 			state,
 		};
+	}
+
+	private enterInterval(state: IntervalTimerState, nextTime: Time): void {
+		this.currentInterval.timer.dispose();
+		this.currentInterval = this.createInterval(state, nextTime);
 		this.changeState("initialized");
 	}
 
