@@ -167,7 +167,7 @@ export class IntervalTimer {
 		const result = this.currentInterval.timer.start();
 		if (!result.ok) return;
 
-		this.changeState("running");
+		this.emitStateChanged("running");
 		this.emit({
 			type: "timer-started",
 			mode: currentTimerType === "initialized" ? "fresh" : "resumed",
@@ -183,7 +183,7 @@ export class IntervalTimer {
 	public reset(): void {
 		const result = this.currentInterval.timer.reset();
 		if (result.ok) {
-			this.changeState("initialized");
+			this.emitStateChanged("initialized");
 			this.emit({ type: "timer-reset" });
 		}
 	}
@@ -344,10 +344,10 @@ export class IntervalTimer {
 		timer.subscribe((event) => {
 			match(event.type)
 				.with("tick", () => {
-					this.changeState("running");
+					this.emitStateChanged("running");
 				})
 				.with("paused", () => {
-					this.changeState("paused");
+					this.emitStateChanged("paused");
 				})
 				.with("completed", () => {
 					this.enterNextInterval({ reason: "completed" });
@@ -370,10 +370,10 @@ export class IntervalTimer {
 	private enterInterval(state: IntervalTimerState, nextTime: Time): void {
 		this.currentInterval.timer.dispose();
 		this.currentInterval = this.createInterval(state, nextTime);
-		this.changeState("initialized");
+		this.emitStateChanged("initialized");
 	}
 
-	private changeState(timerState: TimerType): void {
+	private emitStateChanged(timerState: TimerType): void {
 		this.emit({ type: "state-changed", timerState });
 	}
 
