@@ -1,23 +1,23 @@
 import {
-	MouseEventHandler,
+	type MouseEventHandler,
 	render,
-	TargetedEvent,
-	TargetedMouseEvent,
+	type TargetedEvent,
+	type TargetedMouseEvent,
 } from "preact";
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { match } from "ts-pattern";
-import { TimerType } from "./countdown-timer";
+import { type TimerType } from "./countdown-timer";
 import {
 	defaultLongBreakAfter,
-	IntervalTimer,
-	IntervalTimerState,
+	type IntervalTimer,
+	type IntervalTimerState,
 	type RetimeResult,
-	TouchAction,
+	type TouchAction,
 } from "./interval-timer";
 import { ObservableStore, useObservableStore } from "./observable-store";
-import { Position, usePopoverFloating } from "./popover-floating";
+import { type Position, usePopoverFloating } from "./popover-floating";
 import type { ResultFailureReason } from "./result";
-import { minutesUpperBound, time, Time, toSeconds } from "./time";
+import { minutesUpperBound, time, type Time, toSeconds } from "./time";
 
 //
 // Constants and types

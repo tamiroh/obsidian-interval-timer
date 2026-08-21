@@ -1,5 +1,8 @@
 import { Notice, type Plugin as BasePlugin, type Workspace } from "obsidian";
-import { TaskTracker, type TrackTaskResult } from "./obsidian-task-tracker";
+import {
+	type TaskTracker,
+	type TrackTaskResult,
+} from "./obsidian-task-tracker";
 import { TaskLineHighlighter } from "./obsidian-task-line-highlight-extension";
 import type { IntervalTimer } from "./interval-timer";
 import type { TimerDisplay } from "./timer-display";

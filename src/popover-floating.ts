@@ -1,4 +1,4 @@
-import { TargetedKeyboardEvent, TargetedPointerEvent } from "preact";
+import { type TargetedKeyboardEvent, type TargetedPointerEvent } from "preact";
 import { useState } from "preact/hooks";
 
 export type Position = {

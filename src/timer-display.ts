@@ -1,6 +1,6 @@
-import { Time } from "./time";
-import { IntervalTimer, IntervalTimerState } from "./interval-timer";
-import { TimerType } from "./countdown-timer";
+import { type Time } from "./time";
+import { type IntervalTimer, type IntervalTimerState } from "./interval-timer";
+import { type TimerType } from "./countdown-timer";
 
 export type TimerDisplay = {
 	update(

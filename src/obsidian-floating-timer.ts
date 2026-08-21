@@ -1,13 +1,13 @@
-import { App, EventRef } from "obsidian";
-import { Time } from "./time";
+import { type App, type EventRef } from "obsidian";
+import { type Time } from "./time";
 import {
 	defaultLongBreakAfter,
-	IntervalTimer,
-	IntervalTimerState,
+	type IntervalTimer,
+	type IntervalTimerState,
 } from "./interval-timer";
-import { TimerType } from "./countdown-timer";
+import { type TimerType } from "./countdown-timer";
 import { Popover } from "./popover";
-import { TimerDisplay } from "./timer-display";
+import { type TimerDisplay } from "./timer-display";
 
 export class FloatingTimer implements TimerDisplay {
 	private readonly containerEl: HTMLElement;

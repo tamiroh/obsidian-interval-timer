@@ -81,6 +81,10 @@ export default defineConfig(
 			],
 			"@typescript-eslint/non-nullable-type-assertion-style": "off", // Conflicts with no-non-null-assertion
 			"@typescript-eslint/consistent-type-definitions": ["error", "type"],
+			"@typescript-eslint/consistent-type-imports": [
+				"error",
+				{ fixStyle: "inline-type-imports" },
+			],
 			"@typescript-eslint/switch-exhaustiveness-check": "error",
 			"@typescript-eslint/strict-boolean-expressions": "error",
 			"@typescript-eslint/no-shadow": "error",

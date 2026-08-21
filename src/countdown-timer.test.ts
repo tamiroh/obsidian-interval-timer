@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CountdownTimer, CountdownTimerEvent } from "./countdown-timer";
-import { time, Time } from "./time";
+import { CountdownTimer, type CountdownTimerEvent } from "./countdown-timer";
+import { time, type Time } from "./time";
 
 function subscribeTo(
 	countdownTimer: CountdownTimer,

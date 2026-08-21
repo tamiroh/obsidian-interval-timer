@@ -1,7 +1,7 @@
 import { waitFor, within } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { IntervalTimer, IntervalTimerSetting } from "./interval-timer";
+import { IntervalTimer, type IntervalTimerSetting } from "./interval-timer";
 import { StatusBar } from "./status-bar";
 import { time } from "./time";
 

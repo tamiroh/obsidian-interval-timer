@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import {
 	IntervalTimer,
 	type IntervalTimerEvent,
-	IntervalTimerSetting,
+	type IntervalTimerSetting,
 } from "./interval-timer";
 import { minutesUpperBound } from "./time";
 import { clear, last } from "./array";

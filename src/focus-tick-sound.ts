@@ -1,4 +1,4 @@
-import { AudioOutput, GeneratedSound } from "./audio-output";
+import { type AudioOutput, GeneratedSound } from "./audio-output";
 
 const tickDurationSeconds = 0.032;
 

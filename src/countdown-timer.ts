@@ -4,7 +4,7 @@ import {
 	isMinutes,
 	isSeconds,
 	time,
-	Time,
+	type Time,
 	toMilliseconds,
 	toSeconds,
 } from "./time";

@@ -1,11 +1,11 @@
 import {
 	intervalTimerStates,
-	IntervalTimerState,
-	Snapshot,
+	type IntervalTimerState,
+	type Snapshot,
 } from "./interval-timer";
-import { KeyValueStore } from "./key-value-store";
+import { type KeyValueStore } from "./key-value-store";
 import * as v from "valibot";
-import { isMinutes, isSeconds, Time } from "./time";
+import { isMinutes, isSeconds, type Time } from "./time";
 
 const snapshotKey = "snapshot";
 

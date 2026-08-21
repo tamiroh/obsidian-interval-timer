@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import {
 	IntervalTimer,
 	type IntervalTimerEvent,
-	IntervalTimerSetting,
+	type IntervalTimerSetting,
 } from "./interval-timer";
 import { Popover } from "./popover";
 import { time } from "./time";

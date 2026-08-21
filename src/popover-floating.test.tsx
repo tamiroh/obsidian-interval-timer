@@ -2,7 +2,7 @@ import { fireEvent, within } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import { useState } from "preact/hooks";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Position, usePopoverFloating } from "./popover-floating";
+import { type Position, usePopoverFloating } from "./popover-floating";
 import { cleanup, render } from "./render-preact";
 
 afterEach(() => {

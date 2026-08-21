@@ -1,5 +1,5 @@
 import {
-	App,
+	type App,
 	displayTooltip,
 	type Plugin as BasePlugin,
 	PluginSettingTab,

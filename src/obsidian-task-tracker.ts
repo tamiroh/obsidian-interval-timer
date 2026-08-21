@@ -1,5 +1,5 @@
 import type { App } from "obsidian";
-import { KeyValueStore } from "./key-value-store";
+import { type KeyValueStore } from "./key-value-store";
 import { TaskManagementFile } from "./task-management-file";
 import { TaskLine } from "./task-line";
 import { Markdown } from "./markdown";

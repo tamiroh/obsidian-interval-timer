@@ -1,12 +1,12 @@
 import { match } from "ts-pattern";
-import { CountdownTimer, TimerType } from "./countdown-timer";
+import { CountdownTimer, type TimerType } from "./countdown-timer";
 import {
 	type DurationMinutesReason,
-	Minutes,
+	type Minutes,
 	parseDurationMinutes,
-	Seconds,
+	type Seconds,
 	time,
-	Time,
+	type Time,
 } from "./time";
 import { DailyScheduler } from "./daily-scheduler";
 import { err, ok, type Result } from "./result";

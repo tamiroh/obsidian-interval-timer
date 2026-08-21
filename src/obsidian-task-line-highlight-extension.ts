@@ -4,13 +4,13 @@ import { type Extension, RangeSetBuilder } from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
-	EditorView,
+	type EditorView,
 	ViewPlugin,
 	type ViewUpdate,
 	WidgetType,
 } from "@codemirror/view";
 import { TaskLine } from "./task-line";
-import { TaskTracker } from "./obsidian-task-tracker";
+import { type TaskTracker } from "./obsidian-task-tracker";
 import { Markdown } from "./markdown";
 
 const createTaskLineHighlightDecoration = (isTracking: boolean): Decoration =>

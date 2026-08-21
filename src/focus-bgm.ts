@@ -1,5 +1,5 @@
 import {
-	AudioOutput,
+	type AudioOutput,
 	GeneratedSound,
 	type Playback,
 	type Sound,

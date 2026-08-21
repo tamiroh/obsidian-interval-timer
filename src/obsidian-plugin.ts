@@ -1,9 +1,9 @@
 import {
-	App,
+	type App,
 	Notice,
 	Platform,
 	Plugin as BasePlugin,
-	PluginManifest,
+	type PluginManifest,
 	setIcon,
 } from "obsidian";
 import { SettingTab } from "./obsidian-setting-tab";
