@@ -75,9 +75,14 @@ export class Plugin extends BasePlugin {
 		this.timerDisplay.enableClick(intervalTimerHost.timer);
 
 		// Persist settings changes
-		this.settingStore.subscribe(
-			(_previous, next) => void this.saveData(next),
-		);
+		this.settingStore.subscribe((_previous, next) => {
+			this.saveData(next).catch((error: unknown) => {
+				console.error(
+					"Interval Timer: failed to save settings.",
+					error,
+				);
+			});
+		});
 
 		// Register the setting tab
 		this.addSettingTab(new SettingTab(this.app, this, this.settingStore));

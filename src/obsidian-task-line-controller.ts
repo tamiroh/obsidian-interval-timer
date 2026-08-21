@@ -83,13 +83,21 @@ export class TaskLineController {
 		try {
 			const result = await this.taskTracker.incrementTrackedTask();
 			if (!result.ok) {
-				new Notice("Failed to record task completion.");
+				TaskLineController.reportCompletionFailure(result.reason);
 			}
-		} catch {
-			new Notice("Failed to record task completion.");
+		} catch (error) {
+			TaskLineController.reportCompletionFailure(error);
 		} finally {
 			this.untrackCurrentTask();
 		}
+	}
+
+	private static reportCompletionFailure(cause: unknown): void {
+		console.error(
+			"Interval Timer: failed to record task completion.",
+			cause,
+		);
+		new Notice("Failed to record task completion.");
 	}
 
 	private syncCurrentTask(): void {
