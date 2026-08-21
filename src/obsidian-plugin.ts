@@ -25,7 +25,7 @@ export class Plugin extends BasePlugin {
 
 	private readonly timerDisplay;
 
-	private intervalTimerHost!: IntervalTimerHost;
+	private intervalTimerHost: IntervalTimerHost | undefined;
 
 	private readonly keyValueStore;
 
@@ -60,18 +60,19 @@ export class Plugin extends BasePlugin {
 		this.settingStore.loadFromUnknown(await this.loadData());
 
 		// Initialize the timer host
-		this.intervalTimerHost = new IntervalTimerHost({
+		const intervalTimerHost = new IntervalTimerHost({
 			settingStore: this.settingStore,
 			timerDisplay: this.timerDisplay,
 			snapshotStore: this.intervalTimerSnapshotStore,
 			taskLineController: this.taskLineController,
 		});
-		this.intervalTimerHost.initialize();
+		this.intervalTimerHost = intervalTimerHost;
+		intervalTimerHost.initialize();
 
 		// Register timer integrations
-		this.taskLineController.setup(this, this.intervalTimerHost.timer);
-		registerCommands(this, this.intervalTimerHost.timer);
-		this.timerDisplay.enableClick(this.intervalTimerHost.timer);
+		this.taskLineController.setup(this, intervalTimerHost.timer);
+		registerCommands(this, intervalTimerHost.timer);
+		this.timerDisplay.enableClick(intervalTimerHost.timer);
 
 		// Persist settings changes
 		this.settingStore.subscribe(
@@ -83,7 +84,7 @@ export class Plugin extends BasePlugin {
 	}
 
 	public override onunload(): void {
-		this.intervalTimerHost.dispose();
+		this.intervalTimerHost?.dispose();
 		this.timerDisplay.dispose();
 	}
 }

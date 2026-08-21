@@ -38,7 +38,7 @@ export class IntervalTimerHost {
 
 	private readonly taskLineController;
 
-	private intervalTimer!: IntervalTimer;
+	private readonly intervalTimer: IntervalTimer;
 
 	private notifier;
 
@@ -66,6 +66,13 @@ export class IntervalTimerHost {
 		this.taskLineController = taskLineController;
 		this.notifier = createNotifier(this.currentSettings.notificationStyle);
 		this.notifier.enableAutoClear();
+		this.intervalTimer = new IntervalTimer({
+			focusIntervalDuration: this.currentSettings.focusIntervalDuration,
+			shortBreakDuration: this.currentSettings.shortBreakDuration,
+			longBreakDuration: this.currentSettings.longBreakDuration,
+			longBreakAfter: this.currentSettings.longBreakAfter,
+			resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
+		});
 		this.settingsReloads = this.settingsReloadsDefinition();
 		this.unsubscribeSettings = settingStore.subscribe((previous, next) => {
 			this.currentSettings = next;
@@ -83,13 +90,6 @@ export class IntervalTimerHost {
 
 	public initialize(): void {
 		const snapshot = this.snapshotStore.load();
-		this.intervalTimer = new IntervalTimer({
-			focusIntervalDuration: this.currentSettings.focusIntervalDuration,
-			shortBreakDuration: this.currentSettings.shortBreakDuration,
-			longBreakDuration: this.currentSettings.longBreakDuration,
-			longBreakAfter: this.currentSettings.longBreakAfter,
-			resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
-		});
 		this.intervalTimer.subscribe((event) => {
 			this.onTimerEvent(event);
 		});

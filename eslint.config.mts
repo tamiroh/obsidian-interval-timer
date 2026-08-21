@@ -115,6 +115,19 @@ export default defineConfig(
 				"error",
 				{ assertionStyle: "never" },
 			],
+			"no-restricted-syntax": [
+				"error",
+				{
+					selector: "PropertyDefinition[definite=true]",
+					message:
+						"Type the property as possibly undefined instead of asserting definite assignment.",
+				},
+				{
+					selector: "VariableDeclarator[definite=true]",
+					message:
+						"Type the variable as possibly undefined instead of asserting definite assignment.",
+				},
+			],
 		},
 	},
 	{
