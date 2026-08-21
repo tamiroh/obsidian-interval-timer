@@ -1,7 +1,9 @@
+const maxDelayMilliseconds = 60_000;
+
 export class DailyScheduler {
 	private nextExecutionTime: Date | undefined;
 
-	private intervalId: number | undefined;
+	private timeoutId: number | undefined;
 
 	private readonly scheduledTime: { hours: number; minutes: number };
 
@@ -18,30 +20,45 @@ export class DailyScheduler {
 	public enable(): void {
 		this.disable();
 		this.nextExecutionTime = this.getInitialExecutionTime();
-		this.intervalId = window.setInterval(() => {
-			if (this.shouldExecute()) {
-				this.onScheduledTime();
-				if (this.nextExecutionTime === undefined) {
-					throw new Error(
-						"Inconsistent state: next execution time is unset",
-					);
-				}
-				while (this.nextExecutionTime.getTime() <= Date.now()) {
-					this.nextExecutionTime = this.addDays(
-						this.nextExecutionTime,
-						1,
-					);
-				}
-			}
-		}, 1000);
+		this.scheduleTick();
 	}
 
 	public disable(): void {
-		if (this.intervalId !== undefined) {
-			window.clearInterval(this.intervalId);
-			this.intervalId = undefined;
+		if (this.timeoutId !== undefined) {
+			window.clearTimeout(this.timeoutId);
+			this.timeoutId = undefined;
 		}
 		this.nextExecutionTime = undefined;
+	}
+
+	private scheduleTick(): void {
+		const executionTime = this.nextExecutionTime;
+		if (executionTime === undefined) return;
+
+		this.timeoutId = window.setTimeout(() => {
+			this.tick(executionTime);
+		}, DailyScheduler.delayUntil(executionTime));
+	}
+
+	private tick(executionTime: Date): void {
+		this.timeoutId = undefined;
+		if (Date.now() < executionTime.getTime()) {
+			this.scheduleTick();
+			return;
+		}
+
+		this.onScheduledTime();
+		if (this.nextExecutionTime === undefined) return;
+
+		this.nextExecutionTime = this.executionTimeAfter(executionTime);
+		this.scheduleTick();
+	}
+
+	private static delayUntil(executionTime: Date): number {
+		return Math.min(
+			maxDelayMilliseconds,
+			Math.max(0, executionTime.getTime() - Date.now()),
+		);
 	}
 
 	private getInitialExecutionTime(): Date {
@@ -57,10 +74,12 @@ export class DailyScheduler {
 			: scheduled;
 	}
 
-	private shouldExecute(): boolean {
-		return this.nextExecutionTime === undefined
-			? false
-			: Date.now() >= this.nextExecutionTime.getTime();
+	private executionTimeAfter(previous: Date): Date {
+		let next = this.addDays(previous, 1);
+		while (next.getTime() <= Date.now()) {
+			next = this.addDays(next, 1);
+		}
+		return next;
 	}
 
 	private addDays(date: Date, days: number): Date {

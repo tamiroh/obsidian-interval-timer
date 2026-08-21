@@ -213,7 +213,7 @@ describe("DailyScheduler", () => {
 
 		// Act - Simulate system time jump (e.g., laptop sleep, clock adjustment)
 		vi.setSystemTime(new Date(2024, 0, 6, 10, 0, 0, 0)); // Jan 6, 10:00
-		vi.advanceTimersByTime(1000);
+		vi.advanceTimersByTime(60 * 1000); // A jump is noticed at the next wake-up
 
 		// Assert
 		expect(callback).toHaveBeenCalledTimes(1);
