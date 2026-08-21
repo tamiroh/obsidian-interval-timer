@@ -269,9 +269,10 @@ export class IntervalTimer {
 	}
 
 	public get canStart(): boolean {
-		return ["initialized", "paused"].includes(
-			this.currentInterval.timer.getCurrentTimerType(),
-		);
+		return match(this.currentInterval.timer.getCurrentTimerType())
+			.with("initialized", "paused", () => true)
+			.with("running", "completed", () => false)
+			.exhaustive();
 	}
 
 	public get canPause(): boolean {
