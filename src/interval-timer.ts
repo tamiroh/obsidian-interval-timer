@@ -11,6 +11,10 @@ import {
 import { DailyScheduler } from "./daily-scheduler";
 import { err, ok, type Result } from "./result";
 
+//
+// Settings
+//
+
 export type IntervalTimerSetting = {
 	focusIntervalDuration: Minutes;
 	shortBreakDuration: Minutes;
@@ -25,6 +29,10 @@ export type MutableIntervalTimerSetting = Omit<
 >;
 
 export const defaultLongBreakAfter = 4;
+
+//
+// State
+//
 
 export const intervalTimerStates = [
 	"focus",
@@ -45,6 +53,10 @@ export type IntervalTimerStatus = {
 	timerState: TimerType;
 	snapshot: Snapshot;
 };
+
+//
+// Events
+//
 
 type IntervalTimerEventDetails =
 	| { type: "state-changed"; timerState: TimerType }
@@ -71,6 +83,10 @@ export type IntervalTimerEvent = IntervalTimerEventDetails & {
 	occurredAt: Date;
 	snapshot: Snapshot;
 };
+
+//
+// Timer
+//
 
 export type RetimeResult = Result<
 	void,
