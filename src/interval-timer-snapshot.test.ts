@@ -3,12 +3,19 @@ import { KeyValueStore } from "./key-value-store";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
 import { time } from "./time";
 
+const validStored = {
+	state: "focus",
+	minutes: 25,
+	seconds: 0,
+	focusIntervals: { total: 4, set: 2 },
+};
+
 describe("IntervalTimerSnapshotStore", () => {
 	beforeEach(() => {
 		window.localStorage.clear();
 	});
 
-	it("should return null when state is missing", () => {
+	it("should return null when nothing was saved", () => {
 		const snapshotStore = new IntervalTimerSnapshotStore(
 			new KeyValueStore("snapshot-test"),
 		);
@@ -34,54 +41,59 @@ describe("IntervalTimerSnapshotStore", () => {
 		});
 	});
 
-	it("should return null when any field is missing", () => {
+	it("should save the whole snapshot under a single key", () => {
+		const snapshotStore = new IntervalTimerSnapshotStore(
+			new KeyValueStore("snapshot-test"),
+		);
+
+		snapshotStore.save("shortBreak", time(3, 20), { total: 7, set: 2 });
+
+		expect(Object.keys(window.localStorage)).toEqual([
+			"snapshot-test:snapshot",
+		]);
+	});
+
+	it("should return null when a field is missing", () => {
 		const keyValueStore = new KeyValueStore("snapshot-test");
 		const snapshotStore = new IntervalTimerSnapshotStore(keyValueStore);
-		keyValueStore.set("timerState", "focus");
 
-		const snapshot = snapshotStore.load();
+		keyValueStore.set("snapshot", { state: "focus" });
 
-		expect(snapshot).toBeNull();
+		expect(snapshotStore.load()).toBeNull();
 	});
 
 	it.each([
-		["timerState", "invalid"],
-		["time-minutes", "NaN"],
-		["time-minutes", "-1"],
-		["time-minutes", "1.5"],
-		["time-seconds", "60"],
-		["time-seconds", "-1"],
-		["time-seconds", "1.5"],
-		["intervals-total", "-1"],
-		["intervals-total", "1.5"],
-		["intervals-set", "-1"],
-		["intervals-set", "1.5"],
-	])("should return null when %s is invalid", (key, value) => {
+		["state", { ...validStored, state: "invalid" }],
+		["minutes", { ...validStored, minutes: Number.NaN }],
+		["minutes", { ...validStored, minutes: -1 }],
+		["minutes", { ...validStored, minutes: 1.5 }],
+		["minutes", { ...validStored, minutes: "25" }],
+		["seconds", { ...validStored, seconds: 60 }],
+		["seconds", { ...validStored, seconds: -1 }],
+		["seconds", { ...validStored, seconds: 1.5 }],
+		["focusIntervals", { ...validStored, focusIntervals: 4 }],
+		["total", { ...validStored, focusIntervals: { total: -1, set: 0 } }],
+		["total", { ...validStored, focusIntervals: { total: 1.5, set: 0 } }],
+		["set", { ...validStored, focusIntervals: { total: 4, set: -1 } }],
+		["set", { ...validStored, focusIntervals: { total: 4, set: 1.5 } }],
+	])("should return null when %s is invalid", (_field, stored) => {
 		const keyValueStore = new KeyValueStore("snapshot-test");
 		const snapshotStore = new IntervalTimerSnapshotStore(keyValueStore);
-		keyValueStore.set("timerState", "focus");
-		keyValueStore.set("time-minutes", "25");
-		keyValueStore.set("time-seconds", "0");
-		keyValueStore.set("intervals-total", "4");
-		keyValueStore.set("intervals-set", "2");
-		keyValueStore.set(key, value);
 
-		const snapshot = snapshotStore.load();
+		keyValueStore.set("snapshot", stored);
 
-		expect(snapshot).toBeNull();
+		expect(snapshotStore.load()).toBeNull();
 	});
 
 	it("should return null when intervals set is greater than total", () => {
 		const keyValueStore = new KeyValueStore("snapshot-test");
 		const snapshotStore = new IntervalTimerSnapshotStore(keyValueStore);
-		keyValueStore.set("timerState", "focus");
-		keyValueStore.set("time-minutes", "25");
-		keyValueStore.set("time-seconds", "0");
-		keyValueStore.set("intervals-total", "1");
-		keyValueStore.set("intervals-set", "2");
 
-		const snapshot = snapshotStore.load();
+		keyValueStore.set("snapshot", {
+			...validStored,
+			focusIntervals: { total: 1, set: 2 },
+		});
 
-		expect(snapshot).toBeNull();
+		expect(snapshotStore.load()).toBeNull();
 	});
 });

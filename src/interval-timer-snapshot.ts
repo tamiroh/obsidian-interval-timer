@@ -1,26 +1,28 @@
 import {
-	IntervalTimerState,
 	intervalTimerStates,
+	IntervalTimerState,
 	Snapshot,
 } from "./interval-timer";
 import { KeyValueStore } from "./key-value-store";
 import * as v from "valibot";
-import { parseMinutes, parseSeconds, Time } from "./time";
+import { isMinutes, isSeconds, Time } from "./time";
 
-const isIntervalTimerState = (value: string): value is IntervalTimerState =>
-	intervalTimerStates.some((state) => state === value);
+const snapshotKey = "snapshot";
 
-const intervalCountSchema = v.pipe(
-	v.union([v.number(), v.pipe(v.string(), v.toNumber())]),
-	v.finite(),
-	v.integer(),
-	v.minValue(0),
+const intervalCountSchema = v.pipe(v.number(), v.integer(), v.minValue(0));
+
+const snapshotSchema = v.pipe(
+	v.object({
+		state: v.picklist(intervalTimerStates),
+		minutes: v.pipe(v.number(), v.integer(), v.guard(isMinutes)),
+		seconds: v.pipe(v.number(), v.integer(), v.guard(isSeconds)),
+		focusIntervals: v.object({
+			total: intervalCountSchema,
+			set: intervalCountSchema,
+		}),
+	}),
+	v.check(({ focusIntervals }) => focusIntervals.set <= focusIntervals.total),
 );
-
-const parseIntervalCount = (value: unknown): number | null => {
-	const result = v.safeParse(intervalCountSchema, value);
-	return result.success ? result.output : null;
-};
 
 export class IntervalTimerSnapshotStore {
 	private readonly keyValueStore: KeyValueStore;
@@ -30,35 +32,11 @@ export class IntervalTimerSnapshotStore {
 	}
 
 	public load(): Snapshot | null {
-		const state =
-			this.keyValueStore.get("timerState")?.as("string") ?? null;
-		if (state === null || !isIntervalTimerState(state)) return null;
-
-		const minutes = this.parseField("time-minutes", parseMinutes);
-		if (minutes === null) return null;
-
-		const seconds = this.parseField("time-seconds", parseSeconds);
-		if (seconds === null) return null;
-
-		const total = this.parseField("intervals-total", parseIntervalCount);
-		if (total === null) return null;
-
-		const set = this.parseField("intervals-set", parseIntervalCount);
-		if (set === null || set > total) return null;
-
-		return {
-			state,
-			minutes,
-			seconds,
-			focusIntervals: { total, set },
-		};
-	}
-
-	private parseField<T>(
-		key: string,
-		parse: (value: unknown) => T | null,
-	): T | null {
-		return parse(this.keyValueStore.get(key)?.as("unknown"));
+		const result = v.safeParse(
+			snapshotSchema,
+			this.keyValueStore.get(snapshotKey)?.as("object"),
+		);
+		return result.success ? result.output : null;
 	}
 
 	public save(
@@ -66,10 +44,14 @@ export class IntervalTimerSnapshotStore {
 		time: Time,
 		focusIntervals: { total: number; set: number },
 	): void {
-		this.keyValueStore.set("timerState", state);
-		this.keyValueStore.set("time-minutes", String(time.minutes));
-		this.keyValueStore.set("time-seconds", String(time.seconds));
-		this.keyValueStore.set("intervals-set", String(focusIntervals.set));
-		this.keyValueStore.set("intervals-total", String(focusIntervals.total));
+		this.keyValueStore.set(snapshotKey, {
+			state,
+			minutes: time.minutes,
+			seconds: time.seconds,
+			focusIntervals: {
+				total: focusIntervals.total,
+				set: focusIntervals.set,
+			},
+		});
 	}
 }
