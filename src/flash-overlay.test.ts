@@ -35,7 +35,9 @@ describe("FlashOverlay", () => {
 		expect(styleElement?.textContent).toContain(
 			".interval-timer-flash-overlay",
 		);
-		expect(styleElement?.textContent).toContain("@keyframes flash-fade");
+		expect(styleElement?.textContent).toMatch(
+			/animation: (flash-[\w-]+) 1s linear infinite;[\s\S]*@keyframes \1 \{/,
+		);
 	});
 
 	it("should not create multiple overlays when show is called twice", () => {

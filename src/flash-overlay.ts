@@ -5,6 +5,8 @@ export class FlashOverlay {
 
 	private styleElement: HTMLStyleElement | undefined;
 
+	private readonly animationName = `flash-${crypto.randomUUID()}`;
+
 	public dispose(): void {
 		this.hide();
 		if (this.styleElement !== undefined) {
@@ -44,9 +46,9 @@ export class FlashOverlay {
 				height: 100%;
 				z-index: 9999;
 				cursor: pointer;
-				animation: flash-fade 1s linear infinite;
+				animation: ${this.animationName} 1s linear infinite;
 			}
-			@keyframes flash-fade {
+			@keyframes ${this.animationName} {
 				0% { opacity: 0.9; }
 				100% { opacity: 0.3; }
 			}
