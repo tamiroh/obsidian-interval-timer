@@ -179,13 +179,13 @@ export class IntervalTimerHost {
 	}
 
 	private onTimerEvent(event: IntervalTimerEvent): void {
-		switch (event.type) {
-			case "state-changed": {
-				this.updateTimerState(event);
+		match(event)
+			.with({ type: "state-changed" }, (stateChanged) => {
+				this.updateTimerState(stateChanged);
 
 				const isFocusRunning =
-					event.snapshot.state === "focus" &&
-					event.timerState === "running";
+					stateChanged.snapshot.state === "focus" &&
+					stateChanged.timerState === "running";
 				const { focusBgmType, focusBgmVolume } = this.currentSettings;
 				if (isFocusRunning) {
 					this.focusBgm.play(focusBgmType, focusBgmVolume);
@@ -200,23 +200,22 @@ export class IntervalTimerHost {
 						this.currentSettings.focusTickSoundVolume,
 					);
 				}
-				break;
-			}
-			case "timer-started":
+			})
+			.with({ type: "timer-started" }, (started) => {
 				if (
-					event.mode === "fresh" &&
-					event.snapshot.state === "focus"
+					started.mode === "fresh" &&
+					started.snapshot.state === "focus"
 				) {
 					this.taskLineController.trackCurrentTaskFromActiveLine();
 				}
-				break;
-			case "focus-interval-ended":
+			})
+			.with({ type: "focus-interval-ended" }, () => {
 				void this.taskLineController.completeFocusInterval();
-				break;
-			case "interval-completed":
+			})
+			.with({ type: "interval-completed" }, (completed) => {
 				if (this.currentSettings.flashOverlayEnabled) {
 					this.flashOverlay.show(
-						match(event.to)
+						match(completed.to)
 							.with("focus", () => ({ r: 255, g: 100, b: 100 }))
 							.with("shortBreak", "longBreak", () => ({
 								r: 100,
@@ -226,14 +225,17 @@ export class IntervalTimerHost {
 							.exhaustive(),
 					);
 				}
-				this.notifier.notify(event.notificationMessage);
-				break;
-			case "timer-paused":
-			case "timer-reset":
-			case "interval-skipped":
-				// no-op
-				break;
-		}
+				this.notifier.notify(completed.notificationMessage);
+			})
+			.with(
+				{ type: "timer-paused" },
+				{ type: "timer-reset" },
+				{ type: "interval-skipped" },
+				() => {
+					// no-op
+				},
+			)
+			.exhaustive();
 	}
 
 	private updateTimerState({
