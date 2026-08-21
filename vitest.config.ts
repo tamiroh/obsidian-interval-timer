@@ -15,6 +15,11 @@ export default defineConfig({
 		coverage: {
 			reporter: ["json"],
 			include: ["src/**/*.ts"],
+			exclude: [
+				"src/obsidian-fake.ts",
+				"src/obsidian-globals-fake.ts",
+				"src/render-preact.ts",
+			],
 		},
 	},
 });
