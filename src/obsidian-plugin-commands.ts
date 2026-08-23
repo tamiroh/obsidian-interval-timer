@@ -48,7 +48,7 @@ export const registerCommands = (
 		id: "skip-interval",
 		name: "Skip interval",
 		checkCallback: (checking) => {
-			const canSkip = intervalTimer.state !== "focus";
+			const { canSkip } = intervalTimer;
 			if (!checking && canSkip) intervalTimer.skipInterval();
 			return canSkip;
 		},

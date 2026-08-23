@@ -54,6 +54,12 @@ export type IntervalTimerStatus = {
 	snapshot: Snapshot;
 };
 
+export const isFocusRunning = ({
+	timerState,
+	snapshot,
+}: IntervalTimerStatus): boolean =>
+	snapshot.state === "focus" && timerState === "running";
+
 //
 // Events
 //
@@ -123,6 +129,10 @@ export class IntervalTimer {
 				this.resetTotalIntervals();
 			},
 		);
+	}
+
+	public get canSkip(): boolean {
+		return this.currentState !== "focus";
 	}
 
 	public get canPause(): boolean {

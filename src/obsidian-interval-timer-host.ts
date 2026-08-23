@@ -5,6 +5,7 @@ import { FocusBgm } from "./focus-bgm";
 import { FocusTickSound } from "./focus-tick-sound";
 import {
 	IntervalTimer,
+	isFocusRunning,
 	type IntervalTimerEvent,
 	type IntervalTimerState,
 	type IntervalTimerStatus,
@@ -166,11 +167,7 @@ export class IntervalTimerHost {
 			{
 				keys: ["focusBgmType", "focusBgmVolume"],
 				reload: (next) => {
-					const { timerState, snapshot } = this.intervalTimer.status;
-					if (
-						snapshot.state === "focus" &&
-						timerState === "running"
-					) {
+					if (isFocusRunning(this.intervalTimer.status)) {
 						this.focusBgm.play(
 							next.focusBgmType,
 							next.focusBgmVolume,
@@ -191,17 +188,14 @@ export class IntervalTimerHost {
 			.with({ type: "state-changed" }, (stateChanged) => {
 				this.updateTimerState(stateChanged);
 
-				const isFocusRunning =
-					stateChanged.snapshot.state === "focus" &&
-					stateChanged.timerState === "running";
 				const { focusBgmType, focusBgmVolume } = this.currentSettings;
-				if (isFocusRunning) {
+				if (isFocusRunning(stateChanged)) {
 					this.focusBgm.play(focusBgmType, focusBgmVolume);
 				} else {
 					this.focusBgm.stop();
 				}
 				if (
-					isFocusRunning &&
+					isFocusRunning(stateChanged) &&
 					this.currentSettings.focusTickSoundVolume > 0
 				) {
 					this.focusTickSound.play(

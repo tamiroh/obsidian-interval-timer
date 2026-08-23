@@ -3,7 +3,11 @@ import {
 	IntervalTimer,
 	type IntervalTimerEvent,
 	type IntervalTimerSetting,
+	type IntervalTimerState,
+	type IntervalTimerStatus,
+	isFocusRunning,
 } from "./interval-timer";
+import type { TimerType } from "./countdown-timer";
 import { minutesUpperBound } from "./time";
 import { clear, last } from "./array";
 
@@ -1285,6 +1289,41 @@ describe("IntervalTimer", () => {
 
 			intervalTimer.dispose();
 		});
+
+		it("should not allow skipping a focus interval", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+
+			// Act & Assert
+			expect(intervalTimer.canSkip).toBe(false);
+
+			intervalTimer.dispose();
+		});
+
+		it("should allow skipping a break interval", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+
+			// Act
+			intervalTimer.skipInterval();
+
+			// Assert
+			expect(intervalTimer.canSkip).toBe(true);
+
+			intervalTimer.dispose();
+		});
 	});
 
 	describe("Snapshot", () => {
@@ -1447,4 +1486,40 @@ describe("IntervalTimer", () => {
 			intervalTimer.dispose();
 		});
 	});
+});
+
+describe("IntervalTimerStatus", () => {
+	const status = (
+		state: IntervalTimerState,
+		timerState: TimerType,
+	): IntervalTimerStatus => ({
+		timerState,
+		snapshot: {
+			minutes: 25,
+			seconds: 0,
+			state,
+			focusIntervals: { total: 0, set: 0 },
+		},
+	});
+
+	it("should report a running focus interval as focus running", () => {
+		// Act & Assert
+		expect(isFocusRunning(status("focus", "running"))).toBe(true);
+	});
+
+	it.each(["initialized", "paused", "completed"] as const)(
+		"should not report a %s focus interval as focus running",
+		(timerState) => {
+			// Act & Assert
+			expect(isFocusRunning(status("focus", timerState))).toBe(false);
+		},
+	);
+
+	it.each(["shortBreak", "longBreak"] as const)(
+		"should not report a running %s as focus running",
+		(state) => {
+			// Act & Assert
+			expect(isFocusRunning(status(state, "running"))).toBe(false);
+		},
+	);
 });
