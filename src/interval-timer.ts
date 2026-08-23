@@ -94,13 +94,10 @@ export type RetimeResult = Result<
 
 export type TouchAction = "start" | "resume" | "reset" | "skip";
 
-type CurrentInterval = {
-	timer: CountdownTimer;
-	state: IntervalTimerState;
-};
-
 export class IntervalTimer {
-	private currentInterval: CurrentInterval;
+	private currentTimer: CountdownTimer;
+
+	private currentState: IntervalTimerState;
 
 	private focusIntervals: { total: number; set: number };
 
@@ -115,10 +112,11 @@ export class IntervalTimer {
 	constructor(settings: IntervalTimerSetting) {
 		this.focusIntervals = { total: 0, set: 0 };
 		this.settings = structuredClone(settings);
-		this.currentInterval = this.createInterval(
-			"focus",
-			time(this.settings.focusIntervalDuration, 0),
+		this.currentTimer = this.createTimer(
+			this.settings.focusIntervalDuration,
+			0,
 		);
+		this.currentState = "focus";
 		this.autoResetScheduler = new DailyScheduler(
 			this.settings.resetTime,
 			() => {
@@ -128,11 +126,11 @@ export class IntervalTimer {
 	}
 
 	public get canPause(): boolean {
-		return this.currentInterval.timer.getCurrentTimerType() === "running";
+		return this.currentTimer.getCurrentTimerType() === "running";
 	}
 
 	public get canStart(): boolean {
-		return match(this.currentInterval.timer.getCurrentTimerType())
+		return match(this.currentTimer.getCurrentTimerType())
 			.with("initialized", "paused", () => true)
 			.with("running", "completed", () => false)
 			.exhaustive();
@@ -140,13 +138,13 @@ export class IntervalTimer {
 
 	public get status(): IntervalTimerStatus {
 		return {
-			timerState: this.currentInterval.timer.getCurrentTimerType(),
+			timerState: this.currentTimer.getCurrentTimerType(),
 			snapshot: this.getSnapshot(),
 		};
 	}
 
 	public get state(): IntervalTimerState {
-		return this.currentInterval.state;
+		return this.currentState;
 	}
 
 	public applySnapshot(snapshot: Snapshot): void {
@@ -182,10 +180,9 @@ export class IntervalTimer {
 	}
 
 	public start(): void {
-		const currentTimerType =
-			this.currentInterval.timer.getCurrentTimerType();
+		const currentTimerType = this.currentTimer.getCurrentTimerType();
 
-		const result = this.currentInterval.timer.start();
+		const result = this.currentTimer.start();
 		if (!result.ok) return;
 
 		this.emitStateChanged("running");
@@ -196,13 +193,13 @@ export class IntervalTimer {
 	}
 
 	public pause(): void {
-		if (this.currentInterval.timer.pause().ok) {
+		if (this.currentTimer.pause().ok) {
 			this.emit({ type: "timer-paused" });
 		}
 	}
 
 	public reset(): void {
-		this.currentInterval.timer.reset();
+		this.currentTimer.reset();
 		this.emitStateChanged("initialized");
 		this.emit({ type: "timer-reset" });
 	}
@@ -224,7 +221,7 @@ export class IntervalTimer {
 	}
 
 	public skipInterval(): void {
-		this.currentInterval.timer.dispose();
+		this.currentTimer.dispose();
 		this.enterNextInterval({ reason: "skipped" });
 	}
 
@@ -232,15 +229,12 @@ export class IntervalTimer {
 		return match(parseDurationMinutes(minutes))
 			.with({ ok: false }, ({ reason }) => err(reason))
 			.with({ ok: true }, ({ value }) => {
-				if (
-					this.currentInterval.timer.getCurrentTimerType() ===
-					"running"
-				) {
+				if (this.currentTimer.getCurrentTimerType() === "running") {
 					return err("timer_running");
 				}
 				this.enterInterval(
-					this.currentInterval.state,
-					time(value, this.currentInterval.timer.currentTime.seconds),
+					this.currentState,
+					time(value, this.currentTimer.currentTime.seconds),
 				);
 				return ok();
 			})
@@ -263,17 +257,17 @@ export class IntervalTimer {
 	}
 
 	public predictTouch(): TouchAction {
-		return match(this.currentInterval.timer.getCurrentTimerType())
+		return match(this.currentTimer.getCurrentTimerType())
 			.with("initialized", "completed", () => "start" as const)
 			.with("paused", () => "resume" as const)
 			.with("running", () =>
-				this.currentInterval.state === "focus" ? "reset" : "skip",
+				this.currentState === "focus" ? "reset" : "skip",
 			)
 			.exhaustive();
 	}
 
 	public dispose(): void {
-		this.currentInterval.timer.dispose();
+		this.currentTimer.dispose();
 		this.disableAutoReset();
 		this.eventListeners.clear();
 	}
@@ -283,7 +277,7 @@ export class IntervalTimer {
 	}: {
 		reason: "completed" | "skipped";
 	}): void {
-		const previousState = this.currentInterval.state;
+		const previousState = this.currentState;
 		if (previousState === "focus") {
 			this.emit({ type: "focus-interval-ended", reason });
 		}
@@ -318,14 +312,14 @@ export class IntervalTimer {
 			this.emit({
 				type: "interval-skipped",
 				from: previousState,
-				to: this.currentInterval.state,
+				to: this.currentState,
 			});
 			return;
 		}
 		this.emit({
 			type: "interval-completed",
 			from: previousState,
-			to: this.currentInterval.state,
+			to: this.currentState,
 		});
 	}
 
@@ -349,19 +343,13 @@ export class IntervalTimer {
 		return timer;
 	}
 
-	private createInterval(
-		state: IntervalTimerState,
-		startFrom: Time,
-	): CurrentInterval {
-		return {
-			timer: this.createTimer(startFrom.minutes, startFrom.seconds),
-			state,
-		};
-	}
-
 	private enterInterval(state: IntervalTimerState, nextTime: Time): void {
-		this.currentInterval.timer.dispose();
-		this.currentInterval = this.createInterval(state, nextTime);
+		this.currentTimer.dispose();
+		this.currentTimer = this.createTimer(
+			nextTime.minutes,
+			nextTime.seconds,
+		);
+		this.currentState = state;
 		this.emitStateChanged("initialized");
 	}
 
@@ -382,8 +370,8 @@ export class IntervalTimer {
 
 	private getSnapshot(): Snapshot {
 		return {
-			...structuredClone(this.currentInterval.timer.currentTime),
-			state: this.currentInterval.state,
+			...structuredClone(this.currentTimer.currentTime),
+			state: this.currentState,
 			focusIntervals: structuredClone(this.focusIntervals),
 		};
 	}
