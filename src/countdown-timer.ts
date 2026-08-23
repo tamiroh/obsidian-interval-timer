@@ -9,14 +9,14 @@ import {
 	toSeconds,
 } from "./time";
 
-export const timerTypes = [
+export const timerStates = [
 	"initialized",
 	"running",
 	"paused",
 	"completed",
 ] as const;
 
-export type TimerType = (typeof timerTypes)[number];
+export type TimerState = (typeof timerStates)[number];
 
 export type StartTimerResult = Result<
 	void,
@@ -25,22 +25,22 @@ export type StartTimerResult = Result<
 
 export type PauseTimerResult = Result<void, "timer_not_running">;
 
-export type TimerState =
+type StateData =
 	| {
-			type: (typeof timerTypes)[0];
+			type: (typeof timerStates)[0];
 			currentTime: Time;
 	  }
 	| {
-			type: (typeof timerTypes)[1];
+			type: (typeof timerStates)[1];
 			currentTime: Time;
 			timeoutId: number;
 	  }
 	| {
-			type: (typeof timerTypes)[2];
+			type: (typeof timerStates)[2];
 			currentTime: Time;
 	  }
 	| {
-			type: (typeof timerTypes)[3];
+			type: (typeof timerStates)[3];
 	  };
 
 type CountdownTimerEventDetails =
@@ -56,7 +56,7 @@ export type CountdownTimerOptions = {
 };
 
 export class CountdownTimer {
-	private state: TimerState;
+	private currentState: StateData;
 
 	private readonly initialTime: Time;
 
@@ -66,18 +66,22 @@ export class CountdownTimer {
 
 	constructor({ initialTime }: CountdownTimerOptions) {
 		this.initialTime = time(initialTime.minutes, initialTime.seconds);
-		this.state = {
+		this.currentState = {
 			type: "initialized",
 			currentTime: time(initialTime.minutes, initialTime.seconds),
 		};
 	}
 
+	public get state(): TimerState {
+		return this.currentState.type;
+	}
+
 	public get currentTime(): Time {
-		return this.state.type === "completed"
+		return this.currentState.type === "completed"
 			? time(0, 0)
 			: time(
-					this.state.currentTime.minutes,
-					this.state.currentTime.seconds,
+					this.currentState.currentTime.minutes,
+					this.currentState.currentTime.seconds,
 				);
 	}
 
@@ -89,14 +93,14 @@ export class CountdownTimer {
 	}
 
 	public start(): StartTimerResult {
-		if (this.state.type === "running") {
+		if (this.currentState.type === "running") {
 			return err("timer_running");
 		}
-		if (this.state.type === "completed") {
+		if (this.currentState.type === "completed") {
 			return err("timer_completed");
 		}
 
-		const startAt = match(this.state)
+		const startAt = match(this.currentState)
 			.with({ type: "initialized" }, () => new Date())
 			.with({ type: "paused" }, (state) => {
 				const elapsedMs =
@@ -106,24 +110,24 @@ export class CountdownTimer {
 			})
 			.exhaustive();
 
-		this.state = {
+		this.currentState = {
 			type: "running",
 			timeoutId: this.scheduleNextTick(startAt),
-			currentTime: this.state.currentTime,
+			currentTime: this.currentState.currentTime,
 		};
 
 		return ok();
 	}
 
 	public pause(): PauseTimerResult {
-		if (this.state.type !== "running") {
+		if (this.currentState.type !== "running") {
 			return err("timer_not_running");
 		}
 
-		window.clearTimeout(this.state.timeoutId);
-		this.state = {
+		window.clearTimeout(this.currentState.timeoutId);
+		this.currentState = {
 			type: "paused",
-			currentTime: this.state.currentTime,
+			currentTime: this.currentState.currentTime,
 		};
 		this.emit({ type: "paused" });
 
@@ -131,10 +135,10 @@ export class CountdownTimer {
 	}
 
 	public reset(): Time {
-		if (this.state.type === "running") {
-			window.clearTimeout(this.state.timeoutId);
+		if (this.currentState.type === "running") {
+			window.clearTimeout(this.currentState.timeoutId);
 		}
-		this.state = {
+		this.currentState = {
 			type: "initialized",
 			currentTime: time(
 				this.initialTime.minutes,
@@ -147,19 +151,15 @@ export class CountdownTimer {
 	public dispose(): void {
 		this.eventListeners.clear();
 
-		if (this.state.type !== "running") {
+		if (this.currentState.type !== "running") {
 			return;
 		}
 
-		window.clearTimeout(this.state.timeoutId);
-		this.state = {
+		window.clearTimeout(this.currentState.timeoutId);
+		this.currentState = {
 			type: "paused",
-			currentTime: this.state.currentTime,
+			currentTime: this.currentState.currentTime,
 		};
-	}
-
-	public getCurrentTimerType(): TimerType {
-		return this.state.type;
 	}
 
 	private scheduleNextTick(startAt: Date): number {
@@ -167,7 +167,7 @@ export class CountdownTimer {
 		const delayMs = 1000 - (elapsedMs % 1000);
 
 		return window.setTimeout(() => {
-			if (this.state.type !== "running") return;
+			if (this.currentState.type !== "running") return;
 
 			const result = this.updateCurrentTime(startAt);
 
@@ -176,14 +176,14 @@ export class CountdownTimer {
 			}
 			if (result === "completed") {
 				this.emit({ type: "tick" });
-				this.state = { type: "completed" };
+				this.currentState = { type: "completed" };
 				this.emit({ type: "completed" });
 				return;
 			}
 
-			this.state = {
+			this.currentState = {
 				type: "running",
-				currentTime: this.state.currentTime,
+				currentTime: this.currentState.currentTime,
 				timeoutId: this.scheduleNextTick(startAt),
 			};
 		}, delayMs);
@@ -192,30 +192,32 @@ export class CountdownTimer {
 	private updateCurrentTime(
 		startAt: Date,
 	): "unchanged" | "subtracted" | "completed" {
-		if (this.state.type !== "running") {
+		if (this.currentState.type !== "running") {
 			return "unchanged";
 		}
 
 		const remainingSeconds = this.computeRemainingSeconds(startAt);
-		const previousRemainingSeconds = toSeconds(this.state.currentTime);
+		const previousRemainingSeconds = toSeconds(
+			this.currentState.currentTime,
+		);
 
 		if (remainingSeconds === previousRemainingSeconds) {
 			return "unchanged";
 		}
 		if (remainingSeconds <= 0) {
-			this.state.currentTime = time(0, 0);
+			this.currentState.currentTime = time(0, 0);
 			return "completed";
 		}
 
 		const remainingMinutes = Math.floor(remainingSeconds / 60);
 		const remainingSecondsInMinute = remainingSeconds % 60;
-		this.state.currentTime = time(
+		this.currentState.currentTime = time(
 			isMinutes(remainingMinutes)
 				? remainingMinutes
-				: this.state.currentTime.minutes,
+				: this.currentState.currentTime.minutes,
 			isSeconds(remainingSecondsInMinute)
 				? remainingSecondsInMinute
-				: this.state.currentTime.seconds,
+				: this.currentState.currentTime.seconds,
 		);
 		return "subtracted";
 	}

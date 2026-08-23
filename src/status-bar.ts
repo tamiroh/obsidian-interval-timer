@@ -4,7 +4,7 @@ import {
 	type IntervalTimer,
 	type IntervalTimerState,
 } from "./interval-timer";
-import { type TimerType } from "./countdown-timer";
+import { type TimerState } from "./countdown-timer";
 import { Popover } from "./popover";
 import { type TimerDisplay } from "./timer-display";
 
@@ -85,7 +85,7 @@ export class StatusBar implements TimerDisplay {
 		intervals: { total: number; set: number },
 		time: Time,
 		intervalTimerState: IntervalTimerState,
-		timerState: TimerType,
+		timerState: TimerState,
 		longBreakAfter = defaultLongBreakAfter,
 	): void {
 		this.compactIntervalCount.textContent = `${intervals.set}/${intervals.total} `;

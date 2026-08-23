@@ -7,7 +7,7 @@ import {
 	type IntervalTimerStatus,
 	isFocusRunning,
 } from "./interval-timer";
-import type { TimerType } from "./countdown-timer";
+import type { TimerState } from "./countdown-timer";
 import { minutesUpperBound } from "./time";
 import { clear, last } from "./array";
 
@@ -1491,7 +1491,7 @@ describe("IntervalTimer", () => {
 describe("IntervalTimerStatus", () => {
 	const status = (
 		state: IntervalTimerState,
-		timerState: TimerType,
+		timerState: TimerState,
 	): IntervalTimerStatus => ({
 		timerState,
 		snapshot: {

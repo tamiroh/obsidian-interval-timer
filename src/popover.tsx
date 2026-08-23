@@ -6,7 +6,7 @@ import {
 } from "preact";
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { match } from "ts-pattern";
-import { type TimerType } from "./countdown-timer";
+import { type TimerState } from "./countdown-timer";
 import {
 	defaultLongBreakAfter,
 	type IntervalTimer,
@@ -29,7 +29,7 @@ const setRingStrokeWidth = 3.5;
 type PopoverSnapshot = {
 	time: Time;
 	intervalTimerState: IntervalTimerState;
-	timerState: TimerType;
+	timerState: TimerState;
 	intervalsSet: number;
 	longBreakAfter: number;
 	remainingPercent: number;
@@ -144,7 +144,7 @@ export class Popover {
 	public update(
 		currentTime: Time,
 		intervalTimerState: IntervalTimerState,
-		timerState: TimerType,
+		timerState: TimerState,
 		intervalsSet = 0,
 		longBreakAfter = defaultLongBreakAfter,
 	): void {

@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import { CountdownTimer, type TimerType } from "./countdown-timer";
+import { CountdownTimer, type TimerState } from "./countdown-timer";
 import {
 	type DurationMinutesReason,
 	type Minutes,
@@ -50,7 +50,7 @@ export type Snapshot = {
 };
 
 export type IntervalTimerStatus = {
-	timerState: TimerType;
+	timerState: TimerState;
 	snapshot: Snapshot;
 };
 
@@ -65,7 +65,7 @@ export const isFocusRunning = ({
 //
 
 type IntervalTimerEventDetails =
-	| { type: "state-changed"; timerState: TimerType }
+	| { type: "state-changed"; timerState: TimerState }
 	| { type: "timer-started"; mode: "fresh" | "resumed" }
 	| { type: "timer-paused" }
 	| { type: "timer-reset" }
@@ -136,11 +136,11 @@ export class IntervalTimer {
 	}
 
 	public get canPause(): boolean {
-		return this.countdownTimer.getCurrentTimerType() === "running";
+		return this.countdownTimer.state === "running";
 	}
 
 	public get canStart(): boolean {
-		return match(this.countdownTimer.getCurrentTimerType())
+		return match(this.countdownTimer.state)
 			.with("initialized", "paused", () => true)
 			.with("running", "completed", () => false)
 			.exhaustive();
@@ -148,7 +148,7 @@ export class IntervalTimer {
 
 	public get status(): IntervalTimerStatus {
 		return {
-			timerState: this.countdownTimer.getCurrentTimerType(),
+			timerState: this.countdownTimer.state,
 			snapshot: this.getSnapshot(),
 		};
 	}
@@ -190,7 +190,7 @@ export class IntervalTimer {
 	}
 
 	public start(): void {
-		const countdownTimerType = this.countdownTimer.getCurrentTimerType();
+		const countdownTimerState = this.countdownTimer.state;
 
 		const result = this.countdownTimer.start();
 		if (!result.ok) return;
@@ -198,7 +198,7 @@ export class IntervalTimer {
 		this.emitStateChanged("running");
 		this.emit({
 			type: "timer-started",
-			mode: countdownTimerType === "initialized" ? "fresh" : "resumed",
+			mode: countdownTimerState === "initialized" ? "fresh" : "resumed",
 		});
 	}
 
@@ -239,7 +239,7 @@ export class IntervalTimer {
 		return match(parseDurationMinutes(minutes))
 			.with({ ok: false }, ({ reason }) => err(reason))
 			.with({ ok: true }, ({ value }) => {
-				if (this.countdownTimer.getCurrentTimerType() === "running") {
+				if (this.countdownTimer.state === "running") {
 					return err("timer_running");
 				}
 				this.enterInterval(
@@ -267,7 +267,7 @@ export class IntervalTimer {
 	}
 
 	public predictTouch(): TouchAction {
-		return match(this.countdownTimer.getCurrentTimerType())
+		return match(this.countdownTimer.state)
 			.with("initialized", "completed", () => "start" as const)
 			.with("paused", () => "resume" as const)
 			.with("running", () =>
@@ -363,7 +363,7 @@ export class IntervalTimer {
 		this.emitStateChanged("initialized");
 	}
 
-	private emitStateChanged(timerState: TimerType): void {
+	private emitStateChanged(timerState: TimerState): void {
 		this.emit({ type: "state-changed", timerState });
 	}
 
