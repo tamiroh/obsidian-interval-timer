@@ -72,6 +72,15 @@ export class CountdownTimer {
 		};
 	}
 
+	public get currentTime(): Time {
+		return this.state.type === "completed"
+			? time(0, 0)
+			: time(
+					this.state.currentTime.minutes,
+					this.state.currentTime.seconds,
+				);
+	}
+
 	public subscribe(
 		listener: (event: CountdownTimerEvent) => void,
 	): () => void {
@@ -104,33 +113,6 @@ export class CountdownTimer {
 		};
 
 		return ok();
-	}
-
-	private scheduleNextTick(startAt: Date): number {
-		const elapsedMs = Math.max(0, Date.now() - startAt.getTime());
-		const delayMs = 1000 - (elapsedMs % 1000);
-
-		return window.setTimeout(() => {
-			if (this.state.type !== "running") return;
-
-			const result = this.updateCurrentTime(startAt);
-
-			if (result === "subtracted") {
-				this.emit({ type: "tick" });
-			}
-			if (result === "completed") {
-				this.emit({ type: "tick" });
-				this.state = { type: "completed" };
-				this.emit({ type: "completed" });
-				return;
-			}
-
-			this.state = {
-				type: "running",
-				currentTime: this.state.currentTime,
-				timeoutId: this.scheduleNextTick(startAt),
-			};
-		}, delayMs);
 	}
 
 	public pause(): PauseTimerResult {
@@ -180,13 +162,31 @@ export class CountdownTimer {
 		return this.state.type;
 	}
 
-	public get currentTime(): Time {
-		return this.state.type === "completed"
-			? time(0, 0)
-			: time(
-					this.state.currentTime.minutes,
-					this.state.currentTime.seconds,
-				);
+	private scheduleNextTick(startAt: Date): number {
+		const elapsedMs = Math.max(0, Date.now() - startAt.getTime());
+		const delayMs = 1000 - (elapsedMs % 1000);
+
+		return window.setTimeout(() => {
+			if (this.state.type !== "running") return;
+
+			const result = this.updateCurrentTime(startAt);
+
+			if (result === "subtracted") {
+				this.emit({ type: "tick" });
+			}
+			if (result === "completed") {
+				this.emit({ type: "tick" });
+				this.state = { type: "completed" };
+				this.emit({ type: "completed" });
+				return;
+			}
+
+			this.state = {
+				type: "running",
+				currentTime: this.state.currentTime,
+				timeoutId: this.scheduleNextTick(startAt),
+			};
+		}, delayMs);
 	}
 
 	private updateCurrentTime(

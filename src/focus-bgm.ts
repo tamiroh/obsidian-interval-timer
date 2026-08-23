@@ -31,6 +31,10 @@ export class FocusBgm {
 		this.audioOutput = audioOutput;
 	}
 
+	private static toGain(maxGain: number, volume: number): number {
+		return maxGain * Math.min(volume / 100, 1);
+	}
+
 	public play(type: FocusBgmType, volume: number): void {
 		this.clearPreviewTimeout();
 
@@ -101,10 +105,6 @@ export class FocusBgm {
 
 		window.clearTimeout(this.previewTimeoutId);
 		this.previewTimeoutId = undefined;
-	}
-
-	private static toGain(maxGain: number, volume: number): number {
-		return maxGain * Math.min(volume / 100, 1);
 	}
 }
 

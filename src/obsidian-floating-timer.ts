@@ -50,15 +50,6 @@ export class FloatingTimer implements TimerDisplay {
 		});
 	}
 
-	private mountToActiveLeaf(): void {
-		const leafContainer =
-			this.app.workspace.getMostRecentLeaf()?.view.containerEl ??
-			document.body;
-		if (this.containerEl.parentElement !== leafContainer) {
-			leafContainer.append(this.containerEl);
-		}
-	}
-
 	public update(
 		intervals: { total: number; set: number },
 		time: Time,
@@ -91,5 +82,14 @@ export class FloatingTimer implements TimerDisplay {
 		this.app.workspace.offref(this.activeLeafChangeRef);
 		this.popover.dispose();
 		this.containerEl.remove();
+	}
+
+	private mountToActiveLeaf(): void {
+		const leafContainer =
+			this.app.workspace.getMostRecentLeaf()?.view.containerEl ??
+			document.body;
+		if (this.containerEl.parentElement !== leafContainer) {
+			leafContainer.append(this.containerEl);
+		}
 	}
 }

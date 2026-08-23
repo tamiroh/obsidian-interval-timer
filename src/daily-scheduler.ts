@@ -17,6 +17,13 @@ export class DailyScheduler {
 		this.onScheduledTime = onScheduledTime;
 	}
 
+	private static delayUntil(executionTime: Date): number {
+		return Math.min(
+			maxDelayMilliseconds,
+			Math.max(0, executionTime.getTime() - Date.now()),
+		);
+	}
+
 	public enable(): void {
 		this.disable();
 		this.nextExecutionTime = this.getInitialExecutionTime();
@@ -52,13 +59,6 @@ export class DailyScheduler {
 
 		this.nextExecutionTime = this.executionTimeAfter(executionTime);
 		this.scheduleTick();
-	}
-
-	private static delayUntil(executionTime: Date): number {
-		return Math.min(
-			maxDelayMilliseconds,
-			Math.max(0, executionTime.getTime() - Date.now()),
-		);
 	}
 
 	private getInitialExecutionTime(): Date {

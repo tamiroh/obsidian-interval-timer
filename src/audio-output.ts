@@ -18,6 +18,32 @@ export type Playback = {
 export class AudioOutput {
 	private audioContext: AudioContext | undefined;
 
+	private static createContext(): AudioContext | undefined {
+		if (typeof window.AudioContext === "undefined") return undefined;
+
+		try {
+			return new window.AudioContext();
+		} catch {
+			return undefined;
+		}
+	}
+
+	private static rampGain(
+		gain: GainNode,
+		startAt: number,
+		target: number,
+		fadeSeconds: number,
+	): void {
+		if (fadeSeconds <= 0) {
+			gain.gain.cancelScheduledValues(startAt);
+			gain.gain.setValueAtTime(target, startAt);
+			return;
+		}
+
+		gain.gain.cancelAndHoldAtTime(startAt);
+		gain.gain.linearRampToValueAtTime(target, startAt + fadeSeconds);
+	}
+
 	public play(sound: Sound, options: PlayOptions): Playback | undefined {
 		const audioContext = this.resolveContext();
 		if (audioContext === undefined) return undefined;
@@ -77,32 +103,6 @@ export class AudioOutput {
 			void this.audioContext.resume().catch(() => {});
 		}
 		return this.audioContext;
-	}
-
-	private static createContext(): AudioContext | undefined {
-		if (typeof window.AudioContext === "undefined") return undefined;
-
-		try {
-			return new window.AudioContext();
-		} catch {
-			return undefined;
-		}
-	}
-
-	private static rampGain(
-		gain: GainNode,
-		startAt: number,
-		target: number,
-		fadeSeconds: number,
-	): void {
-		if (fadeSeconds <= 0) {
-			gain.gain.cancelScheduledValues(startAt);
-			gain.gain.setValueAtTime(target, startAt);
-			return;
-		}
-
-		gain.gain.cancelAndHoldAtTime(startAt);
-		gain.gain.linearRampToValueAtTime(target, startAt + fadeSeconds);
 	}
 }
 

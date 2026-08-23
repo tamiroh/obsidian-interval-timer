@@ -27,12 +27,6 @@ export class StoredValue {
 		this.value = value;
 	}
 
-	public as<TType extends StoredType>(
-		type: TType,
-	): StoredTypes[TType] | null {
-		return StoredValue.hasType(this.value, type) ? this.value : null;
-	}
-
 	private static hasType<TType extends StoredType>(
 		value: unknown,
 		type: TType,
@@ -46,6 +40,12 @@ export class StoredValue {
 			);
 		}
 		return typeof value === type;
+	}
+
+	public as<TType extends StoredType>(
+		type: TType,
+	): StoredTypes[TType] | null {
+		return StoredValue.hasType(this.value, type) ? this.value : null;
 	}
 }
 

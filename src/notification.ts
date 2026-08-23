@@ -3,17 +3,13 @@ export const notificationStyles = ["system", "simple"] as const;
 export type NotificationStyle = (typeof notificationStyles)[number];
 
 export abstract class Notifier {
-	abstract notify(message: string): void;
 	enableAutoClear(): void {}
 	dispose(): void {}
+	abstract notify(message: string): void;
 }
 
 export class SystemNotifier extends Notifier {
 	private current: Notification | null = null;
-
-	private readonly handleWindowFocus = () => {
-		this.clearNotification();
-	};
 
 	override enableAutoClear(): void {
 		window.addEventListener("focus", this.handleWindowFocus);
@@ -42,6 +38,10 @@ export class SystemNotifier extends Notifier {
 		window.removeEventListener("focus", this.handleWindowFocus);
 		this.clearNotification();
 	}
+
+	private readonly handleWindowFocus = () => {
+		this.clearNotification();
+	};
 
 	private clearNotification(): void {
 		this.current?.close();

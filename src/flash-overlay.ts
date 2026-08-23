@@ -33,6 +33,13 @@ export class FlashOverlay {
 		document.body.appendChild(this.overlay);
 	}
 
+	public hide(): void {
+		if (this.overlay !== undefined) {
+			this.overlay.remove();
+			this.overlay = undefined;
+		}
+	}
+
 	private addStylesIfNeeded(): void {
 		if (this.styleElement !== undefined) return;
 
@@ -55,12 +62,5 @@ export class FlashOverlay {
 		`;
 
 		document.head.appendChild(this.styleElement);
-	}
-
-	public hide(): void {
-		if (this.overlay !== undefined) {
-			this.overlay.remove();
-			this.overlay = undefined;
-		}
 	}
 }

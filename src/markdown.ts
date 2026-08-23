@@ -10,6 +10,27 @@ export class Markdown {
 		this.lines = content.split("\n");
 	}
 
+	private static parseOpeningFence(line: string): Fence | null {
+		const match = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
+		const sequence = match?.[1];
+		if (sequence === undefined) return null;
+
+		const character = sequence[0];
+		if (character === "`" && (match?.[2] ?? "").includes("`")) return null;
+		if (character !== "`" && character !== "~") return null;
+
+		return { character, length: sequence.length };
+	}
+
+	private static isClosingFence(line: string, fence: Fence): boolean {
+		const sequence = /^ {0,3}(`+|~+)[ \t]*\r?$/.exec(line)?.[1];
+		return (
+			sequence !== undefined &&
+			sequence.startsWith(fence.character) &&
+			sequence.length >= fence.length
+		);
+	}
+
 	public toContent(): string {
 		return this.lines.join("\n");
 	}
@@ -32,27 +53,6 @@ export class Markdown {
 			fence !== null ||
 			Markdown.parseOpeningFence(this.lines[lineNumber - 1] ?? "") !==
 				null
-		);
-	}
-
-	private static parseOpeningFence(line: string): Fence | null {
-		const match = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
-		const sequence = match?.[1];
-		if (sequence === undefined) return null;
-
-		const character = sequence[0];
-		if (character === "`" && (match?.[2] ?? "").includes("`")) return null;
-		if (character !== "`" && character !== "~") return null;
-
-		return { character, length: sequence.length };
-	}
-
-	private static isClosingFence(line: string, fence: Fence): boolean {
-		const sequence = /^ {0,3}(`+|~+)[ \t]*\r?$/.exec(line)?.[1];
-		return (
-			sequence !== undefined &&
-			sequence.startsWith(fence.character) &&
-			sequence.length >= fence.length
 		);
 	}
 }

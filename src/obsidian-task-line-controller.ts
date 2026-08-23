@@ -35,6 +35,14 @@ export class TaskLineController {
 		);
 	}
 
+	private static reportCompletionFailure(cause: unknown): void {
+		console.error(
+			"Interval Timer: failed to record task completion.",
+			cause,
+		);
+		new Notice("Failed to record task completion.");
+	}
+
 	public setup(
 		partialPlugin: Pick<
 			BasePlugin,
@@ -90,14 +98,6 @@ export class TaskLineController {
 		} finally {
 			this.untrackCurrentTask();
 		}
-	}
-
-	private static reportCompletionFailure(cause: unknown): void {
-		console.error(
-			"Interval Timer: failed to record task completion.",
-			cause,
-		);
-		new Notice("Failed to record task completion.");
 	}
 
 	private syncCurrentTask(): void {

@@ -88,6 +88,7 @@ export default defineConfig(
 			"@typescript-eslint/switch-exhaustiveness-check": "error",
 			"@typescript-eslint/strict-boolean-expressions": "error",
 			"@typescript-eslint/no-shadow": "error",
+			"@typescript-eslint/member-ordering": "error",
 			eqeqeq: ["error", "always", { null: "ignore" }],
 			"no-restricted-properties": [
 				"error",

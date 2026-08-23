@@ -127,6 +127,28 @@ export class IntervalTimer {
 		);
 	}
 
+	public get canPause(): boolean {
+		return this.currentInterval.timer.getCurrentTimerType() === "running";
+	}
+
+	public get canStart(): boolean {
+		return match(this.currentInterval.timer.getCurrentTimerType())
+			.with("initialized", "paused", () => true)
+			.with("running", "completed", () => false)
+			.exhaustive();
+	}
+
+	public get status(): IntervalTimerStatus {
+		return {
+			timerState: this.currentInterval.timer.getCurrentTimerType(),
+			snapshot: this.getSnapshot(),
+		};
+	}
+
+	public get state(): IntervalTimerState {
+		return this.currentInterval.state;
+	}
+
 	public applySnapshot(snapshot: Snapshot): void {
 		this.focusIntervals = {
 			total: snapshot.focusIntervals.total,
@@ -254,28 +276,6 @@ export class IntervalTimer {
 		this.currentInterval.timer.dispose();
 		this.disableAutoReset();
 		this.eventListeners.clear();
-	}
-
-	public get state(): IntervalTimerState {
-		return this.currentInterval.state;
-	}
-
-	public get status(): IntervalTimerStatus {
-		return {
-			timerState: this.currentInterval.timer.getCurrentTimerType(),
-			snapshot: this.getSnapshot(),
-		};
-	}
-
-	public get canStart(): boolean {
-		return match(this.currentInterval.timer.getCurrentTimerType())
-			.with("initialized", "paused", () => true)
-			.with("running", "completed", () => false)
-			.exhaustive();
-	}
-
-	public get canPause(): boolean {
-		return this.currentInterval.timer.getCurrentTimerType() === "running";
 	}
 
 	private enterNextInterval({
