@@ -8,6 +8,27 @@ import jestDom from "eslint-plugin-jest-dom";
 import tseslint from "typescript-eslint";
 import local from "./eslint-plugin-local.mts";
 
+const noObjectAssign = {
+	object: "Object",
+	property: "assign",
+	message: "Use object spread instead of Object.assign.",
+};
+
+const localStorageMessage = "Use KeyValueStore instead of localStorage.";
+
+const noLocalStorage = [
+	{
+		object: "window",
+		property: "localStorage",
+		message: localStorageMessage,
+	},
+	{
+		object: "globalThis",
+		property: "localStorage",
+		message: localStorageMessage,
+	},
+];
+
 export default defineConfig(
 	{
 		name: "local/base",
@@ -90,14 +111,7 @@ export default defineConfig(
 			"@typescript-eslint/no-shadow": "error",
 			"@typescript-eslint/member-ordering": "error",
 			eqeqeq: ["error", "always", { null: "ignore" }],
-			"no-restricted-properties": [
-				"error",
-				{
-					object: "Object",
-					property: "assign",
-					message: "Use object spread instead of Object.assign.",
-				},
-			],
+			"no-restricted-properties": ["error", noObjectAssign],
 		},
 	},
 	{
@@ -120,6 +134,15 @@ export default defineConfig(
 				"error",
 				{ assertionStyle: "never" },
 			],
+			"no-restricted-globals": [
+				"error",
+				{ name: "localStorage", message: localStorageMessage },
+			],
+			"no-restricted-properties": [
+				"error",
+				noObjectAssign,
+				...noLocalStorage,
+			],
 			"no-restricted-syntax": [
 				"error",
 				{
@@ -133,6 +156,14 @@ export default defineConfig(
 						"Type the variable as possibly undefined instead of asserting definite assignment.",
 				},
 			],
+		},
+	},
+	{
+		name: "local/key-value-store",
+		files: ["src/key-value-store.ts"],
+		rules: {
+			"no-restricted-globals": "off",
+			"no-restricted-properties": ["error", noObjectAssign],
 		},
 	},
 	{
