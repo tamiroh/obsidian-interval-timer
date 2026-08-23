@@ -745,7 +745,6 @@ describe("IntervalTimer", () => {
 			expect(intervalCompletedEvents(events)).toContainEqual(
 				expect.objectContaining({
 					to: "longBreak",
-					notificationMessage: "🏖️  Time for a long break",
 				}),
 			);
 
@@ -861,7 +860,6 @@ describe("IntervalTimer", () => {
 			expect(intervalCompletedEvents(events)).toContainEqual(
 				expect.objectContaining({
 					to: "focus",
-					notificationMessage: "⏰  Now it's time to focus",
 				}),
 			);
 
@@ -951,7 +949,6 @@ describe("IntervalTimer", () => {
 			expect(intervalCompletedEvents(events)).toContainEqual(
 				expect.objectContaining({
 					to: "shortBreak",
-					notificationMessage: "☕️  Time for a short break",
 				}),
 			);
 
@@ -1432,7 +1429,6 @@ describe("IntervalTimer", () => {
 			).toMatchObject({
 				from: "shortBreak",
 				to: "focus",
-				notificationMessage: "⏰  Now it's time to focus",
 			});
 
 			intervalTimer.dispose();

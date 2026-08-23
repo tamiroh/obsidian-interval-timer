@@ -6,6 +6,7 @@ import { FocusTickSound } from "./focus-tick-sound";
 import {
 	IntervalTimer,
 	type IntervalTimerEvent,
+	type IntervalTimerState,
 	type IntervalTimerStatus,
 } from "./interval-timer";
 import type { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
@@ -23,6 +24,13 @@ type IntervalTimerHostOptions = {
 	readonly snapshotStore: IntervalTimerSnapshotStore;
 	readonly taskLineController: TaskLineController;
 };
+
+const notificationMessage = (state: IntervalTimerState): string =>
+	match(state)
+		.with("focus", () => "⏰  Now it's time to focus")
+		.with("shortBreak", () => "☕️  Time for a short break")
+		.with("longBreak", () => "🏖️  Time for a long break")
+		.exhaustive();
 
 type SettingsReload = {
 	readonly keys: readonly (keyof PluginSetting)[];
@@ -225,7 +233,7 @@ export class IntervalTimerHost {
 							.exhaustive(),
 					);
 				}
-				this.notifier.notify(completed.notificationMessage);
+				this.notifier.notify(notificationMessage(completed.to));
 			})
 			.with(
 				{ type: "timer-paused" },

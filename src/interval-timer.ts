@@ -71,7 +71,6 @@ type IntervalTimerEventDetails =
 			type: "interval-completed";
 			from: IntervalTimerState;
 			to: IntervalTimerState;
-			notificationMessage: string;
 	  }
 	| {
 			type: "interval-skipped";
@@ -323,16 +322,10 @@ export class IntervalTimer {
 			});
 			return;
 		}
-		const notificationMessage = match(this.currentInterval.state)
-			.with("focus", () => "⏰  Now it's time to focus")
-			.with("shortBreak", () => "☕️  Time for a short break")
-			.with("longBreak", () => "🏖️  Time for a long break")
-			.exhaustive();
 		this.emit({
 			type: "interval-completed",
 			from: previousState,
 			to: this.currentInterval.state,
-			notificationMessage,
 		});
 	}
 
