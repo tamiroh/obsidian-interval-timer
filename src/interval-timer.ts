@@ -95,7 +95,7 @@ export type RetimeResult = Result<
 export type TouchAction = "start" | "resume" | "reset" | "skip";
 
 export class IntervalTimer {
-	private currentTimer: CountdownTimer;
+	private countdownTimer: CountdownTimer;
 
 	private currentState: IntervalTimerState;
 
@@ -112,7 +112,7 @@ export class IntervalTimer {
 	constructor(settings: IntervalTimerSetting) {
 		this.focusIntervals = { total: 0, set: 0 };
 		this.settings = structuredClone(settings);
-		this.currentTimer = this.createTimer(
+		this.countdownTimer = this.createTimer(
 			this.settings.focusIntervalDuration,
 			0,
 		);
@@ -126,11 +126,11 @@ export class IntervalTimer {
 	}
 
 	public get canPause(): boolean {
-		return this.currentTimer.getCurrentTimerType() === "running";
+		return this.countdownTimer.getCurrentTimerType() === "running";
 	}
 
 	public get canStart(): boolean {
-		return match(this.currentTimer.getCurrentTimerType())
+		return match(this.countdownTimer.getCurrentTimerType())
 			.with("initialized", "paused", () => true)
 			.with("running", "completed", () => false)
 			.exhaustive();
@@ -138,7 +138,7 @@ export class IntervalTimer {
 
 	public get status(): IntervalTimerStatus {
 		return {
-			timerState: this.currentTimer.getCurrentTimerType(),
+			timerState: this.countdownTimer.getCurrentTimerType(),
 			snapshot: this.getSnapshot(),
 		};
 	}
@@ -180,26 +180,26 @@ export class IntervalTimer {
 	}
 
 	public start(): void {
-		const currentTimerType = this.currentTimer.getCurrentTimerType();
+		const countdownTimerType = this.countdownTimer.getCurrentTimerType();
 
-		const result = this.currentTimer.start();
+		const result = this.countdownTimer.start();
 		if (!result.ok) return;
 
 		this.emitStateChanged("running");
 		this.emit({
 			type: "timer-started",
-			mode: currentTimerType === "initialized" ? "fresh" : "resumed",
+			mode: countdownTimerType === "initialized" ? "fresh" : "resumed",
 		});
 	}
 
 	public pause(): void {
-		if (this.currentTimer.pause().ok) {
+		if (this.countdownTimer.pause().ok) {
 			this.emit({ type: "timer-paused" });
 		}
 	}
 
 	public reset(): void {
-		this.currentTimer.reset();
+		this.countdownTimer.reset();
 		this.emitStateChanged("initialized");
 		this.emit({ type: "timer-reset" });
 	}
@@ -221,7 +221,7 @@ export class IntervalTimer {
 	}
 
 	public skipInterval(): void {
-		this.currentTimer.dispose();
+		this.countdownTimer.dispose();
 		this.enterNextInterval({ reason: "skipped" });
 	}
 
@@ -229,12 +229,12 @@ export class IntervalTimer {
 		return match(parseDurationMinutes(minutes))
 			.with({ ok: false }, ({ reason }) => err(reason))
 			.with({ ok: true }, ({ value }) => {
-				if (this.currentTimer.getCurrentTimerType() === "running") {
+				if (this.countdownTimer.getCurrentTimerType() === "running") {
 					return err("timer_running");
 				}
 				this.enterInterval(
 					this.currentState,
-					time(value, this.currentTimer.currentTime.seconds),
+					time(value, this.countdownTimer.currentTime.seconds),
 				);
 				return ok();
 			})
@@ -257,7 +257,7 @@ export class IntervalTimer {
 	}
 
 	public predictTouch(): TouchAction {
-		return match(this.currentTimer.getCurrentTimerType())
+		return match(this.countdownTimer.getCurrentTimerType())
 			.with("initialized", "completed", () => "start" as const)
 			.with("paused", () => "resume" as const)
 			.with("running", () =>
@@ -267,7 +267,7 @@ export class IntervalTimer {
 	}
 
 	public dispose(): void {
-		this.currentTimer.dispose();
+		this.countdownTimer.dispose();
 		this.disableAutoReset();
 		this.eventListeners.clear();
 	}
@@ -344,8 +344,8 @@ export class IntervalTimer {
 	}
 
 	private enterInterval(state: IntervalTimerState, nextTime: Time): void {
-		this.currentTimer.dispose();
-		this.currentTimer = this.createTimer(
+		this.countdownTimer.dispose();
+		this.countdownTimer = this.createTimer(
 			nextTime.minutes,
 			nextTime.seconds,
 		);
@@ -370,7 +370,7 @@ export class IntervalTimer {
 
 	private getSnapshot(): Snapshot {
 		return {
-			...structuredClone(this.currentTimer.currentTime),
+			...structuredClone(this.countdownTimer.currentTime),
 			state: this.currentState,
 			focusIntervals: structuredClone(this.focusIntervals),
 		};
