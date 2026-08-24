@@ -66,10 +66,10 @@ export class CountdownTimer {
 		initialTime,
 		continuePastZero = false,
 	}: CountdownTimerOptions) {
-		this.initialTime = cloneTime(initialTime);
+		this.initialTime = structuredClone(initialTime);
 		this.currentState = {
 			type: "initialized",
-			currentTime: cloneTime(initialTime),
+			currentTime: structuredClone(initialTime),
 		};
 		this.completionSignaled = initialTime.negative === true;
 		this.continuePastZero = continuePastZero;
@@ -82,7 +82,7 @@ export class CountdownTimer {
 	public get currentTime(): Time {
 		return this.currentState.type === "completed"
 			? time(0, 0)
-			: cloneTime(this.currentState.currentTime);
+			: structuredClone(this.currentState.currentTime);
 	}
 
 	public subscribe(
@@ -145,10 +145,10 @@ export class CountdownTimer {
 		}
 		this.currentState = {
 			type: "initialized",
-			currentTime: cloneTime(this.initialTime),
+			currentTime: structuredClone(this.initialTime),
 		};
 		this.completionSignaled = this.initialTime.negative === true;
-		return cloneTime(this.initialTime);
+		return structuredClone(this.initialTime);
 	}
 
 	public dispose(): void {
@@ -261,12 +261,3 @@ export class CountdownTimer {
 		});
 	}
 }
-
-const cloneTime = (value: Time): Time =>
-	value.negative === true
-		? {
-				minutes: value.minutes,
-				seconds: value.seconds,
-				negative: true,
-			}
-		: time(value.minutes, value.seconds);

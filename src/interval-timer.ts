@@ -175,15 +175,10 @@ export class IntervalTimer {
 	}
 
 	public applySnapshot(snapshot: Snapshot): void {
-		this.focusIntervals = {
-			total: snapshot.focusIntervals.total,
-			set: snapshot.focusIntervals.set,
-		};
-		this.enterInterval(
-			snapshot.state,
-			cloneTime(snapshot),
-			snapshot.nextState,
-		);
+		const { state, nextState, focusIntervals, ...currentTime } =
+			structuredClone(snapshot);
+		this.focusIntervals = focusIntervals;
+		this.enterInterval(state, currentTime, nextState);
 	}
 
 	public subscribe(
@@ -455,12 +450,3 @@ export class IntervalTimer {
 		);
 	}
 }
-
-const cloneTime = (value: Time): Time =>
-	value.negative === true
-		? {
-				minutes: value.minutes,
-				seconds: value.seconds,
-				negative: true,
-			}
-		: time(value.minutes, value.seconds);
