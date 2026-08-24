@@ -23,7 +23,9 @@ export const isSeconds = (value: number): value is Seconds =>
 // Time
 //
 
-export type Time = { minutes: Minutes; seconds: Seconds };
+export type Time =
+	| { minutes: Minutes; seconds: Seconds; negative?: undefined }
+	| { minutes: number; seconds: Seconds; negative: true };
 
 export const time = (minutes: Minutes, seconds: Seconds): Time => ({
 	minutes,
@@ -33,7 +35,11 @@ export const time = (minutes: Minutes, seconds: Seconds): Time => ({
 export const toSeconds = ({ minutes, seconds }: Time): number =>
 	minutes * 60 + seconds;
 
-export const toMilliseconds = (value: Time): number => toSeconds(value) * 1000;
+export const toSignedSeconds = (value: Time): number =>
+	(value.negative ? -1 : 1) * toSeconds(value);
+
+export const toMilliseconds = (value: Time): number =>
+	toSignedSeconds(value) * 1000;
 
 //
 // Parsing

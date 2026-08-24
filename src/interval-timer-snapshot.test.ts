@@ -30,13 +30,24 @@ describe("IntervalTimerSnapshotStore", () => {
 			new KeyValueStore("snapshot-test"),
 		);
 
-		snapshotStore.save("shortBreak", time(3, 20), { total: 7, set: 2 });
+		snapshotStore.save(
+			"shortBreak",
+			{
+				minutes: 3,
+				seconds: 20,
+				negative: true,
+				nextState: "focus",
+			},
+			{ total: 7, set: 2 },
+		);
 		const snapshot = snapshotStore.load();
 
 		expect(snapshot).toEqual({
 			state: "shortBreak",
 			minutes: 3,
 			seconds: 20,
+			negative: true,
+			nextState: "focus",
 			focusIntervals: { total: 7, set: 2 },
 		});
 	});
@@ -68,6 +79,7 @@ describe("IntervalTimerSnapshotStore", () => {
 		["minutes", { ...validStored, minutes: -1 }],
 		["minutes", { ...validStored, minutes: 1.5 }],
 		["minutes", { ...validStored, minutes: "25" }],
+		["minutes", { ...validStored, minutes: 600 }],
 		["seconds", { ...validStored, seconds: 60 }],
 		["seconds", { ...validStored, seconds: -1 }],
 		["seconds", { ...validStored, seconds: 1.5 }],
@@ -76,6 +88,9 @@ describe("IntervalTimerSnapshotStore", () => {
 		["total", { ...validStored, focusIntervals: { total: 1.5, set: 0 } }],
 		["set", { ...validStored, focusIntervals: { total: 4, set: -1 } }],
 		["set", { ...validStored, focusIntervals: { total: 4, set: 1.5 } }],
+		["negative", { ...validStored, negative: false }],
+		["nextState", { ...validStored, negative: true }],
+		["nextState", { ...validStored, nextState: "invalid" }],
 	])("should return null when %s is invalid", (_field, stored) => {
 		const keyValueStore = new KeyValueStore("snapshot-test");
 		const snapshotStore = new IntervalTimerSnapshotStore(keyValueStore);
@@ -83,6 +98,23 @@ describe("IntervalTimerSnapshotStore", () => {
 		keyValueStore.set("snapshot", stored);
 
 		expect(snapshotStore.load()).toBeNull();
+	});
+
+	it("should load overtime beyond the configured duration limit", () => {
+		const keyValueStore = new KeyValueStore("snapshot-test");
+		const snapshotStore = new IntervalTimerSnapshotStore(keyValueStore);
+		keyValueStore.set("snapshot", {
+			...validStored,
+			minutes: 600,
+			negative: true,
+			nextState: "shortBreak",
+		});
+
+		expect(snapshotStore.load()).toMatchObject({
+			minutes: 600,
+			negative: true,
+			nextState: "shortBreak",
+		});
 	});
 
 	it("should return null when intervals set is greater than total", () => {

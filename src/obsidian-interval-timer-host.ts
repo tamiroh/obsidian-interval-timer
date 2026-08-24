@@ -80,6 +80,8 @@ export class IntervalTimerHost {
 			shortBreakDuration: this.currentSettings.shortBreakDuration,
 			longBreakDuration: this.currentSettings.longBreakDuration,
 			longBreakAfter: this.currentSettings.longBreakAfter,
+			intervalCompletionBehavior:
+				this.currentSettings.intervalCompletionBehavior,
 			resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
 		});
 		this.settingsReloads = this.settingsReloadsDefinition();
@@ -142,6 +144,7 @@ export class IntervalTimerHost {
 					"shortBreakDuration",
 					"longBreakDuration",
 					"longBreakAfter",
+					"intervalCompletionBehavior",
 				],
 				reload: (next) => {
 					this.intervalTimer.updateSettings({
@@ -149,6 +152,8 @@ export class IntervalTimerHost {
 						shortBreakDuration: next.shortBreakDuration,
 						longBreakDuration: next.longBreakDuration,
 						longBreakAfter: next.longBreakAfter,
+						intervalCompletionBehavior:
+							next.intervalCompletionBehavior,
 					});
 				},
 			},

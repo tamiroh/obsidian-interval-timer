@@ -5,22 +5,31 @@ import {
 } from "./interval-timer";
 import { type KeyValueStore } from "./key-value-store";
 import * as v from "valibot";
-import { isMinutes, isSeconds, type Time } from "./time";
+import { isMinutes, isSeconds, time, type Time } from "./time";
 
 const snapshotKey = "snapshot";
 
 const intervalCountSchema = v.pipe(v.number(), v.integer(), v.minValue(0));
 
+const storedMinutesSchema = v.pipe(v.number(), v.integer(), v.minValue(0));
+
 const snapshotSchema = v.pipe(
 	v.object({
 		state: v.picklist(intervalTimerStates),
-		minutes: v.pipe(v.number(), v.integer(), v.guard(isMinutes)),
+		minutes: storedMinutesSchema,
 		seconds: v.pipe(v.number(), v.integer(), v.guard(isSeconds)),
+		negative: v.optional(v.literal(true)),
+		nextState: v.optional(v.picklist(intervalTimerStates)),
 		focusIntervals: v.object({
 			total: intervalCountSchema,
 			set: intervalCountSchema,
 		}),
 	}),
+	v.check(({ minutes, negative }) => negative === true || isMinutes(minutes)),
+	v.check(
+		({ negative, nextState }) =>
+			negative !== true || nextState !== undefined,
+	),
 	v.check(({ focusIntervals }) => focusIntervals.set <= focusIntervals.total),
 );
 
@@ -36,18 +45,49 @@ export class IntervalTimerSnapshotStore {
 			snapshotSchema,
 			this.keyValueStore.get(snapshotKey)?.as("object"),
 		);
-		return result.success ? result.output : null;
+		if (!result.success) {
+			return null;
+		}
+
+		const snapshot = result.output;
+		const optionalState = snapshot.nextState
+			? { nextState: snapshot.nextState }
+			: {};
+		if (snapshot.negative === true) {
+			return {
+				state: snapshot.state,
+				minutes: snapshot.minutes,
+				seconds: snapshot.seconds,
+				negative: true,
+				...optionalState,
+				focusIntervals: snapshot.focusIntervals,
+			};
+		}
+		if (!isMinutes(snapshot.minutes)) {
+			return null;
+		}
+
+		return {
+			state: snapshot.state,
+			...time(snapshot.minutes, snapshot.seconds),
+			...optionalState,
+			focusIntervals: snapshot.focusIntervals,
+		};
 	}
 
 	public save(
 		state: IntervalTimerState,
-		time: Time,
+		currentTime: Time & { nextState?: IntervalTimerState },
 		focusIntervals: { total: number; set: number },
 	): void {
 		this.keyValueStore.set(snapshotKey, {
 			state,
-			minutes: time.minutes,
-			seconds: time.seconds,
+			minutes: currentTime.minutes,
+			seconds: currentTime.seconds,
+			...(currentTime.negative ? { negative: true as const } : {}),
+			...(currentTime.nextState
+				? { nextState: currentTime.nextState }
+				: {}),
 			focusIntervals: {
 				total: focusIntervals.total,
 				set: focusIntervals.set,

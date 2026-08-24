@@ -1,13 +1,6 @@
 import { match } from "ts-pattern";
 import { err, ok, type Result } from "./result";
-import {
-	isMinutes,
-	isSeconds,
-	time,
-	type Time,
-	toMilliseconds,
-	toSeconds,
-} from "./time";
+import { isMinutes, isSeconds, time, type Time, toSignedSeconds } from "./time";
 
 export const timerStates = [
 	"initialized",
@@ -53,6 +46,7 @@ export type CountdownTimerEvent = CountdownTimerEventDetails & {
 
 export type CountdownTimerOptions = {
 	initialTime: Time;
+	continuePastZero?: boolean;
 };
 
 export class CountdownTimer {
@@ -64,12 +58,21 @@ export class CountdownTimer {
 		(event: CountdownTimerEvent) => void
 	>();
 
-	constructor({ initialTime }: CountdownTimerOptions) {
-		this.initialTime = time(initialTime.minutes, initialTime.seconds);
+	private completionSignaled: boolean;
+
+	private continuePastZero: boolean;
+
+	constructor({
+		initialTime,
+		continuePastZero = false,
+	}: CountdownTimerOptions) {
+		this.initialTime = cloneTime(initialTime);
 		this.currentState = {
 			type: "initialized",
-			currentTime: time(initialTime.minutes, initialTime.seconds),
+			currentTime: cloneTime(initialTime),
 		};
+		this.completionSignaled = initialTime.negative === true;
+		this.continuePastZero = continuePastZero;
 	}
 
 	public get state(): TimerState {
@@ -79,10 +82,7 @@ export class CountdownTimer {
 	public get currentTime(): Time {
 		return this.currentState.type === "completed"
 			? time(0, 0)
-			: time(
-					this.currentState.currentTime.minutes,
-					this.currentState.currentTime.seconds,
-				);
+			: cloneTime(this.currentState.currentTime);
 	}
 
 	public subscribe(
@@ -104,8 +104,9 @@ export class CountdownTimer {
 			.with({ type: "initialized" }, () => new Date())
 			.with({ type: "paused" }, (state) => {
 				const elapsedMs =
-					toMilliseconds(this.initialTime) -
-					toMilliseconds(state.currentTime);
+					(toSignedSeconds(this.initialTime) -
+						toSignedSeconds(state.currentTime)) *
+					1000;
 				return new Date(Date.now() - elapsedMs);
 			})
 			.exhaustive();
@@ -117,6 +118,10 @@ export class CountdownTimer {
 		};
 
 		return ok();
+	}
+
+	public setContinuePastZero(enabled: boolean): void {
+		this.continuePastZero = enabled;
 	}
 
 	public pause(): PauseTimerResult {
@@ -140,12 +145,10 @@ export class CountdownTimer {
 		}
 		this.currentState = {
 			type: "initialized",
-			currentTime: time(
-				this.initialTime.minutes,
-				this.initialTime.seconds,
-			),
+			currentTime: cloneTime(this.initialTime),
 		};
-		return time(this.initialTime.minutes, this.initialTime.seconds);
+		this.completionSignaled = this.initialTime.negative === true;
+		return cloneTime(this.initialTime);
 	}
 
 	public dispose(): void {
@@ -176,9 +179,12 @@ export class CountdownTimer {
 			}
 			if (result === "completed") {
 				this.emit({ type: "tick" });
-				this.currentState = { type: "completed" };
 				this.emit({ type: "completed" });
-				return;
+				this.completionSignaled = true;
+				if (!this.continuePastZero) {
+					this.currentState = { type: "completed" };
+					return;
+				}
 			}
 
 			this.currentState = {
@@ -197,27 +203,41 @@ export class CountdownTimer {
 		}
 
 		const remainingSeconds = this.computeRemainingSeconds(startAt);
-		const previousRemainingSeconds = toSeconds(
+		const previousRemainingSeconds = toSignedSeconds(
 			this.currentState.currentTime,
 		);
 
-		if (remainingSeconds === previousRemainingSeconds) {
+		if (
+			remainingSeconds === previousRemainingSeconds &&
+			(this.completionSignaled || remainingSeconds > 0)
+		) {
 			return "unchanged";
 		}
-		if (remainingSeconds <= 0) {
+		if (remainingSeconds <= 0 && !this.completionSignaled) {
 			this.currentState.currentTime = time(0, 0);
 			return "completed";
 		}
 
-		const remainingMinutes = Math.floor(remainingSeconds / 60);
-		const remainingSecondsInMinute = remainingSeconds % 60;
+		const absoluteRemainingSeconds = Math.abs(remainingSeconds);
+		const remainingMinutes = Math.floor(absoluteRemainingSeconds / 60);
+		const remainingSecondsInMinute = absoluteRemainingSeconds % 60;
+		if (!isSeconds(remainingSecondsInMinute)) {
+			return "unchanged";
+		}
+		if (remainingSeconds < 0) {
+			this.currentState.currentTime = {
+				minutes: remainingMinutes,
+				seconds: remainingSecondsInMinute,
+				negative: true,
+			};
+			return "subtracted";
+		}
+		if (!isMinutes(remainingMinutes)) {
+			return "unchanged";
+		}
 		this.currentState.currentTime = time(
-			isMinutes(remainingMinutes)
-				? remainingMinutes
-				: this.currentState.currentTime.minutes,
-			isSeconds(remainingSecondsInMinute)
-				? remainingSecondsInMinute
-				: this.currentState.currentTime.seconds,
+			remainingMinutes,
+			remainingSecondsInMinute,
 		);
 		return "subtracted";
 	}
@@ -227,7 +247,7 @@ export class CountdownTimer {
 			0,
 			Math.floor((Date.now() - startAt.getTime()) / 1000),
 		);
-		return toSeconds(this.initialTime) - elapsedSeconds;
+		return toSignedSeconds(this.initialTime) - elapsedSeconds;
 	}
 
 	private emit(event: CountdownTimerEventDetails): void {
@@ -241,3 +261,12 @@ export class CountdownTimer {
 		});
 	}
 }
+
+const cloneTime = (value: Time): Time =>
+	value.negative === true
+		? {
+				minutes: value.minutes,
+				seconds: value.seconds,
+				negative: true,
+			}
+		: time(value.minutes, value.seconds);

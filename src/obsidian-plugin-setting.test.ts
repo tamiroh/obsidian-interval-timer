@@ -19,6 +19,7 @@ describe("PluginSettingStore.loadFromUnknown", () => {
 				notificationStyle: "system",
 				flashOverlayEnabled: true,
 				focusTickSoundVolume: 65,
+				intervalCompletionBehavior: "countDownPastZero",
 				focusBgmType: "whiteNoise",
 				focusBgmVolume: 40,
 			}),
@@ -30,6 +31,7 @@ describe("PluginSettingStore.loadFromUnknown", () => {
 			notificationStyle: "system",
 			flashOverlayEnabled: true,
 			focusTickSoundVolume: 65,
+			intervalCompletionBehavior: "countDownPastZero",
 			focusBgmType: "whiteNoise",
 			focusBgmVolume: 40,
 		});
@@ -45,6 +47,7 @@ describe("PluginSettingStore.loadFromUnknown", () => {
 				notificationStyle: "unknown",
 				flashOverlayEnabled: "yes",
 				focusTickSoundVolume: 101,
+				intervalCompletionBehavior: "unknown",
 				focusBgmType: "unknown",
 				focusBgmVolume: 101,
 			}),
@@ -114,6 +117,20 @@ describe("PluginSettingStore", () => {
 		);
 
 		expect(result).toEqual({ ok: false, reason: "invalid_option" });
+	});
+
+	it("updates a valid interval completion behavior", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+
+		const result = store.updateFromUnknown(
+			"intervalCompletionBehavior",
+			"countDownPastZero",
+		);
+
+		expect(result).toEqual({ ok: true, value: "countDownPastZero" });
+		expect(store.state.intervalCompletionBehavior).toBe(
+			"countDownPastZero",
+		);
 	});
 
 	it("updates a valid boolean from an unknown value", () => {

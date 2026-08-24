@@ -426,4 +426,60 @@ describe("CountdownTimer", () => {
 		// Assert
 		expect(countdownTimer.currentTime).toEqual(time(1, 0));
 	});
+
+	it("should continue counting down past zero and resume when enabled", () => {
+		// Arrange
+		const handleTick = vi.fn<(event: CountdownTimerEvent) => void>();
+		const handleComplete = vi.fn();
+		const countdownTimer = new CountdownTimer({
+			initialTime: time(0, 1),
+			continuePastZero: true,
+		});
+		subscribeTo(countdownTimer, "tick", handleTick);
+		subscribeTo(countdownTimer, "completed", handleComplete);
+
+		// Act
+		countdownTimer.start();
+		vi.advanceTimersByTime(2000);
+		countdownTimer.pause();
+		countdownTimer.start();
+		vi.advanceTimersByTime(1000);
+
+		// Assert
+		expect(handleComplete).toHaveBeenCalledOnce();
+		expect(handleTick).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				currentTime: {
+					minutes: 0,
+					seconds: 2,
+					negative: true,
+				},
+			}),
+		);
+		expect(countdownTimer.currentTime).toEqual({
+			minutes: 0,
+			seconds: 2,
+			negative: true,
+		});
+		expect(countdownTimer.state).toBe("running");
+	});
+
+	it("should continue overtime beyond the duration input limit", () => {
+		// Arrange
+		const countdownTimer = new CountdownTimer({
+			initialTime: { minutes: 599, seconds: 59, negative: true },
+			continuePastZero: true,
+		});
+
+		// Act
+		countdownTimer.start();
+		vi.advanceTimersByTime(2000);
+
+		// Assert
+		expect(countdownTimer.currentTime).toEqual({
+			minutes: 600,
+			seconds: 1,
+			negative: true,
+		});
+	});
 });

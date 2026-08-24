@@ -2,7 +2,10 @@ import { match } from "ts-pattern";
 import * as v from "valibot";
 import { isMinutes } from "./time";
 import { err, ok, type Result } from "./result";
-import { defaultLongBreakAfter } from "./interval-timer";
+import {
+	defaultLongBreakAfter,
+	intervalCompletionBehaviors,
+} from "./interval-timer";
 import { notificationStyles } from "./notification";
 import { focusBgmTypes } from "./focus-bgm";
 import { ObservableStore } from "./observable-store";
@@ -36,6 +39,10 @@ const pluginSettingSchema = v.object({
 	notificationStyle: v.optional(v.picklist(notificationStyles), "simple"),
 	flashOverlayEnabled: v.optional(v.boolean(), false),
 	focusTickSoundVolume: v.optional(volumeSchema, 0),
+	intervalCompletionBehavior: v.optional(
+		v.picklist(intervalCompletionBehaviors),
+		"advanceToNextInterval",
+	),
 	focusBgmType: v.optional(v.picklist(focusBgmTypes), "none"),
 	focusBgmVolume: v.optional(volumeSchema, 50),
 });
@@ -48,6 +55,9 @@ const pluginSettingPatchSchema = v.strictObject({
 	notificationStyle: v.exactOptional(v.picklist(notificationStyles)),
 	flashOverlayEnabled: v.exactOptional(v.boolean()),
 	focusTickSoundVolume: v.exactOptional(volumeSchema),
+	intervalCompletionBehavior: v.exactOptional(
+		v.picklist(intervalCompletionBehaviors),
+	),
 	focusBgmType: v.exactOptional(v.picklist(focusBgmTypes)),
 	focusBgmVolume: v.exactOptional(volumeSchema),
 });

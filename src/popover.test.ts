@@ -109,6 +109,34 @@ describe("Popover", () => {
 		);
 	});
 
+	it("renders overtime as a negative duration", async () => {
+		// Arrange
+		const el = createDiv();
+		const popover = await createPopover(el);
+
+		// Act
+		popover.update(
+			{ minutes: 7, seconds: 5, negative: true },
+			"focus",
+			"running",
+		);
+
+		// Assert
+		await waitFor(() =>
+			expect(
+				within(el).getByTestId("popover-clock-time"),
+			).toHaveTextContent("-07:05"),
+		);
+		expect(within(el).getByTestId("popover-clock-time")).toHaveClass(
+			"interval-timer-popover-clock-time-negative",
+		);
+		expect(
+			within(el).getByTestId(
+				"popover-clock-value",
+			) as unknown as SVGElement,
+		).toHaveStyle({ strokeDashoffset: "-100" });
+	});
+
 	it("visualizes the remaining proportion", async () => {
 		// Arrange
 		const el = createDiv();
@@ -353,6 +381,35 @@ describe("Popover", () => {
 		expect(
 			await within(el).findByRole("button", { name: "Resume" }),
 		).toBeEnabled();
+	});
+
+	it("shows Next while an interval is in overtime", async () => {
+		// Arrange
+		const el = createDiv();
+		const popover = await createPopover(el);
+		const intervalTimer = createIntervalTimer();
+		intervalTimer.applySnapshot({
+			state: "focus",
+			minutes: 1,
+			seconds: 0,
+			negative: true,
+			nextState: "shortBreak",
+			focusIntervals: { total: 1, set: 1 },
+		});
+		popover.enableActions(intervalTimer);
+
+		// Act
+		popover.update(
+			{ minutes: 1, seconds: 0, negative: true },
+			"focus",
+			"initialized",
+		);
+
+		// Assert
+		expect(
+			await within(el).findByRole("button", { name: "Next" }),
+		).toBeEnabled();
+		expect(within(el).getByRole("button", { name: "01" })).toBeDisabled();
 	});
 
 	it("disables start until an interval timer is provided", async () => {

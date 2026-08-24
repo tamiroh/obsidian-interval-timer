@@ -159,7 +159,9 @@ export class Popover {
 			timerState,
 			intervalsSet,
 			longBreakAfter,
-			remainingPercent: this.getRemainingPercent(remainingSeconds),
+			remainingPercent: currentTime.negative
+				? 0
+				: this.getRemainingPercent(remainingSeconds),
 			touchAction:
 				this.store.state.intervalTimer?.predictTouch() ?? "start",
 		});
@@ -487,9 +489,18 @@ const PopoverView = ({
 					</svg>
 					<div className="interval-timer-popover-clock-readout">
 						<div
-							className="interval-timer-popover-clock-time"
+							className={`interval-timer-popover-clock-time${
+								currentTime.negative
+									? " interval-timer-popover-clock-time-negative"
+									: ""
+							}`}
 							data-testid="popover-clock-time"
 						>
+							{currentTime.negative && (
+								<span className="interval-timer-popover-clock-sign">
+									-
+								</span>
+							)}
 							<div
 								className={`interval-timer-popover-retime-editor${
 									isEditingTime
@@ -504,6 +515,7 @@ const PopoverView = ({
 									disabled={
 										!intervalTimer ||
 										timerState === "running" ||
+										currentTime.negative === true ||
 										isEditingTime
 									}
 									onClick={handleMinutesClick}
@@ -676,6 +688,7 @@ const getTouchActionPresentation = (
 		.with("resume", () => ({ label: "Resume", icon: "play" }))
 		.with("reset", () => ({ label: "Reset", icon: "rotate-ccw" }))
 		.with("skip", () => ({ label: "Skip", icon: "skip-forward" }))
+		.with("next", () => ({ label: "Next", icon: "skip-forward" }))
 		.exhaustive();
 
 //

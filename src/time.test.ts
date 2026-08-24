@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { parseDurationMinutes, parseMinutes, parseSeconds } from "./time";
+import {
+	parseDurationMinutes,
+	parseMinutes,
+	parseSeconds,
+	toSignedSeconds,
+} from "./time";
+
+describe("toSignedSeconds", () => {
+	it("should return negative seconds for overtime", () => {
+		expect(
+			toSignedSeconds({ minutes: 7, seconds: 5, negative: true }),
+		).toBe(-425);
+	});
+});
 
 describe("parseMinutes", () => {
 	it.each([
