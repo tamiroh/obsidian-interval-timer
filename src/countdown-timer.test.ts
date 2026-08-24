@@ -464,10 +464,10 @@ describe("CountdownTimer", () => {
 		expect(countdownTimer.state).toBe("running");
 	});
 
-	it("should continue overtime beyond the duration input limit", () => {
+	it("should keep overtime within the duration limit", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: { minutes: 599, seconds: 59, negative: true },
+			initialTime: { minutes: 599, seconds: 58, negative: true },
 			continuePastZero: true,
 		});
 
@@ -477,8 +477,8 @@ describe("CountdownTimer", () => {
 
 		// Assert
 		expect(countdownTimer.currentTime).toEqual({
-			minutes: 600,
-			seconds: 1,
+			minutes: 599,
+			seconds: 59,
 			negative: true,
 		});
 	});

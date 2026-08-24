@@ -1,6 +1,14 @@
 import { match } from "ts-pattern";
 import { err, ok, type Result } from "./result";
-import { isMinutes, isSeconds, time, type Time, toSignedSeconds } from "./time";
+import {
+	isMinutes,
+	isNonZeroMinutes,
+	isSeconds,
+	negativeTime,
+	time,
+	type Time,
+	toSignedSeconds,
+} from "./time";
 
 export const timerStates = [
 	"initialized",
@@ -225,11 +233,23 @@ export class CountdownTimer {
 			return "unchanged";
 		}
 		if (remainingSeconds < 0) {
-			this.currentState.currentTime = {
-				minutes: remainingMinutes,
-				seconds: remainingSecondsInMinute,
-				negative: true,
-			};
+			if (remainingMinutes === 0) {
+				if (remainingSecondsInMinute === 0) {
+					return "unchanged";
+				}
+				this.currentState.currentTime = negativeTime(
+					0,
+					remainingSecondsInMinute,
+				);
+				return "subtracted";
+			}
+			if (!isNonZeroMinutes(remainingMinutes)) {
+				return "unchanged";
+			}
+			this.currentState.currentTime = negativeTime(
+				remainingMinutes,
+				remainingSecondsInMinute,
+			);
 			return "subtracted";
 		}
 		if (!isMinutes(remainingMinutes)) {

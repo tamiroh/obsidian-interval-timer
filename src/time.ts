@@ -13,24 +13,55 @@ export const secondsUpperBound = 60;
 export type Minutes = Enumerate<typeof minutesUpperBound>;
 export type Seconds = Enumerate<typeof secondsUpperBound>;
 
+export type NonZeroMinutes = Exclude<Minutes, 0>;
+type NonZeroSeconds = Exclude<Seconds, 0>;
+
 export const isMinutes = (value: number): value is Minutes =>
 	Number.isInteger(value) && value >= 0 && value < minutesUpperBound;
 
 export const isSeconds = (value: number): value is Seconds =>
 	Number.isInteger(value) && value >= 0 && value < secondsUpperBound;
 
+export const isNonZeroMinutes = (value: number): value is NonZeroMinutes =>
+	value > 0 && isMinutes(value);
+
 //
 // Time
 //
 
+export type NegativeTime =
+	| { minutes: 0; seconds: NonZeroSeconds; negative: true }
+	| {
+			minutes: NonZeroMinutes;
+			seconds: Seconds;
+			negative: true;
+	  };
+
 export type Time =
-	| { minutes: Minutes; seconds: Seconds; negative?: undefined }
-	| { minutes: number; seconds: Seconds; negative: true };
+	{ minutes: Minutes; seconds: Seconds; negative?: undefined } | NegativeTime;
 
 export const time = (minutes: Minutes, seconds: Seconds): Time => ({
 	minutes,
 	seconds,
 });
+
+export function negativeTime(minutes: 0, seconds: NonZeroSeconds): NegativeTime;
+export function negativeTime(
+	minutes: NonZeroMinutes,
+	seconds: Seconds,
+): NegativeTime;
+export function negativeTime(minutes: number, seconds: Seconds): NegativeTime {
+	if (minutes === 0) {
+		if (seconds === 0) {
+			throw new Error("Negative zero is not a valid time");
+		}
+		return { minutes, seconds, negative: true };
+	}
+	if (!isNonZeroMinutes(minutes)) {
+		throw new Error("Negative time requires valid minutes");
+	}
+	return { minutes, seconds, negative: true };
+}
 
 export const toSeconds = ({ minutes, seconds }: Time): number =>
 	minutes * 60 + seconds;

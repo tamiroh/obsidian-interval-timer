@@ -1,10 +1,31 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import {
 	parseDurationMinutes,
 	parseMinutes,
 	parseSeconds,
+	type Time,
 	toSignedSeconds,
 } from "./time";
+
+describe("Time", () => {
+	it("should allow positive zero", () => {
+		const zero = { minutes: 0, seconds: 0 } as const;
+
+		expectTypeOf(zero).toExtend<Time>();
+		expect(zero).toEqual({ minutes: 0, seconds: 0 });
+	});
+
+	it("should reject negative zero", () => {
+		const negativeZero = {
+			minutes: 0,
+			seconds: 0,
+			negative: true,
+		} as const;
+
+		expectTypeOf(negativeZero).not.toExtend<Time>();
+		expect(negativeZero.negative).toBe(true);
+	});
+});
 
 describe("toSignedSeconds", () => {
 	it("should return negative seconds for overtime", () => {

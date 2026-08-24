@@ -89,6 +89,16 @@ describe("IntervalTimerSnapshotStore", () => {
 		["set", { ...validStored, focusIntervals: { total: 4, set: -1 } }],
 		["set", { ...validStored, focusIntervals: { total: 4, set: 1.5 } }],
 		["negative", { ...validStored, negative: false }],
+		[
+			"negative zero",
+			{
+				...validStored,
+				minutes: 0,
+				seconds: 0,
+				negative: true,
+				nextState: "shortBreak",
+			},
+		],
 		["nextState", { ...validStored, negative: true }],
 		["nextState", { ...validStored, nextState: "invalid" }],
 	])("should return null when %s is invalid", (_field, stored) => {
@@ -100,7 +110,7 @@ describe("IntervalTimerSnapshotStore", () => {
 		expect(snapshotStore.load()).toBeNull();
 	});
 
-	it("should load overtime beyond the configured duration limit", () => {
+	it("should reject overtime beyond the configured duration limit", () => {
 		const keyValueStore = new KeyValueStore("snapshot-test");
 		const snapshotStore = new IntervalTimerSnapshotStore(keyValueStore);
 		keyValueStore.set("snapshot", {
@@ -110,11 +120,7 @@ describe("IntervalTimerSnapshotStore", () => {
 			nextState: "shortBreak",
 		});
 
-		expect(snapshotStore.load()).toMatchObject({
-			minutes: 600,
-			negative: true,
-			nextState: "shortBreak",
-		});
+		expect(snapshotStore.load()).toBeNull();
 	});
 
 	it("should return null when intervals set is greater than total", () => {

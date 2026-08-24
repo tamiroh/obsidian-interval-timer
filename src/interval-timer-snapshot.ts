@@ -5,7 +5,15 @@ import {
 } from "./interval-timer";
 import { type KeyValueStore } from "./key-value-store";
 import * as v from "valibot";
-import { isMinutes, isSeconds, time, type Time } from "./time";
+import {
+	isMinutes,
+	isNonZeroMinutes,
+	isSeconds,
+	negativeTime,
+	time,
+	type Seconds,
+	type Time,
+} from "./time";
 
 const snapshotKey = "snapshot";
 
@@ -25,7 +33,11 @@ const snapshotSchema = v.pipe(
 			set: intervalCountSchema,
 		}),
 	}),
-	v.check(({ minutes, negative }) => negative === true || isMinutes(minutes)),
+	v.check(({ minutes, seconds, negative }) =>
+		negative === true
+			? (minutes > 0 || seconds > 0) && isMinutes(minutes)
+			: isMinutes(minutes),
+	),
 	v.check(
 		({ negative, nextState }) =>
 			negative !== true || nextState !== undefined,
@@ -54,11 +66,16 @@ export class IntervalTimerSnapshotStore {
 			? { nextState: snapshot.nextState }
 			: {};
 		if (snapshot.negative === true) {
+			const currentTime = toNegativeTime(
+				snapshot.minutes,
+				snapshot.seconds,
+			);
+			if (currentTime === null) {
+				return null;
+			}
 			return {
 				state: snapshot.state,
-				minutes: snapshot.minutes,
-				seconds: snapshot.seconds,
-				negative: true,
+				...currentTime,
 				...optionalState,
 				focusIntervals: snapshot.focusIntervals,
 			};
@@ -95,3 +112,13 @@ export class IntervalTimerSnapshotStore {
 		});
 	}
 }
+
+const toNegativeTime = (minutes: number, seconds: Seconds): Time | null => {
+	if (minutes === 0) {
+		return seconds === 0 ? null : negativeTime(0, seconds);
+	}
+	if (!isNonZeroMinutes(minutes)) {
+		return null;
+	}
+	return negativeTime(minutes, seconds);
+};
