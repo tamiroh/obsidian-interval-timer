@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CountdownTimer, type CountdownTimerEvent } from "./countdown-timer";
-import { time, type Time } from "./time";
+import { neg, time, type Time } from "./time";
 
 function subscribeTo(
 	countdownTimer: CountdownTimer,
@@ -452,14 +452,14 @@ describe("CountdownTimer", () => {
 				currentTime: {
 					minutes: 0,
 					seconds: 2,
-					negative: true,
+					sign: -1,
 				},
 			}),
 		);
 		expect(countdownTimer.currentTime).toEqual({
 			minutes: 0,
 			seconds: 2,
-			negative: true,
+			sign: -1,
 		});
 		expect(countdownTimer.state).toBe("running");
 	});
@@ -467,7 +467,7 @@ describe("CountdownTimer", () => {
 	it("should keep overtime within the duration limit", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: { minutes: 599, seconds: 58, negative: true },
+			initialTime: neg(time(599, 58)),
 			continuePastZero: true,
 		});
 
@@ -479,7 +479,7 @@ describe("CountdownTimer", () => {
 		expect(countdownTimer.currentTime).toEqual({
 			minutes: 599,
 			seconds: 59,
-			negative: true,
+			sign: -1,
 		});
 	});
 });

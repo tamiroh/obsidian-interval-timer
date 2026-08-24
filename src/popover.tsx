@@ -17,7 +17,13 @@ import {
 import { ObservableStore, useObservableStore } from "./observable-store";
 import { type Position, usePopoverFloating } from "./popover-floating";
 import type { ResultFailureReason } from "./result";
-import { minutesUpperBound, time, type Time, toSeconds } from "./time";
+import {
+	isNegative,
+	minutesUpperBound,
+	time,
+	type Time,
+	toSeconds,
+} from "./time";
 
 //
 // Constants and types
@@ -159,7 +165,7 @@ export class Popover {
 			timerState,
 			intervalsSet,
 			longBreakAfter,
-			remainingPercent: currentTime.negative
+			remainingPercent: isNegative(currentTime)
 				? 0
 				: this.getRemainingPercent(remainingSeconds),
 			touchAction:
@@ -490,13 +496,13 @@ const PopoverView = ({
 					<div className="interval-timer-popover-clock-readout">
 						<div
 							className={`interval-timer-popover-clock-time${
-								currentTime.negative
+								isNegative(currentTime)
 									? " interval-timer-popover-clock-time-negative"
 									: ""
 							}`}
 							data-testid="popover-clock-time"
 						>
-							{currentTime.negative && (
+							{isNegative(currentTime) && (
 								<span className="interval-timer-popover-clock-sign">
 									-
 								</span>
@@ -515,7 +521,7 @@ const PopoverView = ({
 									disabled={
 										!intervalTimer ||
 										timerState === "running" ||
-										currentTime.negative === true ||
+										isNegative(currentTime) ||
 										isEditingTime
 									}
 									onClick={handleMinutesClick}

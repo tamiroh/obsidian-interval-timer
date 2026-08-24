@@ -2,6 +2,7 @@ import { match } from "ts-pattern";
 import { CountdownTimer, type TimerState } from "./countdown-timer";
 import {
 	type DurationMinutesReason,
+	isNegative,
 	type Minutes,
 	parseDurationMinutes,
 	time,
@@ -67,7 +68,7 @@ export const isFocusRunning = ({
 }: IntervalTimerStatus): boolean =>
 	snapshot.state === "focus" &&
 	timerState === "running" &&
-	snapshot.negative !== true &&
+	!isNegative(snapshot) &&
 	snapshot.nextState === undefined;
 
 //

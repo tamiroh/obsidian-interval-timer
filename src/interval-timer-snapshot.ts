@@ -7,9 +7,10 @@ import { type KeyValueStore } from "./key-value-store";
 import * as v from "valibot";
 import {
 	isMinutes,
+	isNegative,
 	isNonZeroMinutes,
 	isSeconds,
-	negativeTime,
+	neg,
 	time,
 	type Seconds,
 	type Time,
@@ -33,15 +34,11 @@ const snapshotSchema = v.pipe(
 			set: intervalCountSchema,
 		}),
 	}),
-	v.check(({ minutes, seconds, negative }) =>
-		negative === true
-			? (minutes > 0 || seconds > 0) && isMinutes(minutes)
-			: isMinutes(minutes),
-	),
 	v.check(
-		({ negative, nextState }) =>
-			negative !== true || nextState !== undefined,
+		({ minutes, seconds, negative }) =>
+			isMinutes(minutes) && (!negative || minutes > 0 || seconds > 0),
 	),
+	v.check(({ negative, nextState }) => !negative || nextState !== undefined),
 	v.check(({ focusIntervals }) => focusIntervals.set <= focusIntervals.total),
 );
 
@@ -65,7 +62,7 @@ export class IntervalTimerSnapshotStore {
 		const optionalState = snapshot.nextState
 			? { nextState: snapshot.nextState }
 			: {};
-		if (snapshot.negative === true) {
+		if (snapshot.negative) {
 			const currentTime = toNegativeTime(
 				snapshot.minutes,
 				snapshot.seconds,
@@ -101,7 +98,7 @@ export class IntervalTimerSnapshotStore {
 			state,
 			minutes: currentTime.minutes,
 			seconds: currentTime.seconds,
-			...(currentTime.negative ? { negative: true as const } : {}),
+			...(isNegative(currentTime) ? { negative: true as const } : {}),
 			...(currentTime.nextState
 				? { nextState: currentTime.nextState }
 				: {}),
@@ -115,10 +112,10 @@ export class IntervalTimerSnapshotStore {
 
 const toNegativeTime = (minutes: number, seconds: Seconds): Time | null => {
 	if (minutes === 0) {
-		return seconds === 0 ? null : negativeTime(0, seconds);
+		return seconds === 0 ? null : neg(time(minutes, seconds));
 	}
 	if (!isNonZeroMinutes(minutes)) {
 		return null;
 	}
-	return negativeTime(minutes, seconds);
+	return neg(time(minutes, seconds));
 };

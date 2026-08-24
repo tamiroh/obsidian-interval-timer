@@ -1,4 +1,4 @@
-import { type Time } from "./time";
+import { isNegative, type Time } from "./time";
 import {
 	defaultLongBreakAfter,
 	type IntervalTimer,
@@ -89,7 +89,7 @@ export class StatusBar implements TimerDisplay {
 		longBreakAfter = defaultLongBreakAfter,
 	): void {
 		this.compactIntervalCount.textContent = `${intervals.set}/${intervals.total} `;
-		this.compactMinutes.textContent = `${time.negative ? "-" : ""}${String(
+		this.compactMinutes.textContent = `${isNegative(time) ? "-" : ""}${String(
 			time.minutes,
 		).padStart(2, "0")}`;
 		this.compactSeconds.textContent = String(time.seconds).padStart(2, "0");

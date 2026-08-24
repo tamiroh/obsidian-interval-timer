@@ -1,37 +1,46 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import {
+	isNegative,
+	neg,
 	parseDurationMinutes,
 	parseMinutes,
 	parseSeconds,
+	time,
 	type Time,
 	toSignedSeconds,
 } from "./time";
 
 describe("Time", () => {
 	it("should allow positive zero", () => {
-		const zero = { minutes: 0, seconds: 0 } as const;
+		const zero = { minutes: 0, seconds: 0, sign: 1 } as const;
 
 		expectTypeOf(zero).toExtend<Time>();
-		expect(zero).toEqual({ minutes: 0, seconds: 0 });
+		expectTypeOf(time(0, 0)).not.toExtend<Parameters<typeof neg>[0]>();
+		expect(zero).toEqual({ minutes: 0, seconds: 0, sign: 1 });
 	});
 
 	it("should reject negative zero", () => {
 		const negativeZero = {
 			minutes: 0,
 			seconds: 0,
-			negative: true,
+			sign: -1,
 		} as const;
 
 		expectTypeOf(negativeZero).not.toExtend<Time>();
-		expect(negativeZero.negative).toBe(true);
+		expect(negativeZero.sign).toBe(-1);
 	});
 });
 
 describe("toSignedSeconds", () => {
 	it("should return negative seconds for overtime", () => {
-		expect(
-			toSignedSeconds({ minutes: 7, seconds: 5, negative: true }),
-		).toBe(-425);
+		expect(toSignedSeconds(neg(time(7, 5)))).toBe(-425);
+	});
+});
+
+describe("isNegative", () => {
+	it("should identify the sign", () => {
+		expect(isNegative(time(7, 5))).toBe(false);
+		expect(isNegative(neg(time(7, 5)))).toBe(true);
 	});
 });
 

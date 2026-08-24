@@ -13,7 +13,7 @@ export const secondsUpperBound = 60;
 export type Minutes = Enumerate<typeof minutesUpperBound>;
 export type Seconds = Enumerate<typeof secondsUpperBound>;
 
-export type NonZeroMinutes = Exclude<Minutes, 0>;
+type NonZeroMinutes = Exclude<Minutes, 0>;
 type NonZeroSeconds = Exclude<Seconds, 0>;
 
 export const isMinutes = (value: number): value is Minutes =>
@@ -29,45 +29,56 @@ export const isNonZeroMinutes = (value: number): value is NonZeroMinutes =>
 // Time
 //
 
-export type NegativeTime =
-	| { minutes: 0; seconds: NonZeroSeconds; negative: true }
+type PositiveTime = {
+	minutes: Minutes;
+	seconds: Seconds;
+	sign: 1;
+};
+
+type ZeroTime = PositiveTime & { minutes: 0; seconds: 0 };
+
+type PositiveNonZeroTime =
+	| { minutes: 0; seconds: NonZeroSeconds; sign: 1 }
 	| {
 			minutes: NonZeroMinutes;
 			seconds: Seconds;
-			negative: true;
+			sign: 1;
 	  };
 
-export type Time =
-	{ minutes: Minutes; seconds: Seconds; negative?: undefined } | NegativeTime;
+type NegativeTime =
+	| { minutes: 0; seconds: NonZeroSeconds; sign: -1 }
+	| {
+			minutes: NonZeroMinutes;
+			seconds: Seconds;
+			sign: -1;
+	  };
 
-export const time = (minutes: Minutes, seconds: Seconds): Time => ({
-	minutes,
-	seconds,
-});
+export type Time = PositiveTime | NegativeTime;
 
-export function negativeTime(minutes: 0, seconds: NonZeroSeconds): NegativeTime;
-export function negativeTime(
+export function time(minutes: 0, seconds: 0): ZeroTime;
+export function time(minutes: 0, seconds: NonZeroSeconds): PositiveNonZeroTime;
+export function time(
 	minutes: NonZeroMinutes,
 	seconds: Seconds,
-): NegativeTime;
-export function negativeTime(minutes: number, seconds: Seconds): NegativeTime {
-	if (minutes === 0) {
-		if (seconds === 0) {
-			throw new Error("Negative zero is not a valid time");
-		}
-		return { minutes, seconds, negative: true };
-	}
-	if (!isNonZeroMinutes(minutes)) {
-		throw new Error("Negative time requires valid minutes");
-	}
-	return { minutes, seconds, negative: true };
+): PositiveNonZeroTime;
+export function time(minutes: Minutes, seconds: Seconds): PositiveTime;
+export function time(minutes: Minutes, seconds: Seconds): PositiveTime {
+	return { minutes, seconds, sign: 1 };
 }
+
+export const neg = (value: PositiveNonZeroTime): NegativeTime => ({
+	...value,
+	sign: -1,
+});
+
+export const isNegative = (value: Time): value is NegativeTime =>
+	value.sign === -1;
 
 export const toSeconds = ({ minutes, seconds }: Time): number =>
 	minutes * 60 + seconds;
 
 export const toSignedSeconds = (value: Time): number =>
-	(value.negative ? -1 : 1) * toSeconds(value);
+	(isNegative(value) ? -1 : 1) * toSeconds(value);
 
 export const toMilliseconds = (value: Time): number =>
 	toSignedSeconds(value) * 1000;

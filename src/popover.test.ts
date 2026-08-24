@@ -7,7 +7,7 @@ import {
 	type IntervalTimerSetting,
 } from "./interval-timer";
 import { Popover } from "./popover";
-import { time } from "./time";
+import { neg, time } from "./time";
 
 const settings: IntervalTimerSetting = {
 	focusIntervalDuration: 25,
@@ -115,11 +115,7 @@ describe("Popover", () => {
 		const popover = await createPopover(el);
 
 		// Act
-		popover.update(
-			{ minutes: 7, seconds: 5, negative: true },
-			"focus",
-			"running",
-		);
+		popover.update(neg(time(7, 5)), "focus", "running");
 
 		// Assert
 		await waitFor(() =>
@@ -349,6 +345,7 @@ describe("Popover", () => {
 		const intervalTimer = createIntervalTimer();
 		intervalTimer.applySnapshot({
 			state: "shortBreak",
+			sign: 1,
 			minutes: 4,
 			seconds: 0,
 			focusIntervals: { total: 0, set: 0 },
@@ -389,21 +386,15 @@ describe("Popover", () => {
 		const popover = await createPopover(el);
 		const intervalTimer = createIntervalTimer();
 		intervalTimer.applySnapshot({
+			...neg(time(1, 0)),
 			state: "focus",
-			minutes: 1,
-			seconds: 0,
-			negative: true,
 			nextState: "shortBreak",
 			focusIntervals: { total: 1, set: 1 },
 		});
 		popover.enableActions(intervalTimer);
 
 		// Act
-		popover.update(
-			{ minutes: 1, seconds: 0, negative: true },
-			"focus",
-			"initialized",
-		);
+		popover.update(neg(time(1, 0)), "focus", "initialized");
 
 		// Assert
 		expect(
@@ -519,6 +510,7 @@ describe("Popover", () => {
 				timerState: "initialized",
 				snapshot: {
 					state: "focus",
+					sign: 1,
 					minutes: 12,
 					seconds: 0,
 					focusIntervals: { set: 0, total: 0 },
@@ -552,6 +544,7 @@ describe("Popover", () => {
 				timerState: "initialized",
 				snapshot: {
 					state: "focus",
+					sign: 1,
 					minutes: 18,
 					seconds: 0,
 					focusIntervals: { set: 0, total: 0 },

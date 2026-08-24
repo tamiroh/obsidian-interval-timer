@@ -2,9 +2,10 @@ import { match } from "ts-pattern";
 import { err, ok, type Result } from "./result";
 import {
 	isMinutes,
+	isNegative,
 	isNonZeroMinutes,
 	isSeconds,
-	negativeTime,
+	neg,
 	time,
 	type Time,
 	toSignedSeconds,
@@ -79,7 +80,7 @@ export class CountdownTimer {
 			type: "initialized",
 			currentTime: structuredClone(initialTime),
 		};
-		this.completionSignaled = initialTime.negative === true;
+		this.completionSignaled = isNegative(initialTime);
 		this.continuePastZero = continuePastZero;
 	}
 
@@ -155,7 +156,7 @@ export class CountdownTimer {
 			type: "initialized",
 			currentTime: structuredClone(this.initialTime),
 		};
-		this.completionSignaled = this.initialTime.negative === true;
+		this.completionSignaled = isNegative(this.initialTime);
 		return structuredClone(this.initialTime);
 	}
 
@@ -237,18 +238,16 @@ export class CountdownTimer {
 				if (remainingSecondsInMinute === 0) {
 					return "unchanged";
 				}
-				this.currentState.currentTime = negativeTime(
-					0,
-					remainingSecondsInMinute,
+				this.currentState.currentTime = neg(
+					time(0, remainingSecondsInMinute),
 				);
 				return "subtracted";
 			}
 			if (!isNonZeroMinutes(remainingMinutes)) {
 				return "unchanged";
 			}
-			this.currentState.currentTime = negativeTime(
-				remainingMinutes,
-				remainingSecondsInMinute,
+			this.currentState.currentTime = neg(
+				time(remainingMinutes, remainingSecondsInMinute),
 			);
 			return "subtracted";
 		}

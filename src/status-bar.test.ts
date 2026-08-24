@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { IntervalTimer, type IntervalTimerSetting } from "./interval-timer";
 import { StatusBar } from "./status-bar";
-import { time } from "./time";
+import { neg, time } from "./time";
 
 const statusBars = new Set<StatusBar>();
 
@@ -62,7 +62,7 @@ describe("StatusBar", () => {
 		// Act
 		statusBar.update(
 			{ total: 1, set: 1 },
-			{ minutes: 7, seconds: 5, negative: true },
+			neg(time(7, 5)),
 			"focus",
 			"running",
 		);
