@@ -1,13 +1,13 @@
-import { App, EventRef } from "obsidian";
-import { Time } from "./time";
+import { type App, type EventRef } from "obsidian";
+import { type Time } from "./time";
 import {
 	defaultLongBreakAfter,
-	IntervalTimer,
-	IntervalTimerState,
+	type IntervalTimer,
+	type IntervalTimerState,
 } from "./interval-timer";
-import { TimerType } from "./countdown-timer";
+import { type TimerState } from "./countdown-timer";
 import { Popover } from "./popover";
-import { TimerDisplay } from "./timer-display";
+import { type TimerDisplay } from "./timer-display";
 
 export class FloatingTimer implements TimerDisplay {
 	private readonly containerEl: HTMLElement;
@@ -50,20 +50,11 @@ export class FloatingTimer implements TimerDisplay {
 		});
 	}
 
-	private mountToActiveLeaf(): void {
-		const leafContainer =
-			this.app.workspace.getMostRecentLeaf()?.view.containerEl ??
-			document.body;
-		if (this.containerEl.parentElement !== leafContainer) {
-			leafContainer.append(this.containerEl);
-		}
-	}
-
 	public update(
 		intervals: { total: number; set: number },
 		time: Time,
 		intervalTimerState: IntervalTimerState,
-		timerState: TimerType,
+		timerState: TimerState,
 		longBreakAfter = defaultLongBreakAfter,
 	): void {
 		this.popover.update(
@@ -91,5 +82,14 @@ export class FloatingTimer implements TimerDisplay {
 		this.app.workspace.offref(this.activeLeafChangeRef);
 		this.popover.dispose();
 		this.containerEl.remove();
+	}
+
+	private mountToActiveLeaf(): void {
+		const leafContainer =
+			this.app.workspace.getMostRecentLeaf()?.view.containerEl ??
+			document.body;
+		if (this.containerEl.parentElement !== leafContainer) {
+			leafContainer.append(this.containerEl);
+		}
 	}
 }

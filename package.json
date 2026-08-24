@@ -1,10 +1,10 @@
 {
 	"name": "obsidian-interval-timer",
-	"version": "0.6.2",
+	"version": "0.7.0",
 	"description": "Interval Timer for Obsidian",
 	"main": "main.js",
 	"engines": {
-		"node": ">=20.19.0"
+		"node": "^22.22.2 || ^24.15.0 || >=26.0.0"
 	},
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
@@ -51,6 +51,7 @@
 	},
 	"dependencies": {
 		"preact": "^10.29.8",
-		"ts-pattern": "^5.9.0"
+		"ts-pattern": "^5.9.0",
+		"valibot": "^1.4.2"
 	}
 }

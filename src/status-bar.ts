@@ -1,12 +1,12 @@
-import { Time } from "./time";
+import { type Time } from "./time";
 import {
 	defaultLongBreakAfter,
-	IntervalTimer,
-	IntervalTimerState,
+	type IntervalTimer,
+	type IntervalTimerState,
 } from "./interval-timer";
-import { TimerType } from "./countdown-timer";
+import { type TimerState } from "./countdown-timer";
 import { Popover } from "./popover";
-import { TimerDisplay } from "./timer-display";
+import { type TimerDisplay } from "./timer-display";
 
 const popoverFloatingClass = "interval-timer-status-bar-popover-floating";
 
@@ -85,7 +85,7 @@ export class StatusBar implements TimerDisplay {
 		intervals: { total: number; set: number },
 		time: Time,
 		intervalTimerState: IntervalTimerState,
-		timerState: TimerType,
+		timerState: TimerState,
 		longBreakAfter = defaultLongBreakAfter,
 	): void {
 		this.compactIntervalCount.textContent = `${intervals.set}/${intervals.total} `;

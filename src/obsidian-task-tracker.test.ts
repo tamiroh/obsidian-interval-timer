@@ -40,8 +40,12 @@ describe("TaskTracker", () => {
 			ok: true,
 			value: undefined,
 		});
-		expect(keyValueStore.get("current-task-name")).toBe("example task");
-		expect(keyValueStore.get("current-task-path")).toBe("tasks.md");
+		expect(keyValueStore.get("current-task-name")?.as("string")).toBe(
+			"example task",
+		);
+		expect(keyValueStore.get("current-task-path")?.as("string")).toBe(
+			"tasks.md",
+		);
 	});
 
 	it("reads the task on the active line without tracking it", () => {

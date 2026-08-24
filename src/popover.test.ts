@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import {
 	IntervalTimer,
 	type IntervalTimerEvent,
-	IntervalTimerSetting,
+	type IntervalTimerSetting,
 } from "./interval-timer";
 import { Popover } from "./popover";
 import { time } from "./time";
@@ -521,9 +521,7 @@ describe("Popover", () => {
 		fireEvent.submit(getRetimeForm(el));
 
 		// Assert
-		expect(notify).toHaveBeenCalledWith(
-			"Enter a positive whole number of minutes.",
-		);
+		expect(notify).toHaveBeenCalledWith("Enter a whole number.");
 	});
 
 	it("keeps a minute click from triggering the status bar click", async () => {

@@ -1,15 +1,23 @@
-export type NotificationStyle = "system" | "simple";
+export const notificationStyles = ["system", "simple"] as const;
+
+export type NotificationStyle = (typeof notificationStyles)[number];
 
 export abstract class Notifier {
+	enableAutoClear(): void {}
+	dispose(): void {}
 	abstract notify(message: string): void;
-	clearNotification(): void {}
 }
 
 export class SystemNotifier extends Notifier {
 	private current: Notification | null = null;
 
+	override enableAutoClear(): void {
+		window.addEventListener("focus", this.handleWindowFocus);
+	}
+
 	override notify(message: string): void {
 		if (document.hasFocus()) return;
+
 		this.clearNotification();
 		const notification = new Notification(message, {
 			body: "Interval Timer",
@@ -26,7 +34,16 @@ export class SystemNotifier extends Notifier {
 		);
 	}
 
-	override clearNotification(): void {
+	override dispose(): void {
+		window.removeEventListener("focus", this.handleWindowFocus);
+		this.clearNotification();
+	}
+
+	private readonly handleWindowFocus = () => {
+		this.clearNotification();
+	};
+
+	private clearNotification(): void {
 		this.current?.close();
 		this.current = null;
 	}

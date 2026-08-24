@@ -1,5 +1,8 @@
 import { Notice, type Plugin as BasePlugin, type Workspace } from "obsidian";
-import { TaskTracker, type TrackTaskResult } from "./obsidian-task-tracker";
+import {
+	type TaskTracker,
+	type TrackTaskResult,
+} from "./obsidian-task-tracker";
 import { TaskLineHighlighter } from "./obsidian-task-line-highlight-extension";
 import type { IntervalTimer } from "./interval-timer";
 import type { TimerDisplay } from "./timer-display";
@@ -30,6 +33,14 @@ export class TaskLineController {
 				this.syncCurrentTask();
 			},
 		);
+	}
+
+	private static reportCompletionFailure(cause: unknown): void {
+		console.error(
+			"Interval Timer: failed to record task completion.",
+			cause,
+		);
+		new Notice("Failed to record task completion.");
 	}
 
 	public setup(
@@ -80,10 +91,10 @@ export class TaskLineController {
 		try {
 			const result = await this.taskTracker.incrementTrackedTask();
 			if (!result.ok) {
-				new Notice("Failed to record task completion.");
+				TaskLineController.reportCompletionFailure(result.reason);
 			}
-		} catch {
-			new Notice("Failed to record task completion.");
+		} catch (error) {
+			TaskLineController.reportCompletionFailure(error);
 		} finally {
 			this.untrackCurrentTask();
 		}

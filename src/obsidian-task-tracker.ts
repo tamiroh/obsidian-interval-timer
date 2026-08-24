@@ -1,5 +1,5 @@
-import { TFile, type App } from "obsidian";
-import { KeyValueStore } from "./key-value-store";
+import type { App } from "obsidian";
+import { type KeyValueStore } from "./key-value-store";
 import { TaskManagementFile } from "./task-management-file";
 import { TaskLine } from "./task-line";
 import { Markdown } from "./markdown";
@@ -59,14 +59,16 @@ export class TaskTracker {
 	}
 
 	public async incrementTrackedTask(): Promise<IncrementTrackedTaskResult> {
-		const name = this.keyValueStore.get("current-task-name");
-		const filePath = this.keyValueStore.get("current-task-path");
+		const name = this.keyValueStore.get("current-task-name")?.as("string");
+		const filePath = this.keyValueStore
+			.get("current-task-path")
+			?.as("string");
 		if (isBlank(name) || isBlank(filePath)) {
 			return err("tracked_task_not_found");
 		}
 
-		const file = this.app.vault.getAbstractFileByPath(filePath);
-		if (!(file instanceof TFile)) {
+		const file = this.app.vault.getFileByPath(filePath);
+		if (file === null) {
 			return err("tracked_file_not_found");
 		}
 
@@ -90,6 +92,8 @@ export class TaskTracker {
 	}
 
 	public getTrackedTaskName(): string | null {
-		return this.keyValueStore.get("current-task-name");
+		return (
+			this.keyValueStore.get("current-task-name")?.as("string") ?? null
+		);
 	}
 }

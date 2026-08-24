@@ -3,14 +3,13 @@ import { FlashOverlay } from "./flash-overlay";
 
 describe("FlashOverlay", () => {
 	afterEach(() => {
-		FlashOverlay.dispose();
 		document.body.innerHTML = "";
 		document.head.innerHTML = "";
 	});
 
 	it("should create overlay element when show is called", () => {
 		// Arrange
-		const flashOverlay = FlashOverlay.getInstance();
+		const flashOverlay = new FlashOverlay();
 
 		// Act
 		flashOverlay.show({ r: 255, g: 100, b: 100 });
@@ -25,7 +24,7 @@ describe("FlashOverlay", () => {
 
 	it("should inject the overlay styles and keyframes on first show", () => {
 		// Arrange
-		const flashOverlay = FlashOverlay.getInstance();
+		const flashOverlay = new FlashOverlay();
 
 		// Act
 		flashOverlay.show({ r: 100, g: 255, b: 100 });
@@ -36,12 +35,14 @@ describe("FlashOverlay", () => {
 		expect(styleElement?.textContent).toContain(
 			".interval-timer-flash-overlay",
 		);
-		expect(styleElement?.textContent).toContain("@keyframes flash-fade");
+		expect(styleElement?.textContent).toMatch(
+			/animation: (flash-[\w-]+) 1s linear infinite;[\s\S]*@keyframes \1 \{/,
+		);
 	});
 
 	it("should not create multiple overlays when show is called twice", () => {
 		// Arrange
-		const flashOverlay = FlashOverlay.getInstance();
+		const flashOverlay = new FlashOverlay();
 
 		// Act
 		flashOverlay.show({ r: 100, g: 150, b: 255 });
@@ -56,7 +57,7 @@ describe("FlashOverlay", () => {
 
 	it("should update overlay color when show is called with different color", () => {
 		// Arrange
-		const flashOverlay = FlashOverlay.getInstance();
+		const flashOverlay = new FlashOverlay();
 		flashOverlay.show({ r: 255, g: 100, b: 100 });
 
 		// Act
@@ -78,7 +79,7 @@ describe("FlashOverlay", () => {
 
 	it("should remove overlay when hide is called", () => {
 		// Arrange
-		const flashOverlay = FlashOverlay.getInstance();
+		const flashOverlay = new FlashOverlay();
 		flashOverlay.show({ r: 255, g: 100, b: 100 });
 
 		// Act
@@ -91,11 +92,11 @@ describe("FlashOverlay", () => {
 
 	it("should remove overlay and style element when dispose is called", () => {
 		// Arrange
-		const flashOverlay = FlashOverlay.getInstance();
+		const flashOverlay = new FlashOverlay();
 		flashOverlay.show({ r: 100, g: 255, b: 100 });
 
 		// Act
-		FlashOverlay.dispose();
+		flashOverlay.dispose();
 
 		// Assert
 		const styleElement = document.head.querySelector("style");
@@ -106,7 +107,7 @@ describe("FlashOverlay", () => {
 
 	it("should remove overlay when clicked", () => {
 		// Arrange
-		const flashOverlay = FlashOverlay.getInstance();
+		const flashOverlay = new FlashOverlay();
 		flashOverlay.show({ r: 255, g: 100, b: 100 });
 		const overlay = document.querySelector(
 			".interval-timer-flash-overlay",
@@ -123,15 +124,18 @@ describe("FlashOverlay", () => {
 	});
 
 	it("should handle dispose without showing overlay", () => {
-		// Arrange & Act & Assert
+		// Arrange
+		const flashOverlay = new FlashOverlay();
+
+		// Act & Assert
 		expect(() => {
-			FlashOverlay.dispose();
+			flashOverlay.dispose();
 		}).not.toThrow();
 	});
 
 	it("should handle hide without showing overlay", () => {
 		// Arrange
-		const flashOverlay = FlashOverlay.getInstance();
+		const flashOverlay = new FlashOverlay();
 
 		// Act & Assert
 		expect(() => {

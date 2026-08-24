@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CountdownTimer, CountdownTimerEvent } from "./countdown-timer";
-import { time, Time } from "./time";
+import { CountdownTimer, type CountdownTimerEvent } from "./countdown-timer";
+import { time, type Time } from "./time";
 
 function subscribeTo(
 	countdownTimer: CountdownTimer,
@@ -38,7 +38,7 @@ describe("CountdownTimer", () => {
 		// Assert
 		expect(result).toStrictEqual({ ok: true, value: undefined });
 		expect(handleSubtract).toHaveBeenCalledTimes(1);
-		expect(countdownTimer.getCurrentTimerType()).toBe("running");
+		expect(countdownTimer.state).toBe("running");
 	});
 
 	it("should call handleSubtract after one second", () => {
@@ -253,7 +253,7 @@ describe("CountdownTimer", () => {
 		});
 
 		// Act & Assert
-		expect(countdownTimer.getCurrentTimerType()).toBe("initialized");
+		expect(countdownTimer.state).toBe("initialized");
 	});
 
 	it("should report running timer type after start", () => {
@@ -266,7 +266,7 @@ describe("CountdownTimer", () => {
 		countdownTimer.start();
 
 		// Assert
-		expect(countdownTimer.getCurrentTimerType()).toBe("running");
+		expect(countdownTimer.state).toBe("running");
 	});
 
 	it("should report paused timer type after pause", () => {
@@ -280,7 +280,7 @@ describe("CountdownTimer", () => {
 		countdownTimer.pause();
 
 		// Assert
-		expect(countdownTimer.getCurrentTimerType()).toBe("paused");
+		expect(countdownTimer.state).toBe("paused");
 	});
 
 	it("should report completed timer type after reaching zero", () => {
@@ -297,7 +297,7 @@ describe("CountdownTimer", () => {
 
 		// Assert
 		expect(handleComplete).toHaveBeenCalledOnce();
-		expect(countdownTimer.getCurrentTimerType()).toBe("completed");
+		expect(countdownTimer.state).toBe("completed");
 	});
 
 	it("should reset to the initial time from running state", () => {
@@ -312,11 +312,8 @@ describe("CountdownTimer", () => {
 		const result = countdownTimer.reset();
 
 		// Assert
-		expect(result).toStrictEqual({
-			ok: true,
-			value: time(0, 5),
-		});
-		expect(countdownTimer.getCurrentTimerType()).toBe("initialized");
+		expect(result).toStrictEqual(time(0, 5));
+		expect(countdownTimer.state).toBe("initialized");
 	});
 
 	it("should start again after reset from completed state", () => {
@@ -333,7 +330,7 @@ describe("CountdownTimer", () => {
 
 		// Assert
 		expect(result).toStrictEqual({ ok: true, value: undefined });
-		expect(countdownTimer.getCurrentTimerType()).toBe("running");
+		expect(countdownTimer.state).toBe("running");
 	});
 
 	it("should not subtract while paused", () => {
@@ -391,7 +388,7 @@ describe("CountdownTimer", () => {
 		countdownTimer.dispose();
 
 		// Assert
-		expect(countdownTimer.getCurrentTimerType()).toBe("paused");
+		expect(countdownTimer.state).toBe("paused");
 	});
 
 	it("should not be affected by external mutation of initialTime", () => {

@@ -1,27 +1,17 @@
 export type Color = { r: number; g: number; b: number };
 
 export class FlashOverlay {
-	private static instance: FlashOverlay | undefined;
-
 	private overlay: HTMLDivElement | undefined;
 
 	private styleElement: HTMLStyleElement | undefined;
 
-	private constructor() {}
+	private readonly animationName = `flash-${crypto.randomUUID()}`;
 
-	public static getInstance(): FlashOverlay {
-		FlashOverlay.instance ??= new FlashOverlay();
-		return FlashOverlay.instance;
-	}
-
-	public static dispose(): void {
-		if (FlashOverlay.instance) {
-			FlashOverlay.instance.hide();
-			if (FlashOverlay.instance.styleElement !== undefined) {
-				FlashOverlay.instance.styleElement.remove();
-				FlashOverlay.instance.styleElement = undefined;
-			}
-			FlashOverlay.instance = undefined;
+	public dispose(): void {
+		this.hide();
+		if (this.styleElement !== undefined) {
+			this.styleElement.remove();
+			this.styleElement = undefined;
 		}
 	}
 
@@ -43,6 +33,13 @@ export class FlashOverlay {
 		document.body.appendChild(this.overlay);
 	}
 
+	public hide(): void {
+		if (this.overlay !== undefined) {
+			this.overlay.remove();
+			this.overlay = undefined;
+		}
+	}
+
 	private addStylesIfNeeded(): void {
 		if (this.styleElement !== undefined) return;
 
@@ -56,21 +53,14 @@ export class FlashOverlay {
 				height: 100%;
 				z-index: 9999;
 				cursor: pointer;
-				animation: flash-fade 1s linear infinite;
+				animation: ${this.animationName} 1s linear infinite;
 			}
-			@keyframes flash-fade {
+			@keyframes ${this.animationName} {
 				0% { opacity: 0.9; }
 				100% { opacity: 0.3; }
 			}
 		`;
 
 		document.head.appendChild(this.styleElement);
-	}
-
-	public hide(): void {
-		if (this.overlay !== undefined) {
-			this.overlay.remove();
-			this.overlay = undefined;
-		}
 	}
 }

@@ -1,4 +1,4 @@
-import { ComponentChild, render as preactRender } from "preact";
+import { type ComponentChild, render as preactRender } from "preact";
 
 const containers = new Set<HTMLElement>();
 

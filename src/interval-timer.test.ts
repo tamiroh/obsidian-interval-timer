@@ -2,8 +2,12 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import {
 	IntervalTimer,
 	type IntervalTimerEvent,
-	IntervalTimerSetting,
+	type IntervalTimerSetting,
+	type IntervalTimerState,
+	type IntervalTimerStatus,
+	isFocusRunning,
 } from "./interval-timer";
+import type { TimerState } from "./countdown-timer";
 import { minutesUpperBound } from "./time";
 import { clear, last } from "./array";
 
@@ -652,15 +656,15 @@ describe("IntervalTimer", () => {
 			// Act & Assert
 			expect(intervalTimer.retime(1.5)).toEqual({
 				ok: false,
-				reason: "invalid_minutes",
+				reason: "non_integer",
 			});
 			expect(intervalTimer.retime(0)).toEqual({
 				ok: false,
-				reason: "invalid_minutes",
+				reason: "non_positive_integer",
 			});
 			expect(intervalTimer.retime(-5)).toEqual({
 				ok: false,
-				reason: "invalid_minutes",
+				reason: "non_positive_integer",
 			});
 			expect(stateChangedEvents(events)).toHaveLength(0);
 
@@ -745,7 +749,6 @@ describe("IntervalTimer", () => {
 			expect(intervalCompletedEvents(events)).toContainEqual(
 				expect.objectContaining({
 					to: "longBreak",
-					notificationMessage: "🏖️  Time for a long break",
 				}),
 			);
 
@@ -861,7 +864,6 @@ describe("IntervalTimer", () => {
 			expect(intervalCompletedEvents(events)).toContainEqual(
 				expect.objectContaining({
 					to: "focus",
-					notificationMessage: "⏰  Now it's time to focus",
 				}),
 			);
 
@@ -951,7 +953,6 @@ describe("IntervalTimer", () => {
 			expect(intervalCompletedEvents(events)).toContainEqual(
 				expect.objectContaining({
 					to: "shortBreak",
-					notificationMessage: "☕️  Time for a short break",
 				}),
 			);
 
@@ -1288,6 +1289,41 @@ describe("IntervalTimer", () => {
 
 			intervalTimer.dispose();
 		});
+
+		it("should not allow skipping a focus interval", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+
+			// Act & Assert
+			expect(intervalTimer.canSkip).toBe(false);
+
+			intervalTimer.dispose();
+		});
+
+		it("should allow skipping a break interval", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+
+			// Act
+			intervalTimer.skipInterval();
+
+			// Assert
+			expect(intervalTimer.canSkip).toBe(true);
+
+			intervalTimer.dispose();
+		});
 	});
 
 	describe("Snapshot", () => {
@@ -1603,7 +1639,6 @@ describe("IntervalTimer", () => {
 			).toMatchObject({
 				from: "shortBreak",
 				to: "focus",
-				notificationMessage: "⏰  Now it's time to focus",
 			});
 
 			intervalTimer.dispose();
@@ -1622,4 +1657,40 @@ describe("IntervalTimer", () => {
 			intervalTimer.dispose();
 		});
 	});
+});
+
+describe("IntervalTimerStatus", () => {
+	const status = (
+		state: IntervalTimerState,
+		timerState: TimerState,
+	): IntervalTimerStatus => ({
+		timerState,
+		snapshot: {
+			minutes: 25,
+			seconds: 0,
+			state,
+			focusIntervals: { total: 0, set: 0 },
+		},
+	});
+
+	it("should report a running focus interval as focus running", () => {
+		// Act & Assert
+		expect(isFocusRunning(status("focus", "running"))).toBe(true);
+	});
+
+	it.each(["initialized", "paused", "completed"] as const)(
+		"should not report a %s focus interval as focus running",
+		(timerState) => {
+			// Act & Assert
+			expect(isFocusRunning(status("focus", timerState))).toBe(false);
+		},
+	);
+
+	it.each(["shortBreak", "longBreak"] as const)(
+		"should not report a running %s as focus running",
+		(state) => {
+			// Act & Assert
+			expect(isFocusRunning(status(state, "running"))).toBe(false);
+		},
+	);
 });

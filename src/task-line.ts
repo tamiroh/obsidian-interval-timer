@@ -23,24 +23,6 @@ export class TaskLine {
 		this.estimatedIntervals = estimatedIntervals;
 	}
 
-	public toIncremented(): TaskLine {
-		return new TaskLine(
-			this.prefix,
-			this.taskName,
-			this.completedIntervals + 1,
-			this.carriedOverIntervals,
-			this.estimatedIntervals,
-		);
-	}
-
-	public toString(): string {
-		const progressText =
-			this.carriedOverIntervals === null
-				? String(this.completedIntervals)
-				: `${this.carriedOverIntervals},${this.completedIntervals}`;
-		return `${this.prefix}${this.taskName} ${progressText}/${this.estimatedIntervals}`;
-	}
-
 	public static from(line: string): TaskLine | null {
 		const match =
 			/^(\s*-\s\[\s\]\s+)(.*?)\s+(\d+)(?:\s*,\s*(\d+))?\s*\/\s*(\d+)\s*$/.exec(
@@ -70,5 +52,23 @@ export class TaskLine {
 			carriedOverIntervals,
 			estimatedIntervals,
 		);
+	}
+
+	public toIncremented(): TaskLine {
+		return new TaskLine(
+			this.prefix,
+			this.taskName,
+			this.completedIntervals + 1,
+			this.carriedOverIntervals,
+			this.estimatedIntervals,
+		);
+	}
+
+	public toString(): string {
+		const progressText =
+			this.carriedOverIntervals === null
+				? String(this.completedIntervals)
+				: `${this.carriedOverIntervals},${this.completedIntervals}`;
+		return `${this.prefix}${this.taskName} ${progressText}/${this.estimatedIntervals}`;
 	}
 }

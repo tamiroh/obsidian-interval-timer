@@ -1,33 +1,39 @@
 name: Release
 on:
     workflow_dispatch:
-env:
-    PLUGIN_NAME: interval-timer
+permissions:
+    contents: read
 jobs:
     release:
+        permissions:
+            contents: write
+            pull-requests: write
+            id-token: write
+            attestations: write
+            artifact-metadata: write
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v7
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   token: ${{ secrets.PAT }}
             - name: Use Node.js
-              uses: actions/setup-node@v7
+              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
               with:
-                  node-version: "20.x"
+                  node-version-file: ".tool-versions"
             - name: Update draft
               id: release-drafter-prepare
-              uses: release-drafter/release-drafter@v7
+              uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v7.7.0
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             - name: Update version
               run: |
                   node ./bin/version-bump.mjs ${{ steps.release-drafter-prepare.outputs.tag_name }}
-            - uses: stefanzweifel/git-auto-commit-action@v7
+            - uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7.2.0
               with:
                   commit_message: "Update version to ${{ steps.release-drafter-prepare.outputs.tag_name }}"
             - name: Publish release
               id: release-drafter-publish
-              uses: release-drafter/release-drafter@v7
+              uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v7.7.0
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
@@ -35,25 +41,18 @@ jobs:
             - name: Build
               id: build
               run: |
-                  npm install
+                  npm ci
                   npm run build --if-present
-                  mkdir ${{ env.PLUGIN_NAME }}
-                  cp main.js manifest.json styles.css ${{ env.PLUGIN_NAME }}
-                  zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
                   ls
-            - name: Upload zip file
-              id: upload-zip
-              uses: actions/upload-release-asset@v1
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Attest build provenance
+              uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
               with:
-                  upload_url: ${{ steps.release-drafter-publish.outputs.upload_url }}
-                  asset_path: ./${{ env.PLUGIN_NAME }}.zip
-                  asset_name: ${{ env.PLUGIN_NAME }}-${{ steps.release-drafter-prepare.outputs.tag_name }}.zip
-                  asset_content_type: application/zip
+                  subject-path: |
+                      main.js
+                      styles.css
             - name: Upload main.js
               id: upload-main
-              uses: actions/upload-release-asset@v1
+              uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5 # v1.0.2
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
@@ -63,7 +62,7 @@ jobs:
                   asset_content_type: text/javascript
             - name: Upload manifest.json
               id: upload-manifest
-              uses: actions/upload-release-asset@v1
+              uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5 # v1.0.2
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
@@ -73,7 +72,7 @@ jobs:
                   asset_content_type: application/json
             - name: Upload styles.css
               id: upload-styles
-              uses: actions/upload-release-asset@v1
+              uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5 # v1.0.2
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:

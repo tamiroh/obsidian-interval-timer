@@ -1,9 +1,26 @@
 import { match } from "ts-pattern";
-import { CountdownTimer, TimerType } from "./countdown-timer";
-import { isMinutes, type Minutes, time, Time } from "./time";
+import { CountdownTimer, type TimerState } from "./countdown-timer";
 import { DailyScheduler } from "./daily-scheduler";
-import { parsePositiveInteger } from "./value-parser";
 import { err, ok, type Result } from "./result";
+import {
+	type DurationMinutesReason,
+	type Minutes,
+	parseDurationMinutes,
+	time,
+	type Time,
+} from "./time";
+
+//
+// Settings
+//
+
+export const intervalCompletionBehaviors = [
+	"advanceToNextInterval",
+	"countDownPastZero",
+] as const;
+
+export type IntervalCompletionBehavior =
+	(typeof intervalCompletionBehaviors)[number];
 
 export type IntervalTimerSetting = {
 	focusIntervalDuration: Minutes;
@@ -21,13 +38,9 @@ export type MutableIntervalTimerSetting = Omit<
 
 export const defaultLongBreakAfter = 4;
 
-export const intervalCompletionBehaviors = [
-	"advanceToNextInterval",
-	"countDownPastZero",
-] as const;
-
-export type IntervalCompletionBehavior =
-	(typeof intervalCompletionBehaviors)[number];
+//
+// State
+//
 
 export const intervalTimerStates = [
 	"focus",
@@ -44,12 +57,25 @@ export type Snapshot = Time & {
 };
 
 export type IntervalTimerStatus = {
-	timerState: TimerType;
+	timerState: TimerState;
 	snapshot: Snapshot;
 };
 
+export const isFocusRunning = ({
+	timerState,
+	snapshot,
+}: IntervalTimerStatus): boolean =>
+	snapshot.state === "focus" &&
+	timerState === "running" &&
+	snapshot.negative !== true &&
+	snapshot.nextState === undefined;
+
+//
+// Events
+//
+
 type IntervalTimerEventDetails =
-	| { type: "state-changed"; timerState: TimerType }
+	| { type: "state-changed"; timerState: TimerState }
 	| { type: "timer-started"; mode: "fresh" | "resumed" }
 	| { type: "timer-paused" }
 	| { type: "timer-reset" }
@@ -74,22 +100,21 @@ export type IntervalTimerEvent = IntervalTimerEventDetails & {
 	snapshot: Snapshot;
 };
 
-export type NotifierContext = {
-	state: IntervalTimerState;
-};
+//
+// Timer
+//
 
 export type RetimeResult = Result<
 	void,
-	"invalid_minutes" | "out_of_range_minutes" | "timer_running"
+	DurationMinutesReason | "timer_running"
 >;
 
 export type TouchAction = "start" | "resume" | "reset" | "skip" | "next";
 
 export class IntervalTimer {
-	private currentInterval: {
-		timer: CountdownTimer;
-		state: IntervalTimerState;
-	};
+	private countdownTimer: CountdownTimer;
+
+	private currentState: IntervalTimerState;
 
 	private focusIntervals: { total: number; set: number };
 
@@ -104,26 +129,50 @@ export class IntervalTimer {
 	private pendingNextState: IntervalTimerState | null = null;
 
 	constructor(settings: IntervalTimerSetting) {
-		this.settings = {
-			...settings,
-			resetTime: { ...settings.resetTime },
-		};
-		this.currentInterval = {
-			timer: this.createTimer(time(0, 0)), // dummy timer, replaced by enterInterval() below
-			state: "focus",
-		};
 		this.focusIntervals = { total: 0, set: 0 };
+		this.settings = structuredClone(settings);
+		this.countdownTimer = this.createTimer(
+			time(this.settings.focusIntervalDuration, 0),
+		);
+		this.currentState = "focus";
 		this.autoResetScheduler = new DailyScheduler(
 			this.settings.resetTime,
 			() => {
 				this.resetTotalIntervals();
 			},
 		);
+	}
 
-		this.enterInterval(
-			"focus",
-			time(this.settings.focusIntervalDuration, 0),
-		);
+	public get canSkip(): boolean {
+		return this.currentState !== "focus";
+	}
+
+	public get canPause(): boolean {
+		if (this.pendingNextState !== null) {
+			return false;
+		}
+		return this.countdownTimer.state === "running";
+	}
+
+	public get canStart(): boolean {
+		if (this.pendingNextState !== null) {
+			return false;
+		}
+		return match(this.countdownTimer.state)
+			.with("initialized", "paused", () => true)
+			.with("running", "completed", () => false)
+			.exhaustive();
+	}
+
+	public get status(): IntervalTimerStatus {
+		return {
+			timerState: this.countdownTimer.state,
+			snapshot: this.getSnapshot(),
+		};
+	}
+
+	public get state(): IntervalTimerState {
+		return this.currentState;
 	}
 
 	public applySnapshot(snapshot: Snapshot): void {
@@ -152,45 +201,44 @@ export class IntervalTimer {
 	public updateSettings(
 		settings: Partial<MutableIntervalTimerSetting>,
 	): void {
-		this.settings = { ...this.settings, ...settings };
+		this.settings = { ...structuredClone(this.settings), ...settings };
 		if (settings.intervalCompletionBehavior !== undefined) {
-			this.currentInterval.timer.setContinuePastZero(
+			this.countdownTimer.setContinuePastZero(
 				settings.intervalCompletionBehavior === "countDownPastZero",
 			);
 		}
 	}
 
 	public start(): void {
-		if (!this.canStart) return;
+		if (!this.canStart) {
+			return;
+		}
 
-		const currentTimerType =
-			this.currentInterval.timer.getCurrentTimerType();
-
-		const result = this.currentInterval.timer.start();
+		const countdownTimerState = this.countdownTimer.state;
+		const result = this.countdownTimer.start();
 		if (!result.ok) return;
 
-		this.changeState("running");
+		this.emitStateChanged("running");
 		this.emit({
 			type: "timer-started",
-			mode: currentTimerType === "initialized" ? "fresh" : "resumed",
+			mode: countdownTimerState === "initialized" ? "fresh" : "resumed",
 		});
 	}
 
 	public pause(): void {
-		if (!this.canPause) return;
-
-		if (this.currentInterval.timer.pause().ok) {
+		if (!this.canPause) {
+			return;
+		}
+		if (this.countdownTimer.pause().ok) {
 			this.emit({ type: "timer-paused" });
 		}
 	}
 
 	public reset(): void {
-		const result = this.currentInterval.timer.reset();
-		if (result.ok) {
-			this.pendingNextState = null;
-			this.changeState("initialized");
-			this.emit({ type: "timer-reset" });
-		}
+		this.countdownTimer.reset();
+		this.pendingNextState = null;
+		this.emitStateChanged("initialized");
+		this.emit({ type: "timer-reset" });
 	}
 
 	public resetIntervalsSet(): void {
@@ -210,7 +258,7 @@ export class IntervalTimer {
 	}
 
 	public skipInterval(): void {
-		this.currentInterval.timer.dispose();
+		this.countdownTimer.dispose();
 		if (this.pendingNextState !== null) {
 			this.enterInterval(
 				this.pendingNextState,
@@ -222,21 +270,19 @@ export class IntervalTimer {
 	}
 
 	public retime(minutes: number): RetimeResult {
-		const parsed = parsePositiveInteger(minutes);
-		if (!parsed.ok) {
-			return err("invalid_minutes");
-		}
-		if (!isMinutes(parsed.value)) {
-			return err("out_of_range_minutes");
-		}
-		if (this.currentInterval.timer.getCurrentTimerType() === "running") {
-			return err("timer_running");
-		}
-		this.enterInterval(
-			this.currentInterval.state,
-			time(parsed.value, this.currentInterval.timer.currentTime.seconds),
-		);
-		return ok();
+		return match(parseDurationMinutes(minutes))
+			.with({ ok: false }, ({ reason }) => err(reason))
+			.with({ ok: true }, ({ value }) => {
+				if (this.countdownTimer.state === "running") {
+					return err("timer_running");
+				}
+				this.enterInterval(
+					this.currentState,
+					time(value, this.countdownTimer.currentTime.seconds),
+				);
+				return ok();
+			})
+			.exhaustive();
 	}
 
 	public touch(): void {
@@ -258,46 +304,19 @@ export class IntervalTimer {
 		if (this.pendingNextState !== null) {
 			return "next";
 		}
-		return match(this.currentInterval.timer.getCurrentTimerType())
+		return match(this.countdownTimer.state)
 			.with("initialized", "completed", () => "start" as const)
 			.with("paused", () => "resume" as const)
 			.with("running", () =>
-				this.currentInterval.state === "focus" ? "reset" : "skip",
+				this.currentState === "focus" ? "reset" : "skip",
 			)
 			.exhaustive();
 	}
 
 	public dispose(): void {
-		this.currentInterval.timer.dispose();
+		this.countdownTimer.dispose();
 		this.disableAutoReset();
 		this.eventListeners.clear();
-	}
-
-	public get state(): IntervalTimerState {
-		return this.currentInterval.state;
-	}
-
-	public get status(): IntervalTimerStatus {
-		return {
-			timerState: this.currentInterval.timer.getCurrentTimerType(),
-			snapshot: this.getSnapshot(),
-		};
-	}
-
-	public get canStart(): boolean {
-		if (this.pendingNextState !== null) {
-			return false;
-		}
-		return ["initialized", "paused"].includes(
-			this.currentInterval.timer.getCurrentTimerType(),
-		);
-	}
-
-	public get canPause(): boolean {
-		if (this.pendingNextState !== null) {
-			return false;
-		}
-		return this.currentInterval.timer.getCurrentTimerType() === "running";
 	}
 
 	private enterNextInterval({
@@ -305,7 +324,7 @@ export class IntervalTimer {
 	}: {
 		reason: "completed" | "skipped";
 	}): void {
-		const previousState = this.currentInterval.state;
+		const previousState = this.currentState;
 		if (previousState === "focus") {
 			this.emit({ type: "focus-interval-ended", reason });
 		}
@@ -329,7 +348,7 @@ export class IntervalTimer {
 			this.settings.intervalCompletionBehavior === "countDownPastZero"
 		) {
 			this.pendingNextState = nextState;
-			this.changeState("running");
+			this.emitStateChanged("running");
 		} else {
 			this.enterInterval(nextState, this.getIntervalDuration(nextState));
 		}
@@ -342,16 +361,16 @@ export class IntervalTimer {
 			});
 			return;
 		}
-		const notificationMessage = match(nextState)
-			.with("focus", () => "⏰  Now it's time to focus")
-			.with("shortBreak", () => "☕️  Time for a short break")
-			.with("longBreak", () => "🏖️  Time for a long break")
-			.exhaustive();
+
 		this.emit({
 			type: "interval-completed",
 			from: previousState,
 			to: nextState,
-			notificationMessage,
+			notificationMessage: match(nextState)
+				.with("focus", () => "⏰  Now it's time to focus")
+				.with("shortBreak", () => "☕️  Time for a short break")
+				.with("longBreak", () => "🏖️  Time for a long break")
+				.exhaustive(),
 		});
 	}
 
@@ -364,10 +383,10 @@ export class IntervalTimer {
 		timer.subscribe((event) => {
 			match(event.type)
 				.with("tick", () => {
-					this.changeState("running");
+					this.emitStateChanged("running");
 				})
 				.with("paused", () => {
-					this.changeState("paused");
+					this.emitStateChanged("paused");
 				})
 				.with("completed", () => {
 					this.enterNextInterval({ reason: "completed" });
@@ -382,22 +401,20 @@ export class IntervalTimer {
 		nextTime: Time,
 		pendingNextState?: IntervalTimerState,
 	): void {
-		this.currentInterval.timer.dispose();
-		this.currentInterval = {
-			timer: this.createTimer(nextTime),
-			state,
-		};
+		this.countdownTimer.dispose();
+		this.countdownTimer = this.createTimer(nextTime);
+		this.currentState = state;
 		this.pendingNextState = pendingNextState ?? null;
-		this.changeState("initialized");
+		this.emitStateChanged("initialized");
 	}
 
-	private changeState(timerState: TimerType): void {
+	private emitStateChanged(timerState: TimerState): void {
 		this.emit({ type: "state-changed", timerState });
 	}
 
 	private emit(event: IntervalTimerEventDetails): void {
 		const timestampedEvent = {
-			...event,
+			...structuredClone(event),
 			occurredAt: new Date(),
 			snapshot: this.getSnapshot(),
 		};
@@ -408,12 +425,12 @@ export class IntervalTimer {
 
 	private getSnapshot(): Snapshot {
 		return {
-			...this.currentInterval.timer.currentTime,
-			state: this.currentInterval.state,
+			...structuredClone(this.countdownTimer.currentTime),
+			state: this.currentState,
 			...(this.pendingNextState
 				? { nextState: this.pendingNextState }
 				: {}),
-			focusIntervals: { ...this.focusIntervals },
+			focusIntervals: structuredClone(this.focusIntervals),
 		};
 	}
 

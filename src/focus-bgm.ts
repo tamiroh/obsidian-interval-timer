@@ -1,5 +1,5 @@
 import {
-	AudioOutput,
+	type AudioOutput,
 	GeneratedSound,
 	type Playback,
 	type Sound,
@@ -29,6 +29,10 @@ export class FocusBgm {
 
 	constructor(audioOutput: AudioOutput) {
 		this.audioOutput = audioOutput;
+	}
+
+	private static toGain(maxGain: number, volume: number): number {
+		return maxGain * Math.min(volume / 100, 1);
 	}
 
 	public play(type: FocusBgmType, volume: number): void {
@@ -110,10 +114,6 @@ export class FocusBgm {
 
 		window.clearTimeout(this.previewTimeoutId);
 		this.previewTimeoutId = undefined;
-	}
-
-	private static toGain(maxGain: number, volume: number): number {
-		return maxGain * Math.min(volume / 100, 1);
 	}
 }
 
