@@ -380,7 +380,7 @@ export class IntervalTimer {
 
 	private getSnapshot(): Snapshot {
 		return {
-			...structuredClone(this.countdownTimer.currentTime),
+			...this.countdownTimer.currentTime,
 			state: this.currentState,
 			focusIntervals: structuredClone(this.focusIntervals),
 		};

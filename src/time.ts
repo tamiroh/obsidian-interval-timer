@@ -23,7 +23,7 @@ export const isSeconds = (value: number): value is Seconds =>
 // Time
 //
 
-export type Time = { minutes: Minutes; seconds: Seconds };
+export type Time = { readonly minutes: Minutes; readonly seconds: Seconds };
 
 export const time = (minutes: Minutes, seconds: Seconds): Time => ({
 	minutes,

@@ -391,27 +391,6 @@ describe("CountdownTimer", () => {
 		expect(countdownTimer.state).toBe("paused");
 	});
 
-	it("should not be affected by external mutation of initialTime", () => {
-		// Arrange
-		const handlePause = vi.fn<(event: CountdownTimerEvent) => void>();
-		const initialTime: Time = time(1, 0);
-		const countdownTimer = new CountdownTimer({ initialTime });
-		subscribeTo(countdownTimer, "paused", handlePause);
-
-		// Act
-		initialTime.minutes = 9;
-		initialTime.seconds = 59;
-		countdownTimer.start();
-		countdownTimer.pause();
-
-		// Assert
-		expect(handlePause).toHaveBeenCalledWith(
-			expect.objectContaining({
-				currentTime: time(1, 0),
-			}),
-		);
-	});
-
 	it("should not extend the remaining time when the clock moves backward", () => {
 		// Arrange
 		const initialTime: Time = time(1, 0);

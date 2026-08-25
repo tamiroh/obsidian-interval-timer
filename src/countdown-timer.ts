@@ -65,11 +65,8 @@ export class CountdownTimer {
 	>();
 
 	constructor({ initialTime }: CountdownTimerOptions) {
-		this.initialTime = time(initialTime.minutes, initialTime.seconds);
-		this.currentState = {
-			type: "initialized",
-			currentTime: time(initialTime.minutes, initialTime.seconds),
-		};
+		this.initialTime = initialTime;
+		this.currentState = { type: "initialized", currentTime: initialTime };
 	}
 
 	public get state(): TimerState {
@@ -79,10 +76,7 @@ export class CountdownTimer {
 	public get currentTime(): Time {
 		return this.currentState.type === "completed"
 			? time(0, 0)
-			: time(
-					this.currentState.currentTime.minutes,
-					this.currentState.currentTime.seconds,
-				);
+			: this.currentState.currentTime;
 	}
 
 	public subscribe(
@@ -140,12 +134,9 @@ export class CountdownTimer {
 		}
 		this.currentState = {
 			type: "initialized",
-			currentTime: time(
-				this.initialTime.minutes,
-				this.initialTime.seconds,
-			),
+			currentTime: this.initialTime,
 		};
-		return time(this.initialTime.minutes, this.initialTime.seconds);
+		return this.initialTime;
 	}
 
 	public dispose(): void {
