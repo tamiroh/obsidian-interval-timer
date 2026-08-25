@@ -144,7 +144,7 @@ export class IntervalTimer {
 	}
 
 	public get canSkip(): boolean {
-		return this.currentState !== "focus";
+		return this.pendingNextState !== null || this.currentState !== "focus";
 	}
 
 	public get canPause(): boolean {

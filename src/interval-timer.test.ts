@@ -1541,6 +1541,45 @@ describe("IntervalTimer", () => {
 			intervalTimer.dispose();
 		});
 
+		it("should allow skipping a focus interval in overtime", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(settings);
+
+			// Act
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			// Assert
+			expect(intervalTimer.canSkip).toBe(true);
+
+			intervalTimer.dispose();
+		});
+
+		it("should move to the pending interval when skipped during overtime", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			// Act
+			intervalTimer.skipInterval();
+
+			// Assert
+			expect(intervalTimer.state).toBe("shortBreak");
+			expect(intervalTimer.status).toEqual({
+				timerState: "initialized",
+				snapshot: {
+					sign: 1,
+					minutes: 5,
+					seconds: 0,
+					state: "shortBreak",
+					focusIntervals: { total: 1, set: 1 },
+				},
+			});
+
+			intervalTimer.dispose();
+		});
+
 		it("should move to the pending interval when Next is touched", () => {
 			// Arrange
 			const intervalTimer = new IntervalTimer(settings);
