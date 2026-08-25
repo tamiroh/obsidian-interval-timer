@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import {
 	defaultPluginSetting,
 	PluginSettingStore,
+	type PluginSetting,
 } from "./obsidian-plugin-setting";
 
 describe("PluginSettingStore.loadFromUnknown", () => {
@@ -85,6 +86,53 @@ const loadFromUnknown = (value: unknown) => {
 };
 
 describe("PluginSettingStore", () => {
+	it("passes only the selected settings to a reload callback", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+		let reloaded: unknown;
+		store.subscribeReloads((on) => [
+			on(["notificationStyle"], (next) => {
+				expectTypeOf(next).toEqualTypeOf<
+					Readonly<Pick<PluginSetting, "notificationStyle">>
+				>();
+				reloaded = next;
+			}),
+		]);
+
+		store.update({ longBreakAfter: 3 });
+		store.update({ notificationStyle: "system" });
+
+		expect(reloaded).toEqual({ notificationStyle: "system" });
+	});
+
+	it("passes every selected setting when any of them changes", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+		const reloads: unknown[] = [];
+		store.subscribeReloads((on) => [
+			on(["focusBgmType", "focusBgmVolume"], (next) => {
+				reloads.push(next);
+			}),
+		]);
+
+		store.update({ focusBgmVolume: 75 });
+
+		expect(reloads).toEqual([{ focusBgmType: "none", focusBgmVolume: 75 }]);
+	});
+
+	it("stops reload callbacks after unsubscribing", () => {
+		const store = new PluginSettingStore(defaultPluginSetting);
+		let called = false;
+		const unsubscribe = store.subscribeReloads((on) => [
+			on(["notificationStyle"], () => {
+				called = true;
+			}),
+		]);
+
+		unsubscribe();
+		store.update({ notificationStyle: "system" });
+
+		expect(called).toBe(false);
+	});
+
 	it("updates a valid duration from an unknown value", () => {
 		const store = new PluginSettingStore(defaultPluginSetting);
 
