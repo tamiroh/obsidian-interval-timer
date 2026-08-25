@@ -42,9 +42,7 @@ export const intervalTimerStates = [
 
 export type IntervalTimerState = (typeof intervalTimerStates)[number];
 
-export type Snapshot = {
-	minutes: Minutes;
-	seconds: Seconds;
+export type Snapshot = Time & {
 	state: IntervalTimerState;
 	focusIntervals: { total: number; set: number };
 };

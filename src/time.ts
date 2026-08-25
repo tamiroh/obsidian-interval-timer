@@ -13,25 +13,57 @@ export const secondsUpperBound = 60;
 export type Minutes = Enumerate<typeof minutesUpperBound>;
 export type Seconds = Enumerate<typeof secondsUpperBound>;
 
+type NonZeroMinutes = Exclude<Minutes, 0>;
+type NonZeroSeconds = Exclude<Seconds, 0>;
+
 export const isMinutes = (value: number): value is Minutes =>
 	Number.isInteger(value) && value >= 0 && value < minutesUpperBound;
 
 export const isSeconds = (value: number): value is Seconds =>
 	Number.isInteger(value) && value >= 0 && value < secondsUpperBound;
 
+export const isNonZeroMinutes = (value: number): value is NonZeroMinutes =>
+	value > 0 && isMinutes(value);
+
 //
 // Time
 //
 
-export type Time = { readonly minutes: Minutes; readonly seconds: Seconds };
+type NonZeroDuration =
+	| { readonly minutes: 0; readonly seconds: NonZeroSeconds }
+	| { readonly minutes: NonZeroMinutes; readonly seconds: Seconds };
 
-export const time = (minutes: Minutes, seconds: Seconds): Time => ({
+type PositiveTime = {
+	readonly minutes: Minutes;
+	readonly seconds: Seconds;
+	readonly sign: 1;
+};
+
+type NegativeTime = NonZeroDuration & { readonly sign: -1 };
+
+export type Time = PositiveTime | NegativeTime;
+
+export const time = <M extends Minutes, S extends Seconds>(
+	minutes: M,
+	seconds: S,
+): { readonly minutes: M; readonly seconds: S; readonly sign: 1 } => ({
 	minutes,
 	seconds,
+	sign: 1,
 });
 
-export const toSeconds = ({ minutes, seconds }: Time): number =>
-	minutes * 60 + seconds;
+export const neg = (
+	value: NonZeroDuration & { readonly sign: 1 },
+): NegativeTime => ({
+	...value,
+	sign: -1,
+});
+
+export const isNegative = (value: Time): value is NegativeTime =>
+	value.sign === -1;
+
+export const toSeconds = (value: Time): number =>
+	(isNegative(value) ? -1 : 1) * (value.minutes * 60 + value.seconds);
 
 export const toMilliseconds = (value: Time): number => toSeconds(value) * 1000;
 

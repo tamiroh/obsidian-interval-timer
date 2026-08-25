@@ -37,6 +37,7 @@ describe("IntervalTimerSnapshotStore", () => {
 			state: "shortBreak",
 			minutes: 3,
 			seconds: 20,
+			sign: 1,
 			focusIntervals: { total: 7, set: 2 },
 		});
 	});

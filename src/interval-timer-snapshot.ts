@@ -5,7 +5,7 @@ import {
 } from "./interval-timer";
 import { type KeyValueStore } from "./key-value-store";
 import * as v from "valibot";
-import { isMinutes, isSeconds, type Time } from "./time";
+import { isMinutes, isSeconds, time, type Time } from "./time";
 
 const snapshotKey = "snapshot";
 
@@ -36,18 +36,26 @@ export class IntervalTimerSnapshotStore {
 			snapshotSchema,
 			this.keyValueStore.get(snapshotKey)?.as("object"),
 		);
-		return result.success ? result.output : null;
+		if (!result.success) {
+			return null;
+		}
+
+		return {
+			...time(result.output.minutes, result.output.seconds),
+			state: result.output.state,
+			focusIntervals: result.output.focusIntervals,
+		};
 	}
 
 	public save(
 		state: IntervalTimerState,
-		time: Time,
+		currentTime: Time,
 		focusIntervals: { total: number; set: number },
 	): void {
 		this.keyValueStore.set(snapshotKey, {
 			state,
-			minutes: time.minutes,
-			seconds: time.seconds,
+			minutes: currentTime.minutes,
+			seconds: currentTime.seconds,
 			focusIntervals: {
 				total: focusIntervals.total,
 				set: focusIntervals.set,

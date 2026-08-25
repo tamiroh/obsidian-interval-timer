@@ -322,6 +322,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: 25,
 				seconds: 0,
 				focusIntervals: { total: 3, set: 3 },
@@ -435,6 +436,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "focus",
+						sign: 1,
 						minutes: 1,
 						seconds: 0,
 						focusIntervals: { set: 0, total: 0 },
@@ -459,6 +461,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 3, set: 2 },
@@ -474,6 +477,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "longBreak",
+						sign: 1,
 						minutes: 15,
 						seconds: 0,
 						focusIntervals: { set: 0, total: 3 },
@@ -498,6 +502,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 3, set: 2 },
@@ -537,6 +542,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 2, set: 1 },
@@ -552,6 +558,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "focus",
+						sign: 1,
 						minutes: 25,
 						seconds: 0,
 						focusIntervals: { set: 0, total: 0 },
@@ -576,6 +583,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: settings.focusIntervalDuration,
 				seconds: 30,
 				focusIntervals: { total: 0, set: 0 },
@@ -592,6 +600,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "focus",
+						sign: 1,
 						minutes: 7,
 						seconds: 30,
 						focusIntervals: { set: 0, total: 0 },
@@ -616,6 +625,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
@@ -647,6 +657,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
@@ -685,6 +696,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
@@ -722,6 +734,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 1, set: 1 },
@@ -740,6 +753,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "longBreak",
+						sign: 1,
 						minutes: 15,
 						seconds: 0,
 						focusIntervals: { set: 0, total: 2 },
@@ -769,6 +783,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
@@ -837,6 +852,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
+				sign: 1,
 				minutes: settings.shortBreakDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
@@ -855,6 +871,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "focus",
+						sign: 1,
 						minutes: 25,
 						seconds: 0,
 						focusIntervals: { set: 0, total: 0 },
@@ -884,6 +901,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
+				sign: 1,
 				minutes: settings.shortBreakDuration,
 				seconds: 0,
 				focusIntervals: { total: 7, set: 3 },
@@ -902,6 +920,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "focus",
+						sign: 1,
 						minutes: 25,
 						seconds: 0,
 						focusIntervals: { set: 3, total: 7 },
@@ -926,6 +945,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
@@ -944,6 +964,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "shortBreak",
+						sign: 1,
 						minutes: 5,
 						seconds: 0,
 						focusIntervals: { set: 1, total: 1 },
@@ -973,6 +994,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
@@ -988,6 +1010,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "shortBreak",
+						sign: 1,
 						minutes: 5,
 						seconds: 0,
 						focusIntervals: { set: 1, total: 1 },
@@ -1013,6 +1036,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
+				sign: 1,
 				minutes: settings.shortBreakDuration,
 				seconds: 0,
 				focusIntervals: { total: 2, set: 1 },
@@ -1028,6 +1052,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "focus",
+						sign: 1,
 						minutes: 25,
 						seconds: 0,
 						focusIntervals: { set: 1, total: 2 },
@@ -1064,6 +1089,7 @@ describe("IntervalTimer", () => {
 					timerState: "running",
 					snapshot: {
 						state: "focus",
+						sign: 1,
 						minutes: 0,
 						seconds: 59,
 						focusIntervals: { set: 0, total: 0 },
@@ -1099,6 +1125,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "focus",
+						sign: 1,
 						minutes: 1,
 						seconds: 0,
 						focusIntervals: { set: 0, total: 0 },
@@ -1136,6 +1163,7 @@ describe("IntervalTimer", () => {
 					timerState: "running",
 					snapshot: {
 						state: "focus",
+						sign: 1,
 						minutes: 0,
 						seconds: 58,
 						focusIntervals: { set: 0, total: 0 },
@@ -1160,6 +1188,7 @@ describe("IntervalTimer", () => {
 			intervalTimer.subscribe((event) => events.push(event));
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
+				sign: 1,
 				minutes: settings.shortBreakDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
@@ -1239,6 +1268,7 @@ describe("IntervalTimer", () => {
 			const intervalTimer = new IntervalTimer(settings);
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
+				sign: 1,
 				minutes: settings.shortBreakDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
@@ -1344,6 +1374,7 @@ describe("IntervalTimer", () => {
 			// Act
 			intervalTimer.applySnapshot({
 				state: "shortBreak",
+				sign: 1,
 				minutes: 3,
 				seconds: 20,
 				focusIntervals: { total: 7, set: 2 },
@@ -1355,6 +1386,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "shortBreak",
+						sign: 1,
 						minutes: 3,
 						seconds: 20,
 						focusIntervals: { set: 2, total: 7 },
@@ -1382,6 +1414,7 @@ describe("IntervalTimer", () => {
 			// Act
 			intervalTimer.applySnapshot({
 				state: "focus",
+				sign: 1,
 				minutes: settings.focusIntervalDuration,
 				seconds: 0,
 				focusIntervals: { total: 0, set: 0 },
@@ -1393,6 +1426,7 @@ describe("IntervalTimer", () => {
 					timerState: "initialized",
 					snapshot: {
 						state: "focus",
+						sign: 1,
 						minutes: 25,
 						seconds: 0,
 						focusIntervals: { set: 0, total: 0 },
@@ -1497,6 +1531,7 @@ describe("IntervalTimerStatus", () => {
 		snapshot: {
 			minutes: 25,
 			seconds: 0,
+			sign: 1,
 			state,
 			focusIntervals: { total: 0, set: 0 },
 		},

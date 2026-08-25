@@ -321,6 +321,7 @@ describe("Popover", () => {
 		const intervalTimer = createIntervalTimer();
 		intervalTimer.applySnapshot({
 			state: "shortBreak",
+			sign: 1,
 			minutes: 4,
 			seconds: 0,
 			focusIntervals: { total: 0, set: 0 },
@@ -462,6 +463,7 @@ describe("Popover", () => {
 				timerState: "initialized",
 				snapshot: {
 					state: "focus",
+					sign: 1,
 					minutes: 12,
 					seconds: 0,
 					focusIntervals: { set: 0, total: 0 },
@@ -495,6 +497,7 @@ describe("Popover", () => {
 				timerState: "initialized",
 				snapshot: {
 					state: "focus",
+					sign: 1,
 					minutes: 18,
 					seconds: 0,
 					focusIntervals: { set: 0, total: 0 },
