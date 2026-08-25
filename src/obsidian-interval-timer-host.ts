@@ -200,11 +200,7 @@ export class IntervalTimerHost {
 		timerState,
 		snapshot,
 	}: IntervalTimerStatus): void {
-		this.snapshotStore.save(
-			snapshot.state,
-			snapshot,
-			snapshot.focusIntervals,
-		);
+		this.snapshotStore.save(snapshot);
 		this.timerDisplay.update(
 			snapshot.focusIntervals,
 			snapshot,

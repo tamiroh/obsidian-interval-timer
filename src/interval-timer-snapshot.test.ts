@@ -30,7 +30,11 @@ describe("IntervalTimerSnapshotStore", () => {
 			new KeyValueStore("snapshot-test"),
 		);
 
-		snapshotStore.save("shortBreak", time(3, 20), { total: 7, set: 2 });
+		snapshotStore.save({
+			...time(3, 20),
+			state: "shortBreak",
+			focusIntervals: { total: 7, set: 2 },
+		});
 		const snapshot = snapshotStore.load();
 
 		expect(snapshot).toEqual({
@@ -47,7 +51,11 @@ describe("IntervalTimerSnapshotStore", () => {
 			new KeyValueStore("snapshot-test"),
 		);
 
-		snapshotStore.save("shortBreak", time(3, 20), { total: 7, set: 2 });
+		snapshotStore.save({
+			...time(3, 20),
+			state: "shortBreak",
+			focusIntervals: { total: 7, set: 2 },
+		});
 
 		expect(Object.keys(window.localStorage)).toEqual([
 			"snapshot-test:snapshot",

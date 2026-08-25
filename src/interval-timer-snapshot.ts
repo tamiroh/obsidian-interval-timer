@@ -1,11 +1,7 @@
-import {
-	intervalTimerStates,
-	type IntervalTimerState,
-	type Snapshot,
-} from "./interval-timer";
+import { intervalTimerStates, type Snapshot } from "./interval-timer";
 import { type KeyValueStore } from "./key-value-store";
 import * as v from "valibot";
-import { isMinutes, isSeconds, time, type Time } from "./time";
+import { isMinutes, isSeconds, time } from "./time";
 
 const snapshotKey = "snapshot";
 
@@ -47,18 +43,14 @@ export class IntervalTimerSnapshotStore {
 		};
 	}
 
-	public save(
-		state: IntervalTimerState,
-		currentTime: Time,
-		focusIntervals: { total: number; set: number },
-	): void {
+	public save(snapshot: Snapshot): void {
 		this.keyValueStore.set(snapshotKey, {
-			state,
-			minutes: currentTime.minutes,
-			seconds: currentTime.seconds,
+			state: snapshot.state,
+			minutes: snapshot.minutes,
+			seconds: snapshot.seconds,
 			focusIntervals: {
-				total: focusIntervals.total,
-				set: focusIntervals.set,
+				total: snapshot.focusIntervals.total,
+				set: snapshot.focusIntervals.set,
 			},
 		});
 	}
