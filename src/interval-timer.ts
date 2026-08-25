@@ -246,9 +246,10 @@ export class IntervalTimer {
 	}
 
 	public reset(): void {
-		this.countdownTimer.reset();
-		this.pendingNextState = null;
-		this.emitStateChanged("initialized");
+		this.enterInterval(
+			this.currentState,
+			this.getIntervalDuration(this.currentState),
+		);
 		this.emit({ type: "timer-reset" });
 	}
 
