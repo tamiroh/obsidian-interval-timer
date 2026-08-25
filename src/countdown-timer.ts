@@ -187,11 +187,13 @@ export class CountdownTimer {
 				this.emit({ type: "tick" });
 			}
 			if (result === "completed") {
-				this.emit({ type: "tick" });
-				this.emit({ type: "completed" });
 				this.completionSignaled = true;
 				if (!this.continuePastZero) {
 					this.currentState = { type: "completed" };
+				}
+				this.emit({ type: "tick" });
+				this.emit({ type: "completed" });
+				if (!this.continuePastZero || this.currentState.type !== "running") {
 					return;
 				}
 			}
