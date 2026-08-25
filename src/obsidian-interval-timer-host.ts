@@ -12,10 +12,7 @@ import {
 } from "./interval-timer";
 import type { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
 import { createNotifier } from "./obsidian-notification";
-import type {
-	PluginSetting,
-	PluginSettingStore,
-} from "./obsidian-plugin-setting";
+import type { PluginSettingStore } from "./obsidian-plugin-setting";
 import type { TaskLineController } from "./obsidian-task-line-controller";
 import type { TimerDisplay } from "./timer-display";
 
@@ -33,13 +30,8 @@ const notificationMessage = (state: IntervalTimerState): string =>
 		.with("longBreak", () => "🏖️  Time for a long break")
 		.exhaustive();
 
-type SettingsReload = {
-	readonly keys: readonly (keyof PluginSetting)[];
-	readonly reload: (next: Readonly<PluginSetting>) => void;
-};
-
 export class IntervalTimerHost {
-	private currentSettings;
+	private readonly settingStore;
 
 	private readonly timerDisplay;
 
@@ -59,8 +51,6 @@ export class IntervalTimerHost {
 
 	private readonly flashOverlay = new FlashOverlay();
 
-	private readonly settingsReloads;
-
 	private readonly unsubscribeSettings;
 
 	constructor({
@@ -69,28 +59,21 @@ export class IntervalTimerHost {
 		snapshotStore,
 		taskLineController,
 	}: IntervalTimerHostOptions) {
-		this.currentSettings = settingStore.state;
+		this.settingStore = settingStore;
 		this.timerDisplay = timerDisplay;
 		this.snapshotStore = snapshotStore;
 		this.taskLineController = taskLineController;
-		this.notifier = createNotifier(this.currentSettings.notificationStyle);
+		const settings = settingStore.state;
+		this.notifier = createNotifier(settings.notificationStyle);
 		this.notifier.enableAutoClear();
 		this.intervalTimer = new IntervalTimer({
-			focusIntervalDuration: this.currentSettings.focusIntervalDuration,
-			shortBreakDuration: this.currentSettings.shortBreakDuration,
-			longBreakDuration: this.currentSettings.longBreakDuration,
-			longBreakAfter: this.currentSettings.longBreakAfter,
+			focusIntervalDuration: settings.focusIntervalDuration,
+			shortBreakDuration: settings.shortBreakDuration,
+			longBreakDuration: settings.longBreakDuration,
+			longBreakAfter: settings.longBreakAfter,
 			resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
 		});
-		this.settingsReloads = this.settingsReloadsDefinition();
-		this.unsubscribeSettings = settingStore.subscribe((previous, next) => {
-			this.currentSettings = next;
-			this.settingsReloads.forEach(({ keys, reload }) => {
-				if (keys.some((key) => previous[key] !== next[key])) {
-					reload(next);
-				}
-			});
-		});
+		this.unsubscribeSettings = this.subscribeSettingsReloads();
 	}
 
 	public get timer(): IntervalTimer {
@@ -118,69 +101,46 @@ export class IntervalTimerHost {
 		this.intervalTimer.dispose();
 	}
 
-	private settingsReloadsDefinition(): readonly SettingsReload[] {
-		return [
-			{
-				keys: ["notificationStyle"],
-				reload: (next) => {
-					this.notifier.dispose();
-					this.notifier = createNotifier(next.notificationStyle);
-					this.notifier.enableAutoClear();
-				},
-			},
-			{
-				keys: ["flashOverlayEnabled"],
-				reload: (next) => {
-					if (!next.flashOverlayEnabled) {
-						this.flashOverlay.hide();
-					}
-				},
-			},
-			{
-				keys: [
+	private subscribeSettingsReloads(): () => void {
+		return this.settingStore.subscribeReloads((on) => [
+			on(["notificationStyle"], (next) => {
+				this.notifier.dispose();
+				this.notifier = createNotifier(next.notificationStyle);
+				this.notifier.enableAutoClear();
+			}),
+			on(["flashOverlayEnabled"], (next) => {
+				if (!next.flashOverlayEnabled) {
+					this.flashOverlay.hide();
+				}
+			}),
+			on(
+				[
 					"focusIntervalDuration",
 					"shortBreakDuration",
 					"longBreakDuration",
 					"longBreakAfter",
 				],
-				reload: (next) => {
-					this.intervalTimer.updateSettings({
-						focusIntervalDuration: next.focusIntervalDuration,
-						shortBreakDuration: next.shortBreakDuration,
-						longBreakDuration: next.longBreakDuration,
-						longBreakAfter: next.longBreakAfter,
-					});
+				(next) => {
+					this.intervalTimer.updateSettings(next);
 				},
-			},
-			{
-				keys: ["longBreakAfter"],
-				reload: (next) => {
-					this.timerDisplay.updateLongBreakAfter(next.longBreakAfter);
-				},
-			},
-			{
-				keys: ["focusTickSoundVolume"],
-				reload: (next) => {
-					this.focusTickSound.play(next.focusTickSoundVolume);
-				},
-			},
-			{
-				keys: ["focusBgmType", "focusBgmVolume"],
-				reload: (next) => {
-					if (isFocusRunning(this.intervalTimer.status)) {
-						this.focusBgm.play(
-							next.focusBgmType,
-							next.focusBgmVolume,
-						);
-					} else {
-						this.focusBgm.preview(
-							next.focusBgmType,
-							next.focusBgmVolume,
-						);
-					}
-				},
-			},
-		];
+			),
+			on(["longBreakAfter"], (next) => {
+				this.timerDisplay.updateLongBreakAfter(next.longBreakAfter);
+			}),
+			on(["focusTickSoundVolume"], (next) => {
+				this.focusTickSound.play(next.focusTickSoundVolume);
+			}),
+			on(["focusBgmType", "focusBgmVolume"], (next) => {
+				if (isFocusRunning(this.intervalTimer.status)) {
+					this.focusBgm.play(next.focusBgmType, next.focusBgmVolume);
+				} else {
+					this.focusBgm.preview(
+						next.focusBgmType,
+						next.focusBgmVolume,
+					);
+				}
+			}),
+		]);
 	}
 
 	private onTimerEvent(event: IntervalTimerEvent): void {
@@ -188,19 +148,15 @@ export class IntervalTimerHost {
 			.with({ type: "state-changed" }, (stateChanged) => {
 				this.updateTimerState(stateChanged);
 
-				const { focusBgmType, focusBgmVolume } = this.currentSettings;
+				const { focusBgmType, focusBgmVolume, focusTickSoundVolume } =
+					this.settingStore.state;
 				if (isFocusRunning(stateChanged)) {
 					this.focusBgm.play(focusBgmType, focusBgmVolume);
 				} else {
 					this.focusBgm.stop();
 				}
-				if (
-					isFocusRunning(stateChanged) &&
-					this.currentSettings.focusTickSoundVolume > 0
-				) {
-					this.focusTickSound.play(
-						this.currentSettings.focusTickSoundVolume,
-					);
+				if (isFocusRunning(stateChanged) && focusTickSoundVolume > 0) {
+					this.focusTickSound.play(focusTickSoundVolume);
 				}
 			})
 			.with({ type: "timer-started" }, (started) => {
@@ -215,7 +171,7 @@ export class IntervalTimerHost {
 				void this.taskLineController.completeFocusInterval();
 			})
 			.with({ type: "interval-completed" }, (completed) => {
-				if (this.currentSettings.flashOverlayEnabled) {
+				if (this.settingStore.state.flashOverlayEnabled) {
 					this.flashOverlay.show(
 						match(completed.to)
 							.with("focus", () => ({ r: 255, g: 100, b: 100 }))
@@ -254,7 +210,7 @@ export class IntervalTimerHost {
 			snapshot,
 			snapshot.state,
 			timerState,
-			this.currentSettings.longBreakAfter,
+			this.settingStore.state.longBreakAfter,
 		);
 		if (timerState === "initialized") {
 			this.taskLineController.untrackCurrentTask();

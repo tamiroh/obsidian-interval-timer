@@ -70,6 +70,42 @@ export type PluginSettingReason =
 export type PluginSettingUpdateResult<T = PluginSetting[keyof PluginSetting]> =
 	Result<T, PluginSettingReason>;
 
+type PluginSettingReloadRegistrar = <
+	const Keys extends readonly [
+		keyof PluginSetting,
+		...(keyof PluginSetting)[],
+	],
+>(
+	keys: Keys,
+	reload: (next: Readonly<Pick<PluginSetting, Keys[number]>>) => void,
+) => PluginSettingReloadDefinition;
+
+type PluginSettingReloadDefinition = {
+	readonly keys: readonly (keyof PluginSetting)[];
+	readonly reload: (next: Readonly<PluginSetting>) => void;
+};
+
+function selectSettings<
+	const Keys extends readonly [
+		keyof PluginSetting,
+		...(keyof PluginSetting)[],
+	],
+>(
+	settings: Readonly<PluginSetting>,
+	keys: Keys,
+): Readonly<Pick<PluginSetting, Keys[number]>>;
+
+function selectSettings(
+	settings: Readonly<PluginSetting>,
+	keys: readonly (keyof PluginSetting)[],
+): Partial<PluginSetting> {
+	const selected: Partial<PluginSetting> = {};
+	keys.forEach((key) => {
+		Reflect.set(selected, key, settings[key]);
+	});
+	return selected;
+}
+
 const settingReason = (
 	issue:
 		| v.InferIssue<
@@ -103,6 +139,26 @@ const storedSchema = v.fallback(v.record(v.string(), v.unknown()), {});
 //
 
 export class PluginSettingStore extends ObservableStore<PluginSetting> {
+	public subscribeReloads(
+		define: (
+			on: PluginSettingReloadRegistrar,
+		) => readonly PluginSettingReloadDefinition[],
+	): () => void {
+		const definitions = define((keys, reload) => ({
+			keys,
+			reload: (next) => {
+				reload(selectSettings(next, keys));
+			},
+		}));
+		return this.subscribe((previous, next) => {
+			definitions.forEach(({ keys, reload }) => {
+				if (keys.some((key) => previous[key] !== next[key])) {
+					reload(next);
+				}
+			});
+		});
+	}
+
 	public override update(
 		patch: Partial<PluginSetting>,
 	): PluginSettingUpdateResult<Partial<PluginSetting>> {
