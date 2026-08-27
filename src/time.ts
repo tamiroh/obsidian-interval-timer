@@ -67,6 +67,25 @@ export const toSeconds = (value: Time): number =>
 
 export const toMilliseconds = (value: Time): number => toSeconds(value) * 1000;
 
+export const fromSeconds = (seconds: number): Time | null => {
+	const absoluteSeconds = Math.abs(seconds);
+	const minutes = Math.floor(absoluteSeconds / 60);
+	const secondsInMinute = absoluteSeconds % 60;
+	if (!isSeconds(secondsInMinute)) {
+		return null;
+	}
+
+	if (seconds >= 0) {
+		return isMinutes(minutes) ? time(minutes, secondsInMinute) : null;
+	}
+	if (minutes === 0) {
+		return secondsInMinute === 0 ? null : neg(time(0, secondsInMinute));
+	}
+	return isNonZeroMinutes(minutes)
+		? neg(time(minutes, secondsInMinute))
+		: null;
+};
+
 //
 // Parsing
 //

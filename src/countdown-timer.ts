@@ -1,13 +1,6 @@
 import { match } from "ts-pattern";
 import { err, ok, type Result } from "./result";
-import {
-	isMinutes,
-	isSeconds,
-	time,
-	type Time,
-	toMilliseconds,
-	toSeconds,
-} from "./time";
+import { fromSeconds, time, type Time, toMilliseconds, toSeconds } from "./time";
 
 export const timerStates = [
 	"initialized",
@@ -53,10 +46,19 @@ export type CountdownTimerEvent = CountdownTimerEventDetails & {
 
 export type CountdownTimerOptions = {
 	initialTime: Time;
+	continuePastZero?: boolean;
 };
 
-const initialStateFor = (initialTime: Time): StateData =>
-	toSeconds(initialTime) <= 0
+export type MutableCountdownTimerOptions = Pick<
+	CountdownTimerOptions,
+	"continuePastZero"
+>;
+
+const initialStateFor = (
+	initialTime: Time,
+	continuePastZero: boolean,
+): StateData =>
+	toSeconds(initialTime) <= 0 && !continuePastZero
 		? { type: "completed" }
 		: { type: "initialized", currentTime: initialTime };
 
@@ -69,9 +71,15 @@ export class CountdownTimer {
 		(event: CountdownTimerEvent) => void
 	>();
 
-	constructor({ initialTime }: CountdownTimerOptions) {
+	private continuePastZero: boolean;
+
+	constructor({
+		initialTime,
+		continuePastZero = false,
+	}: CountdownTimerOptions) {
 		this.initialTime = initialTime;
-		this.currentState = initialStateFor(initialTime);
+		this.continuePastZero = continuePastZero;
+		this.currentState = initialStateFor(initialTime, continuePastZero);
 	}
 
 	public get state(): TimerState {
@@ -118,6 +126,12 @@ export class CountdownTimer {
 		return ok();
 	}
 
+	public updateOptions(options: Partial<MutableCountdownTimerOptions>): void {
+		if (options.continuePastZero !== undefined) {
+			this.continuePastZero = options.continuePastZero;
+		}
+	}
+
 	public pause(): PauseTimerResult {
 		if (this.currentState.type !== "running") {
 			return err("timer_not_running");
@@ -137,7 +151,10 @@ export class CountdownTimer {
 		if (this.currentState.type === "running") {
 			window.clearTimeout(this.currentState.timeoutId);
 		}
-		this.currentState = initialStateFor(this.initialTime);
+		this.currentState = initialStateFor(
+			this.initialTime,
+			this.continuePastZero,
+		);
 		return this.initialTime;
 	}
 
@@ -168,10 +185,14 @@ export class CountdownTimer {
 				this.emit({ type: "tick" });
 			}
 			if (result === "completed") {
+				if (!this.continuePastZero) {
+					this.currentState = { type: "completed" };
+				}
 				this.emit({ type: "tick" });
-				this.currentState = { type: "completed" };
 				this.emit({ type: "completed" });
-				return;
+				if (!this.continuePastZero || this.currentState.type !== "running") {
+					return;
+				}
 			}
 
 			this.currentState = {
@@ -193,25 +214,24 @@ export class CountdownTimer {
 		const previousRemainingSeconds = toSeconds(
 			this.currentState.currentTime,
 		);
+		const alreadyCompleted = previousRemainingSeconds <= 0;
 
-		if (remainingSeconds === previousRemainingSeconds) {
+		if (
+			remainingSeconds === previousRemainingSeconds &&
+			(alreadyCompleted || remainingSeconds > 0)
+		) {
 			return "unchanged";
 		}
-		if (remainingSeconds <= 0) {
+		if (remainingSeconds <= 0 && !alreadyCompleted) {
 			this.currentState.currentTime = time(0, 0);
 			return "completed";
 		}
 
-		const remainingMinutes = Math.floor(remainingSeconds / 60);
-		const remainingSecondsInMinute = remainingSeconds % 60;
-		this.currentState.currentTime = time(
-			isMinutes(remainingMinutes)
-				? remainingMinutes
-				: this.currentState.currentTime.minutes,
-			isSeconds(remainingSecondsInMinute)
-				? remainingSecondsInMinute
-				: this.currentState.currentTime.seconds,
-		);
+		const nextTime = fromSeconds(remainingSeconds);
+		if (nextTime === null) {
+			return "unchanged";
+		}
+		this.currentState.currentTime = nextTime;
 		return "subtracted";
 	}
 

@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import {
+	fromSeconds,
 	isNegative,
 	neg,
 	parseDurationMinutes,
@@ -38,6 +39,24 @@ describe("toSeconds", () => {
 
 	it("should return negative seconds for overtime", () => {
 		expect(toSeconds(neg(time(7, 5)))).toBe(-425);
+	});
+});
+
+describe("fromSeconds", () => {
+	it("should return a positive Time", () => {
+		expect(fromSeconds(425)).toEqual(time(7, 5));
+	});
+
+	it("should return a negative Time for overtime", () => {
+		expect(fromSeconds(-425)).toEqual(neg(time(7, 5)));
+	});
+
+	it("should return null when minutes overflow", () => {
+		expect(fromSeconds(600 * 60)).toBeNull();
+	});
+
+	it("should return null when negative minutes overflow", () => {
+		expect(fromSeconds(-600 * 60)).toBeNull();
 	});
 });
 
