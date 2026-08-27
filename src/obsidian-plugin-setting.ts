@@ -38,6 +38,7 @@ const pluginSettingSchema = v.object({
 	focusTickSoundVolume: v.optional(volumeSchema, 0),
 	focusBgmType: v.optional(v.picklist(focusBgmTypes), "none"),
 	focusBgmVolume: v.optional(volumeSchema, 50),
+	timeUpSoundVolume: v.optional(volumeSchema, 0),
 });
 
 const pluginSettingPatchSchema = v.strictObject({
@@ -50,6 +51,7 @@ const pluginSettingPatchSchema = v.strictObject({
 	focusTickSoundVolume: v.exactOptional(volumeSchema),
 	focusBgmType: v.exactOptional(v.picklist(focusBgmTypes)),
 	focusBgmVolume: v.exactOptional(volumeSchema),
+	timeUpSoundVolume: v.exactOptional(volumeSchema),
 });
 
 //
