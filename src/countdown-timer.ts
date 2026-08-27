@@ -55,6 +55,11 @@ export type CountdownTimerOptions = {
 	initialTime: Time;
 };
 
+const initialStateFor = (initialTime: Time): StateData =>
+	toSeconds(initialTime) <= 0
+		? { type: "completed" }
+		: { type: "initialized", currentTime: initialTime };
+
 export class CountdownTimer {
 	private currentState: StateData;
 
@@ -66,7 +71,7 @@ export class CountdownTimer {
 
 	constructor({ initialTime }: CountdownTimerOptions) {
 		this.initialTime = initialTime;
-		this.currentState = { type: "initialized", currentTime: initialTime };
+		this.currentState = initialStateFor(initialTime);
 	}
 
 	public get state(): TimerState {
@@ -132,10 +137,7 @@ export class CountdownTimer {
 		if (this.currentState.type === "running") {
 			window.clearTimeout(this.currentState.timeoutId);
 		}
-		this.currentState = {
-			type: "initialized",
-			currentTime: this.initialTime,
-		};
+		this.currentState = initialStateFor(this.initialTime);
 		return this.initialTime;
 	}
 

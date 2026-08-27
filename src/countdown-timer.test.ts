@@ -115,6 +115,42 @@ describe("CountdownTimer", () => {
 		expect(handleComplete).toHaveBeenCalledOnce();
 	});
 
+	it("should report completed state immediately when constructed with a zero duration", () => {
+		// Arrange & Act
+		const countdownTimer = new CountdownTimer({
+			initialTime: time(0, 0),
+		});
+
+		// Assert
+		expect(countdownTimer.state).toBe("completed");
+	});
+
+	it("should refuse to start a timer constructed with a zero duration", () => {
+		// Arrange
+		const countdownTimer = new CountdownTimer({
+			initialTime: time(0, 0),
+		});
+
+		// Act
+		const result = countdownTimer.start();
+
+		// Assert
+		expect(result).toStrictEqual({ ok: false, reason: "timer_completed" });
+	});
+
+	it("should report completed state after resetting a timer with a zero duration", () => {
+		// Arrange
+		const countdownTimer = new CountdownTimer({
+			initialTime: time(0, 0),
+		});
+
+		// Act
+		countdownTimer.reset();
+
+		// Assert
+		expect(countdownTimer.state).toBe("completed");
+	});
+
 	it("should complete immediately when remaining time reaches zero", () => {
 		// Arrange
 		const handleComplete = vi.fn();
