@@ -1,7 +1,3 @@
-export const notificationStyles = ["system", "simple"] as const;
-
-export type NotificationStyle = (typeof notificationStyles)[number];
-
 export abstract class Notifier {
 	enableAutoClear(): void {}
 	dispose(): void {}

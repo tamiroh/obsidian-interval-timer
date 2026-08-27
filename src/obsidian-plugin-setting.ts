@@ -3,7 +3,7 @@ import * as v from "valibot";
 import { isMinutes } from "./time";
 import { err, ok, type Result } from "./result";
 import { defaultLongBreakAfter } from "./interval-timer";
-import { notificationStyles } from "./notification";
+import { notificationStyles } from "./obsidian-notification";
 import { focusBgmTypes } from "./focus-bgm";
 import { ObservableStore } from "./observable-store";
 

@@ -1,10 +1,10 @@
 import { match } from "ts-pattern";
 import { Notice } from "obsidian";
-import {
-	Notifier,
-	SystemNotifier,
-	type NotificationStyle,
-} from "./notification";
+import { Notifier, SystemNotifier } from "./notification";
+
+export const notificationStyles = ["system", "simple"] as const;
+
+export type NotificationStyle = (typeof notificationStyles)[number];
 
 export class SimpleNotifier extends Notifier {
 	override notify(message: string): void {
