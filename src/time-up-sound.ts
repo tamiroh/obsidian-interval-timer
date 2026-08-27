@@ -2,15 +2,23 @@ import { type AudioOutput, GeneratedSound } from "./audio-output";
 
 const beepFrequencyHz = 2_000;
 
-const beepDurationSeconds = 0.09;
+const beepDurationSeconds = 0.06;
 
-const beepGapSeconds = 0.06;
+const withinBurstGapSeconds = 0.07;
 
-const beepCount = 3;
+const betweenBurstGapSeconds = 0.35;
+
+const beepsPerBurst = 4;
+
+const burstCount = 2;
 
 const edgeFadeSeconds = 0.004;
 
 const maxGain = 0.25;
+
+const burstDurationSeconds =
+	beepsPerBurst * beepDurationSeconds +
+	(beepsPerBurst - 1) * withinBurstGapSeconds;
 
 export class TimeUpSound {
 	private readonly audioOutput: AudioOutput;
@@ -22,31 +30,39 @@ export class TimeUpSound {
 	public play(volume: number): void {
 		if (volume <= 0) return;
 
-		this.audioOutput.play(beepSequence, {
+		this.audioOutput.play(beepBursts, {
 			mode: "once",
 			gain: maxGain * Math.min(volume / 100, 1),
 		});
 	}
 }
 
-const beepSequence = new GeneratedSound((sampleRate) => {
-	const beepFrames = Math.ceil(sampleRate * beepDurationSeconds);
-	const gapFrames = Math.ceil(sampleRate * beepGapSeconds);
-	const cycleFrames = beepFrames + gapFrames;
-	const samples = new Float32Array(cycleFrames * beepCount - gapFrames);
+const beepBursts = new GeneratedSound((sampleRate) => {
+	const totalSeconds =
+		burstCount * burstDurationSeconds +
+		(burstCount - 1) * betweenBurstGapSeconds;
+	const beepFrames = Math.round(beepDurationSeconds * sampleRate);
+	const samples = new Float32Array(Math.ceil(sampleRate * totalSeconds));
 
-	for (let frame = 0; frame < samples.length; frame += 1) {
-		const positionInCycle = frame % cycleFrames;
-		if (positionInCycle >= beepFrames) continue;
+	for (let burst = 0; burst < burstCount; burst += 1) {
+		for (let beep = 0; beep < beepsPerBurst; beep += 1) {
+			const startSeconds =
+				burst * (burstDurationSeconds + betweenBurstGapSeconds) +
+				beep * (beepDurationSeconds + withinBurstGapSeconds);
+			const startFrame = Math.round(startSeconds * sampleRate);
 
-		const beepSeconds = positionInCycle / sampleRate;
-		const edgeFade = Math.min(
-			1,
-			beepSeconds / edgeFadeSeconds,
-			(beepDurationSeconds - beepSeconds) / edgeFadeSeconds,
-		);
-		samples[frame] =
-			Math.sin(2 * Math.PI * beepFrequencyHz * beepSeconds) * edgeFade;
+			for (let offset = 0; offset < beepFrames; offset += 1) {
+				const beepSeconds = offset / sampleRate;
+				const edgeFade = Math.min(
+					1,
+					beepSeconds / edgeFadeSeconds,
+					(beepDurationSeconds - beepSeconds) / edgeFadeSeconds,
+				);
+				samples[startFrame + offset] =
+					Math.sin(2 * Math.PI * beepFrequencyHz * beepSeconds) *
+					edgeFade;
+			}
+		}
 	}
 
 	return samples;
