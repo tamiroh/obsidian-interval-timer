@@ -3,6 +3,7 @@ import { AudioOutput } from "./audio-output";
 import { FlashOverlay } from "./flash-overlay";
 import { FocusBgm } from "./focus-bgm";
 import { FocusTickSound } from "./focus-tick-sound";
+import { TimeUpSound } from "./time-up-sound";
 import {
 	IntervalTimer,
 	isFocusRunning,
@@ -48,6 +49,8 @@ export class IntervalTimerHost {
 	private readonly focusTickSound = new FocusTickSound(this.audioOutput);
 
 	private readonly focusBgm = new FocusBgm(this.audioOutput);
+
+	private readonly timeUpSound = new TimeUpSound(this.audioOutput);
 
 	private readonly flashOverlay = new FlashOverlay();
 
@@ -130,6 +133,9 @@ export class IntervalTimerHost {
 			on(["focusTickSoundVolume"], (next) => {
 				this.focusTickSound.play(next.focusTickSoundVolume);
 			}),
+			on(["timeUpSoundVolume"], (next) => {
+				this.timeUpSound.play(next.timeUpSoundVolume);
+			}),
 			on(["focusBgmType", "focusBgmVolume"], (next) => {
 				if (isFocusRunning(this.intervalTimer.status)) {
 					this.focusBgm.play(next.focusBgmType, next.focusBgmVolume);
@@ -184,6 +190,11 @@ export class IntervalTimerHost {
 					);
 				}
 				this.notifier.notify(notificationMessage(completed.to));
+			})
+			.with({ type: "timer-completed" }, () => {
+				this.timeUpSound.play(
+					this.settingStore.state.timeUpSoundVolume,
+				);
 			})
 			.with(
 				{ type: "timer-paused" },

@@ -1,6 +1,12 @@
 import { match } from "ts-pattern";
 import { err, ok, type Result } from "./result";
-import { fromSeconds, time, type Time, toMilliseconds, toSeconds } from "./time";
+import {
+	fromSeconds,
+	time,
+	type Time,
+	toMilliseconds,
+	toSeconds,
+} from "./time";
 
 export const timerStates = [
 	"initialized",
@@ -190,7 +196,10 @@ export class CountdownTimer {
 				}
 				this.emit({ type: "tick" });
 				this.emit({ type: "completed" });
-				if (!this.continuePastZero || this.currentState.type !== "running") {
+				if (
+					!this.continuePastZero ||
+					this.currentState.type !== "running"
+				) {
 					return;
 				}
 			}

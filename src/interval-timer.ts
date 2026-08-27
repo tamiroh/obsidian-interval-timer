@@ -67,6 +67,7 @@ type IntervalTimerEventDetails =
 	| { type: "timer-started"; mode: "fresh" | "resumed" }
 	| { type: "timer-paused" }
 	| { type: "timer-reset" }
+	| { type: "timer-completed" }
 	| {
 			type: "focus-interval-ended";
 			reason: "completed" | "skipped";
@@ -344,6 +345,7 @@ export class IntervalTimer {
 					this.emitStateChanged("paused");
 				})
 				.with("completed", () => {
+					this.emit({ type: "timer-completed" });
 					this.enterNextInterval({ reason: "completed" });
 				})
 				.exhaustive();

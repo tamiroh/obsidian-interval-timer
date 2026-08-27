@@ -22,6 +22,7 @@ describe("PluginSettingStore.loadFromUnknown", () => {
 				focusTickSoundVolume: 65,
 				focusBgmType: "whiteNoise",
 				focusBgmVolume: 40,
+				timeUpSoundVolume: 30,
 			}),
 		).toEqual({
 			focusIntervalDuration: 50,
@@ -33,6 +34,7 @@ describe("PluginSettingStore.loadFromUnknown", () => {
 			focusTickSoundVolume: 65,
 			focusBgmType: "whiteNoise",
 			focusBgmVolume: 40,
+			timeUpSoundVolume: 30,
 		});
 	});
 
@@ -48,6 +50,7 @@ describe("PluginSettingStore.loadFromUnknown", () => {
 				focusTickSoundVolume: 101,
 				focusBgmType: "unknown",
 				focusBgmVolume: 101,
+				timeUpSoundVolume: 101,
 			}),
 		).toEqual(defaultPluginSetting);
 	});

@@ -160,6 +160,25 @@ export class SettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
+			.setName("Time's up sound")
+			.setDesc(
+				"Beep when the timer reaches zero (0–100). Set to 0 to mute.",
+			)
+			.addSlider((slider) => {
+				slider
+					.setLimits(volumeRange.min, volumeRange.max, 5)
+					.setValue(this.settingStore.state.timeUpSoundVolume);
+				slider.onChange((value) => {
+					this.updateSettingOrShowValidationError(
+						"timeUpSoundVolume",
+						value,
+						slider.sliderEl,
+						"Time's up sound",
+					);
+				});
+			});
+
+		new Setting(containerEl)
 			.setName("Background sound")
 			.setDesc("Sound played continuously during focus intervals.")
 			.addDropdown((dropdown) => {
