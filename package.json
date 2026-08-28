@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-interval-timer",
-	"version": "0.7.0",
+	"version": "0.7.1",
 	"description": "Interval Timer for Obsidian",
 	"main": "main.js",
 	"engines": {
