@@ -1,5 +1,6 @@
 import { type TargetedKeyboardEvent, type TargetedPointerEvent } from "preact";
 import { useState } from "preact/hooks";
+import { isElement, windowFor } from "./dom";
 
 export type Position = {
 	left: number;
@@ -76,7 +77,7 @@ export const usePopoverFloating = ({
 
 		const popover = event.currentTarget;
 		const bounds = popover.getBoundingClientRect();
-		const computedStyle = getComputedStyle(popover);
+		const computedStyle = windowFor(popover).getComputedStyle(popover);
 		const computedLeft = parseFloat(computedStyle.left);
 		const computedTop = parseFloat(computedStyle.top);
 		const cssPosition = {
@@ -98,13 +99,14 @@ export const usePopoverFloating = ({
 		if (drag?.pointerId !== event.pointerId) return;
 
 		const bounds = event.currentTarget.getBoundingClientRect();
+		const currentWindow = windowFor(event.currentTarget);
 		const left = clamp(
 			event.clientX - drag.offsetX,
-			window.innerWidth - bounds.width,
+			currentWindow.innerWidth - bounds.width,
 		);
 		const top = clamp(
 			event.clientY - drag.offsetY,
-			window.innerHeight - bounds.height,
+			currentWindow.innerHeight - bounds.height,
 		);
 		setPosition({ left: left - drag.originX, top: top - drag.originY });
 	};
@@ -148,6 +150,6 @@ const clamp = (position: number, maximum: number): number =>
 	Math.min(Math.max(0, position), Math.max(0, maximum));
 
 const isNonDraggableTarget = (target: EventTarget | null): boolean =>
-	target instanceof Element && target.closest("button, input, form") !== null;
+	isElement(target) && target.closest("button, input, form") !== null;
 
 const isFloatingKey = (key: string): boolean => key === "Enter" || key === " ";

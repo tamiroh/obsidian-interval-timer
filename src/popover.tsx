@@ -7,6 +7,7 @@ import {
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { match } from "ts-pattern";
 import { type TimerState } from "./countdown-timer";
+import { isElement, isHtmlElement, windowFor } from "./dom";
 import {
 	defaultLongBreakAfter,
 	type IntervalTimer,
@@ -196,7 +197,7 @@ export class Popover {
 	): void => {
 		if (
 			event.type === "focusin" &&
-			event.relatedTarget instanceof Element &&
+			isElement(event.relatedTarget) &&
 			event.relatedTarget.closest(".interval-timer-popover-close")
 		)
 			return;
@@ -353,7 +354,9 @@ const PopoverView = ({
 		if (
 			!floating.returnTarget ||
 			!bounds ||
-			window.matchMedia("(prefers-reduced-motion: reduce)").matches
+			windowFor(event.currentTarget).matchMedia(
+				"(prefers-reduced-motion: reduce)",
+			).matches
 		) {
 			dismiss(restoreFocus);
 			return;
@@ -666,11 +669,9 @@ const containsPoint = (
 	y <= bounds.bottom;
 
 const blurFocusWithin = (container: HTMLElement): void => {
-	if (
-		document.activeElement instanceof HTMLElement &&
-		container.contains(document.activeElement)
-	) {
-		document.activeElement.blur();
+	const activeElement = container.ownerDocument.activeElement;
+	if (isHtmlElement(activeElement) && container.contains(activeElement)) {
+		activeElement.blur();
 	}
 };
 
