@@ -1,5 +1,14 @@
-export function setupObsidianGlobals(): void {
-	window.createEl = <K extends keyof HTMLElementTagNameMap>(
+export type ObsidianTestWindow = Window & {
+	Node: typeof Node;
+	createDiv: typeof createDiv;
+	createEl: typeof createEl;
+	createSvg: typeof createSvg;
+};
+
+export function setupObsidianGlobals(
+	targetWindow: ObsidianTestWindow = window,
+): void {
+	targetWindow.createEl = <K extends keyof HTMLElementTagNameMap>(
 		tag: K,
 		o?: DomElementInfo | string,
 		callback?: (el: HTMLElementTagNameMap[K]) => void,
@@ -12,7 +21,7 @@ export function setupObsidianGlobals(): void {
 			);
 		}
 
-		const el = document.createElement(tag);
+		const el = targetWindow.document.createElement(tag);
 		if (cls != null) {
 			el.classList.add(...(Array.isArray(cls) ? cls : [cls]));
 		}
@@ -21,12 +30,12 @@ export function setupObsidianGlobals(): void {
 		return el;
 	};
 
-	window.createDiv = (
+	targetWindow.createDiv = (
 		o?: DomElementInfo | string,
 		callback?: (el: HTMLDivElement) => void,
-	): HTMLDivElement => window.createEl("div", o, callback);
+	): HTMLDivElement => targetWindow.createEl("div", o, callback);
 
-	window.createSvg = <K extends keyof SVGElementTagNameMap>(
+	targetWindow.createSvg = <K extends keyof SVGElementTagNameMap>(
 		tag: K,
 		o?: SvgElementInfo | string,
 		callback?: (el: SVGElementTagNameMap[K]) => void,
@@ -39,7 +48,10 @@ export function setupObsidianGlobals(): void {
 			);
 		}
 
-		const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+		const el = targetWindow.document.createElementNS(
+			"http://www.w3.org/2000/svg",
+			tag,
+		);
 		if (cls != null) {
 			el.classList.add(...(Array.isArray(cls) ? cls : [cls]));
 		}
@@ -48,17 +60,23 @@ export function setupObsidianGlobals(): void {
 		return el;
 	};
 
-	Node.prototype.createEl = function <K extends keyof HTMLElementTagNameMap>(
+	targetWindow.Node.prototype.createEl = function <
+		K extends keyof HTMLElementTagNameMap,
+	>(
 		this: Node,
 		tag: K,
 		o?: DomElementInfo | string,
 		callback?: (el: HTMLElementTagNameMap[K]) => void,
 	): HTMLElementTagNameMap[K] {
 		const options = typeof o === "string" ? { cls: o } : (o ?? {});
-		return window.createEl(tag, { ...options, parent: this }, callback);
+		return targetWindow.createEl(
+			tag,
+			{ ...options, parent: this },
+			callback,
+		);
 	};
 
-	Node.prototype.createDiv = function (
+	targetWindow.Node.prototype.createDiv = function (
 		this: Node,
 		o?: DomElementInfo | string,
 		callback?: (el: HTMLDivElement) => void,
@@ -66,7 +84,7 @@ export function setupObsidianGlobals(): void {
 		return this.createEl("div", o, callback);
 	};
 
-	Node.prototype.createSpan = function (
+	targetWindow.Node.prototype.createSpan = function (
 		this: Node,
 		o?: DomElementInfo | string,
 		callback?: (el: HTMLSpanElement) => void,
@@ -74,13 +92,19 @@ export function setupObsidianGlobals(): void {
 		return this.createEl("span", o, callback);
 	};
 
-	Node.prototype.createSvg = function <K extends keyof SVGElementTagNameMap>(
+	targetWindow.Node.prototype.createSvg = function <
+		K extends keyof SVGElementTagNameMap,
+	>(
 		this: Node,
 		tag: K,
 		o?: SvgElementInfo | string,
 		callback?: (el: SVGElementTagNameMap[K]) => void,
 	): SVGElementTagNameMap[K] {
 		const options = typeof o === "string" ? { cls: o } : (o ?? {});
-		return window.createSvg(tag, { ...options, parent: this }, callback);
+		return targetWindow.createSvg(
+			tag,
+			{ ...options, parent: this },
+			callback,
+		);
 	};
 }

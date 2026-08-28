@@ -15,6 +15,8 @@ export class TFile {}
 
 export const Platform = {
 	isMobile: false,
+	isDesktopApp: true,
+	isMacOS: true,
 };
 
 export class Plugin implements Pick<
