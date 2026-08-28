@@ -93,6 +93,7 @@ export class Popover {
 			renderIcon: (element: HTMLElement, iconId: string) => void;
 			floatOnMount?: boolean;
 			dismissible?: boolean;
+			draggable?: boolean;
 		},
 	) {
 		this.store = new ObservableStore<PopoverSnapshot>({
@@ -123,6 +124,7 @@ export class Popover {
 				notify={options.notify}
 				renderIcon={options.renderIcon}
 				dismissible={options.dismissible ?? true}
+				draggable={options.draggable ?? true}
 			/>,
 			this.rootElement,
 		);
@@ -217,6 +219,7 @@ const PopoverView = ({
 	notify,
 	renderIcon,
 	dismissible = true,
+	draggable = true,
 }: {
 	store: ObservableStore<PopoverSnapshot>;
 	getReturnTarget: () => Position;
@@ -225,6 +228,7 @@ const PopoverView = ({
 	notify: (message: string) => void;
 	renderIcon: (element: HTMLElement, iconId: string) => void;
 	dismissible?: boolean;
+	draggable?: boolean;
 }) => {
 	const {
 		intervalTimer,
@@ -247,6 +251,7 @@ const PopoverView = ({
 		useState<ClosingAnimationState>({ current: "idle" });
 	const floating = usePopoverFloating({
 		isFloating,
+		draggable,
 		getReturnTarget,
 		onEnterFloating: () => {
 			setClosingAnimationState({ current: "idle" });
@@ -384,6 +389,7 @@ const PopoverView = ({
 		floating.isDragging && "interval-timer-popover-dragging",
 		isDismissed && "interval-timer-popover-dismissed",
 		!dismissible && "interval-timer-popover-no-close",
+		!draggable && "interval-timer-popover-no-drag",
 	]
 		.filter(Boolean)
 		.join(" ");

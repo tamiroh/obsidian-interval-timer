@@ -16,6 +16,7 @@ type Drag = {
 
 type UsePopoverFloatingOptions = {
 	isFloating: boolean;
+	draggable: boolean;
 	getReturnTarget: () => Position;
 	onEnterFloating: () => void;
 };
@@ -40,6 +41,7 @@ export type PopoverFloating = {
 
 export const usePopoverFloating = ({
 	isFloating,
+	draggable,
 	getReturnTarget,
 	onEnterFloating,
 }: UsePopoverFloatingOptions): PopoverFloating => {
@@ -69,7 +71,7 @@ export const usePopoverFloating = ({
 	};
 
 	const handlePointerDown = (event: TargetedPointerEvent<HTMLDivElement>) => {
-		if (!isFloating) return;
+		if (!isFloating || !draggable) return;
 		if (isNonDraggableTarget(event.target)) return;
 
 		const popover = event.currentTarget;

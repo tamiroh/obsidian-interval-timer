@@ -13,6 +13,7 @@ const Target = ({ getReturnTarget }: { getReturnTarget: () => Position }) => {
 	const [isFloating, setIsFloating] = useState(false);
 	const floating = usePopoverFloating({
 		isFloating,
+		draggable: true,
 		getReturnTarget,
 		onEnterFloating: () => {
 			setIsFloating(true);

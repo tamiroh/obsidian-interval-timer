@@ -56,6 +56,10 @@
 	transition: none;
 }
 
+.interval-timer-popover.interval-timer-popover-no-drag {
+	cursor: default;
+}
+
 .interval-timer-popover-focus {
 	--interval-timer-accent: var(--interval-timer-focus-color);
 }
