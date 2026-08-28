@@ -16,6 +16,11 @@ export type IncrementTrackedTaskResult = Result<
 	"tracked_task_not_found" | "tracked_file_not_found" | "task_not_found"
 >;
 
+export type TaskReference = {
+	name: string;
+	path: string;
+};
+
 export class TaskTracker {
 	private readonly app: App;
 
@@ -27,19 +32,21 @@ export class TaskTracker {
 	}
 
 	public trackTaskFromActiveLine(): TrackTaskResult {
-		const filePath = this.app.workspace.getActiveFile()?.path;
-		if (isBlank(filePath)) {
-			return err("active_file_not_found");
-		}
+		const task = this.readTaskFromActiveLine();
+		if (!task.ok) return task;
 
-		const taskName = this.getTaskNameFromActiveLine();
-		if (isBlank(taskName)) {
-			return err("task_not_found");
-		}
-
-		this.keyValueStore.set("current-task-name", taskName);
-		this.keyValueStore.set("current-task-path", filePath);
+		this.trackTask(task.value);
 		return ok();
+	}
+
+	public getTaskReferenceFromActiveLine(): TaskReference | null {
+		const task = this.readTaskFromActiveLine();
+		return task.ok ? task.value : null;
+	}
+
+	public trackTask(task: TaskReference): void {
+		this.keyValueStore.set("current-task-name", task.name);
+		this.keyValueStore.set("current-task-path", task.path);
 	}
 
 	public getTaskNameFromActiveLine(): string | null {
@@ -95,5 +102,18 @@ export class TaskTracker {
 		return (
 			this.keyValueStore.get("current-task-name")?.as("string") ?? null
 		);
+	}
+
+	private readTaskFromActiveLine(): Result<
+		TaskReference,
+		"active_file_not_found" | "task_not_found"
+	> {
+		const path = this.app.workspace.getActiveFile()?.path;
+		if (isBlank(path)) return err("active_file_not_found");
+
+		const name = this.getTaskNameFromActiveLine();
+		if (isBlank(name)) return err("task_not_found");
+
+		return ok({ name, path });
 	}
 }

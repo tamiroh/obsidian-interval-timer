@@ -48,6 +48,31 @@ describe("TaskTracker", () => {
 		);
 	});
 
+	it("tracks a task reference read while the editor still had focus", () => {
+		// Arrange
+		const content = `# Tasks
+
+- [ ] example task 0/3`;
+		const keyValueStore = new KeyValueStore("task-tracker-test");
+		const taskTracker = new TaskTracker(
+			createApp(content, 2),
+			keyValueStore,
+		);
+		const task = taskTracker.getTaskReferenceFromActiveLine();
+		if (!task) throw new Error("Expected a task reference.");
+
+		// Act
+		taskTracker.trackTask(task);
+
+		// Assert
+		expect(keyValueStore.get("current-task-name")?.as("string")).toBe(
+			"example task",
+		);
+		expect(keyValueStore.get("current-task-path")?.as("string")).toBe(
+			"tasks.md",
+		);
+	});
+
 	it("reads the task on the active line without tracking it", () => {
 		// Arrange
 		const content = `# Tasks
