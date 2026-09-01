@@ -64,7 +64,7 @@ const initialStateFor = (
 	initialTime: Time,
 	continuePastZero: boolean,
 ): StateData =>
-	toSeconds(initialTime) <= 0 && !continuePastZero
+	toSeconds(initialTime) === 0 && !continuePastZero
 		? { type: "completed" }
 		: { type: "initialized", currentTime: initialTime };
 

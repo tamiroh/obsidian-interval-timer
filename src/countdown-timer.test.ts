@@ -442,14 +442,15 @@ describe("CountdownTimer", () => {
 		expect(countdownTimer.currentTime).toEqual(time(1, 0));
 	});
 
-	it("should report completed state immediately when constructed already negative without continuing past zero", () => {
+	it("should stay initialized and preserve the negative time when constructed already negative", () => {
 		// Arrange & Act
 		const countdownTimer = new CountdownTimer({
 			initialTime: neg(time(0, 5)),
 		});
 
 		// Assert
-		expect(countdownTimer.state).toBe("completed");
+		expect(countdownTimer.state).toBe("initialized");
+		expect(countdownTimer.currentTime).toEqual(neg(time(0, 5)));
 	});
 
 	it("should stay initialized when constructed already negative with continuing past zero enabled", () => {
