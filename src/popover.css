@@ -259,6 +259,16 @@ button.interval-timer-popover-return:focus-visible {
 	letter-spacing: -0.02em;
 }
 
+.interval-timer-popover-clock-time-negative {
+	animation: interval-timer-popover-negative-blink 1s ease-in-out infinite;
+}
+
+@keyframes interval-timer-popover-negative-blink {
+	50% {
+		opacity: 0.35;
+	}
+}
+
 .interval-timer-popover-clock-separator-running {
 	animation: interval-timer-popover-blink 1s steps(1, end) infinite;
 }
@@ -486,5 +496,9 @@ button.interval-timer-popover-touch-action:disabled {
 
 	.interval-timer-popover.interval-timer-popover-floating {
 		transition: none;
+	}
+
+	.interval-timer-popover-clock-time-negative {
+		animation: none;
 	}
 }

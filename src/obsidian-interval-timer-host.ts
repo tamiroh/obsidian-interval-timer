@@ -74,6 +74,7 @@ export class IntervalTimerHost {
 			shortBreakDuration: settings.shortBreakDuration,
 			longBreakDuration: settings.longBreakDuration,
 			longBreakAfter: settings.longBreakAfter,
+			intervalCompletionBehavior: settings.intervalCompletionBehavior,
 			resetTime: { hours: 0, minutes: 0 }, // TODO: Maybe make this configurable on setting tab?
 		});
 		this.unsubscribeSettings = this.subscribeSettingsReloads();
@@ -122,6 +123,7 @@ export class IntervalTimerHost {
 					"shortBreakDuration",
 					"longBreakDuration",
 					"longBreakAfter",
+					"intervalCompletionBehavior",
 				],
 				(next) => {
 					this.intervalTimer.updateSettings(next);
