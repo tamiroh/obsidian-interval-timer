@@ -12,3 +12,6 @@ updates:
           interval: "monthly"
       reviewers:
           - "tamiroh"
+      groups:
+          dev-dependencies:
+              dependency-type: "development"
