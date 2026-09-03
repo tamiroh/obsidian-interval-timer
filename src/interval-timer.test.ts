@@ -8,7 +8,7 @@ import {
 	isFocusRunning,
 } from "./interval-timer";
 import type { TimerState } from "./countdown-timer";
-import { minutesUpperBound } from "./time";
+import { minutesUpperBound, neg, time } from "./time";
 import { clear, last } from "./array";
 
 const stateChangedEvents = (
@@ -1436,6 +1436,313 @@ describe("IntervalTimer", () => {
 
 			intervalTimer.dispose();
 		});
+
+		it("should restore a pending next interval", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+
+			// Act
+			intervalTimer.applySnapshot({
+				...neg(time(2, 3)),
+				state: "focus",
+				nextState: "shortBreak",
+				focusIntervals: { total: 1, set: 1 },
+			});
+
+			// Assert
+			expect(intervalTimer.predictTouch()).toBe("next");
+			expect(intervalTimer.canStart).toBe(false);
+			expect(intervalTimer.canPause).toBe(false);
+
+			intervalTimer.dispose();
+		});
+
+		it("should discard a restored pending next interval on reset", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.applySnapshot({
+				...neg(time(2, 3)),
+				state: "focus",
+				nextState: "shortBreak",
+				focusIntervals: { total: 1, set: 1 },
+			});
+
+			// Act
+			intervalTimer.reset();
+
+			// Assert
+			expect(intervalTimer.status).toEqual({
+				timerState: "initialized",
+				snapshot: {
+					sign: 1,
+					minutes: 25,
+					seconds: 0,
+					state: "focus",
+					focusIntervals: { total: 1, set: 1 },
+				},
+			});
+			expect(intervalTimer.canStart).toBe(true);
+
+			intervalTimer.dispose();
+		});
+
+		it("should reject retiming a restored pending next interval", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.applySnapshot({
+				...neg(time(2, 3)),
+				state: "focus",
+				nextState: "shortBreak",
+				focusIntervals: { total: 1, set: 1 },
+			});
+
+			// Act
+			const result = intervalTimer.retime(7);
+
+			// Assert
+			expect(result).toEqual({ ok: false, reason: "timer_running" });
+			expect(intervalTimer.status).toEqual({
+				timerState: "initialized",
+				snapshot: {
+					sign: -1,
+					minutes: 2,
+					seconds: 3,
+					state: "focus",
+					nextState: "shortBreak",
+					focusIntervals: { total: 1, set: 1 },
+				},
+			});
+
+			intervalTimer.dispose();
+		});
+	});
+
+	describe("Count down past zero", () => {
+		const settings: IntervalTimerSetting = {
+			focusIntervalDuration: 1,
+			shortBreakDuration: 5,
+			longBreakDuration: 15,
+			longBreakAfter: 4,
+			intervalCompletionBehavior: "countDownPastZero",
+			resetTime: { hours: 0, minutes: 0 },
+		};
+
+		it("should apply completion behavior changes to the current interval", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				...settings,
+				intervalCompletionBehavior: "advanceToNextInterval",
+			});
+			intervalTimer.updateSettings({
+				intervalCompletionBehavior: "countDownPastZero",
+			});
+
+			// Act
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			// Assert
+			expect(intervalTimer.status).toMatchObject({
+				timerState: "running",
+				snapshot: {
+					sign: -1,
+					nextState: "shortBreak",
+				},
+			});
+
+			intervalTimer.dispose();
+		});
+
+		it("should keep the completed interval running in overtime", () => {
+			// Arrange
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.subscribe((event) => events.push(event));
+
+			// Act
+			intervalTimer.start();
+			vi.advanceTimersByTime(65_000);
+
+			// Assert
+			expect(intervalTimer.status).toEqual({
+				timerState: "running",
+				snapshot: {
+					minutes: 0,
+					seconds: 5,
+					sign: -1,
+					state: "focus",
+					nextState: "shortBreak",
+					focusIntervals: { total: 1, set: 1 },
+				},
+			});
+			expect(intervalTimer.predictTouch()).toBe("next");
+			expect(intervalCompletedEvents(events)).toHaveLength(1);
+
+			intervalTimer.dispose();
+		});
+
+		it("should keep a completed break interval running in overtime", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.applySnapshot({
+				...time(0, 1),
+				state: "shortBreak",
+				focusIntervals: { total: 1, set: 1 },
+			});
+
+			// Act
+			intervalTimer.start();
+			vi.advanceTimersByTime(2_000);
+
+			// Assert
+			expect(intervalTimer.status).toEqual({
+				timerState: "running",
+				snapshot: {
+					minutes: 0,
+					seconds: 1,
+					sign: -1,
+					state: "shortBreak",
+					nextState: "focus",
+					focusIntervals: { total: 1, set: 1 },
+				},
+			});
+
+			intervalTimer.dispose();
+		});
+
+		it("should allow skipping a focus interval in overtime", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(settings);
+
+			// Act
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			// Assert
+			expect(intervalTimer.canSkip).toBe(true);
+
+			intervalTimer.dispose();
+		});
+
+		it("should move to the pending interval when skipped during overtime", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			// Act
+			intervalTimer.skipInterval();
+
+			// Assert
+			expect(intervalTimer.state).toBe("shortBreak");
+			expect(intervalTimer.status).toEqual({
+				timerState: "initialized",
+				snapshot: {
+					sign: 1,
+					minutes: 5,
+					seconds: 0,
+					state: "shortBreak",
+					focusIntervals: { total: 1, set: 1 },
+				},
+			});
+
+			intervalTimer.dispose();
+		});
+
+		it("should move to the pending interval when Next is touched", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			// Act
+			intervalTimer.touch();
+
+			// Assert
+			expect(intervalTimer.state).toBe("shortBreak");
+			expect(intervalTimer.status).toEqual({
+				timerState: "initialized",
+				snapshot: {
+					sign: 1,
+					minutes: 5,
+					seconds: 0,
+					state: "shortBreak",
+					focusIntervals: { total: 1, set: 1 },
+				},
+			});
+
+			intervalTimer.dispose();
+		});
+
+		it("should advance immediately when overtime is disabled", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			// Act
+			intervalTimer.updateSettings({
+				intervalCompletionBehavior: "advanceToNextInterval",
+			});
+
+			// Assert
+			expect(intervalTimer.status).toEqual({
+				timerState: "initialized",
+				snapshot: {
+					sign: 1,
+					minutes: 5,
+					seconds: 0,
+					state: "shortBreak",
+					focusIntervals: { total: 1, set: 1 },
+				},
+			});
+
+			intervalTimer.dispose();
+		});
+
+		it("should preserve a retimed duration when reset during overtime", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.retime(7);
+			intervalTimer.start();
+			vi.advanceTimersByTime(7 * 60_000 + 1000);
+
+			// Act
+			intervalTimer.reset();
+
+			// Assert
+			expect(intervalTimer.status).toEqual({
+				timerState: "initialized",
+				snapshot: {
+					sign: 1,
+					minutes: 7,
+					seconds: 0,
+					state: "focus",
+					focusIntervals: { total: 1, set: 1 },
+				},
+			});
+			expect(intervalTimer.canStart).toBe(true);
+
+			intervalTimer.dispose();
+		});
 	});
 
 	describe("Events", () => {
@@ -1557,4 +1864,17 @@ describe("IntervalTimerStatus", () => {
 			expect(isFocusRunning(status(state, "running"))).toBe(false);
 		},
 	);
+
+	it("should not report focus overtime as focus running", () => {
+		expect(
+			isFocusRunning({
+				...status("focus", "running"),
+				snapshot: {
+					...status("focus", "running").snapshot,
+					...neg(time(1, 0)),
+					nextState: "shortBreak",
+				},
+			}),
+		).toBe(false);
+	});
 });

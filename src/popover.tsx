@@ -683,6 +683,7 @@ const getTouchActionPresentation = (
 		.with("resume", () => ({ label: "Resume", icon: "play" }))
 		.with("reset", () => ({ label: "Reset", icon: "rotate-ccw" }))
 		.with("skip", () => ({ label: "Skip", icon: "skip-forward" }))
+		.with("next", () => ({ label: "Next", icon: "skip-forward" }))
 		.exhaustive();
 
 //
