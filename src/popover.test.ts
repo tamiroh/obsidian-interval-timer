@@ -7,7 +7,7 @@ import {
 	type IntervalTimerSetting,
 } from "./interval-timer";
 import { Popover } from "./popover";
-import { time } from "./time";
+import { neg, time } from "./time";
 
 const settings: IntervalTimerSetting = {
 	focusIntervalDuration: 25,
@@ -126,6 +126,47 @@ describe("Popover", () => {
 				) as unknown as SVGElement,
 			).toHaveStyle({ strokeDashoffset: "-40" }),
 		);
+	});
+
+	it("shows a negative sign and drains the ring while counting past zero", async () => {
+		// Arrange
+		const el = createDiv();
+		const popover = await createPopover(el);
+		popover.update(time(25, 0), "focus", "initialized");
+
+		// Act
+		popover.update(neg(time(0, 5)), "focus", "running");
+
+		// Assert
+		await waitFor(() =>
+			expect(
+				within(el).getByTestId("popover-clock-time"),
+			).toHaveTextContent("-00:05"),
+		);
+		expect(within(el).getByTestId("popover-clock-time")).toHaveClass(
+			"interval-timer-popover-clock-time-negative",
+		);
+		expect(
+			within(el).getByTestId(
+				"popover-clock-value",
+			) as unknown as SVGElement,
+		).toHaveStyle({ strokeDashoffset: "-100" });
+	});
+
+	it("disables retime while counting past zero", async () => {
+		// Arrange
+		const el = createDiv();
+		const popover = await createPopover(el);
+		const intervalTimer = createIntervalTimer();
+		popover.enableActions(intervalTimer);
+
+		// Act
+		popover.update(neg(time(0, 5)), "focus", "running");
+
+		// Assert
+		expect(
+			await within(el).findByRole("button", { name: "00" }),
+		).toBeDisabled();
 	});
 
 	it("marks break intervals for break styling", async () => {
