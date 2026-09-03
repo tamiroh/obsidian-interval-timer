@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { KeyValueStore } from "./key-value-store";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
-import { time } from "./time";
+import { neg, time } from "./time";
 
 const validStored = {
 	state: "focus",
@@ -46,6 +46,44 @@ describe("IntervalTimerSnapshotStore", () => {
 		});
 	});
 
+	it("should save and load a negative snapshot with a pending next state", () => {
+		const snapshotStore = new IntervalTimerSnapshotStore(
+			new KeyValueStore("snapshot-test"),
+		);
+
+		snapshotStore.save({
+			...neg(time(0, 3)),
+			state: "focus",
+			nextState: "shortBreak",
+			focusIntervals: { total: 1, set: 1 },
+		});
+		const snapshot = snapshotStore.load();
+
+		expect(snapshot).toEqual({
+			state: "focus",
+			minutes: 0,
+			seconds: 3,
+			sign: -1,
+			nextState: "shortBreak",
+			focusIntervals: { total: 1, set: 1 },
+		});
+	});
+
+	it("should default to a positive sign when the stored snapshot predates signed time", () => {
+		const keyValueStore = new KeyValueStore("snapshot-test");
+		const snapshotStore = new IntervalTimerSnapshotStore(keyValueStore);
+
+		keyValueStore.set("snapshot", validStored);
+
+		expect(snapshotStore.load()).toEqual({
+			state: "focus",
+			minutes: 25,
+			seconds: 0,
+			sign: 1,
+			focusIntervals: { total: 4, set: 2 },
+		});
+	});
+
 	it("should save the whole snapshot under a single key", () => {
 		const snapshotStore = new IntervalTimerSnapshotStore(
 			new KeyValueStore("snapshot-test"),
@@ -85,6 +123,19 @@ describe("IntervalTimerSnapshotStore", () => {
 		["total", { ...validStored, focusIntervals: { total: 1.5, set: 0 } }],
 		["set", { ...validStored, focusIntervals: { total: 4, set: -1 } }],
 		["set", { ...validStored, focusIntervals: { total: 4, set: 1.5 } }],
+		["sign", { ...validStored, sign: 0 }],
+		["sign", { ...validStored, sign: "-1" }],
+		[
+			"negative zero",
+			{
+				...validStored,
+				minutes: 0,
+				seconds: 0,
+				sign: -1,
+				nextState: "shortBreak",
+			},
+		],
+		["missing nextState", { ...validStored, sign: -1 }],
 	])("should return null when %s is invalid", (_field, stored) => {
 		const keyValueStore = new KeyValueStore("snapshot-test");
 		const snapshotStore = new IntervalTimerSnapshotStore(keyValueStore);
