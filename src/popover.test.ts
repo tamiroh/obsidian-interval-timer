@@ -161,7 +161,7 @@ describe("Popover", () => {
 		popover.enableActions(intervalTimer);
 
 		// Act
-		popover.update(neg(time(0, 5)), "focus", "running");
+		popover.update(neg(time(0, 5)), "focus", "initialized");
 
 		// Assert
 		expect(
