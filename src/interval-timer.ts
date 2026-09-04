@@ -110,6 +110,8 @@ export class IntervalTimer {
 
 	private currentState: IntervalTimerState;
 
+	private currentIntervalDuration: t.Time;
+
 	private focusIntervals: { total: number; set: number };
 
 	private readonly eventListeners = new Set<
@@ -129,6 +131,10 @@ export class IntervalTimer {
 			t.time(this.settings.focusIntervalDuration, 0),
 		);
 		this.currentState = "focus";
+		this.currentIntervalDuration = t.time(
+			this.settings.focusIntervalDuration,
+			0,
+		);
 		this.autoResetScheduler = new DailyScheduler(
 			this.settings.resetTime,
 			() => {
@@ -169,11 +175,20 @@ export class IntervalTimer {
 		return this.currentState;
 	}
 
+	public get intervalDuration(): t.Time {
+		return this.currentIntervalDuration;
+	}
+
 	public applySnapshot(snapshot: Snapshot): void {
 		const { state, nextState, focusIntervals, ...currentTime } =
 			structuredClone(snapshot);
 		this.focusIntervals = focusIntervals;
-		this.enterInterval(state, currentTime, nextState);
+		this.enterInterval(
+			state,
+			currentTime,
+			nextState,
+			this.getIntervalDuration(state),
+		);
 	}
 
 	public subscribe(
@@ -412,10 +427,12 @@ export class IntervalTimer {
 		state: IntervalTimerState,
 		nextTime: t.Time,
 		pendingNextState?: IntervalTimerState,
+		total: t.Time = nextTime,
 	): void {
 		this.countdownTimer.dispose();
 		this.countdownTimer = this.createTimer(nextTime);
 		this.currentState = state;
+		this.currentIntervalDuration = total;
 		this.pendingNextState = pendingNextState ?? null;
 		this.emitStateChanged("initialized");
 	}

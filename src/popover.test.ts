@@ -113,6 +113,7 @@ describe("Popover", () => {
 		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
+		popover.enableActions(createIntervalTimer());
 		popover.update(t.time(25, 0), "focus", "initialized");
 
 		// Act

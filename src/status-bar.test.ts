@@ -104,6 +104,7 @@ describe("StatusBar", () => {
 		// Arrange
 		const el = createDiv();
 		const statusBar = await createStatusBar(el);
+		statusBar.enableClick(createIntervalTimer());
 		statusBar.update(
 			{ total: 0, set: 0 },
 			t.time(25, 0),
