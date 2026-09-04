@@ -157,7 +157,10 @@ export class Popover {
 			timerState,
 			intervalsSet,
 			longBreakAfter,
-			remainingPercent: this.getRemainingPercent(currentTime, intervalTimer),
+			remainingPercent: this.getRemainingPercent(
+				currentTime,
+				intervalTimer,
+			),
 			touchAction: intervalTimer?.predictTouch() ?? "start",
 		});
 	}
