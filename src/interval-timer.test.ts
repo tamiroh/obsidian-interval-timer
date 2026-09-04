@@ -1354,6 +1354,45 @@ describe("IntervalTimer", () => {
 
 			intervalTimer.dispose();
 		});
+
+		it("should not report overtime while a focus interval is counting down", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 1,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+
+			// Act
+			intervalTimer.start();
+			vi.advanceTimersByTime(30_000);
+
+			// Assert
+			expect(intervalTimer.isInOvertime).toBe(false);
+
+			intervalTimer.dispose();
+		});
+
+		it("should not report overtime during a fresh break interval", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+
+			// Act
+			intervalTimer.skipInterval();
+
+			// Assert
+			expect(intervalTimer.isInOvertime).toBe(false);
+
+			intervalTimer.dispose();
+		});
 	});
 
 	describe("Snapshot", () => {
@@ -1638,6 +1677,54 @@ describe("IntervalTimer", () => {
 
 			// Assert
 			expect(intervalTimer.canSkip).toBe(true);
+
+			intervalTimer.dispose();
+		});
+
+		it("should report overtime while a focus interval runs past zero", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(settings);
+
+			// Act
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			// Assert
+			expect(intervalTimer.isInOvertime).toBe(true);
+
+			intervalTimer.dispose();
+		});
+
+		it("should report overtime while a break interval runs past zero", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.applySnapshot({
+				...t.time(0, 1),
+				state: "shortBreak",
+				focusIntervals: { total: 1, set: 1 },
+			});
+
+			// Act
+			intervalTimer.start();
+			vi.advanceTimersByTime(2_000);
+
+			// Assert
+			expect(intervalTimer.isInOvertime).toBe(true);
+
+			intervalTimer.dispose();
+		});
+
+		it("should stop reporting overtime once the pending interval is entered", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.start();
+			vi.advanceTimersByTime(61_000);
+
+			// Act
+			intervalTimer.touch();
+
+			// Assert
+			expect(intervalTimer.isInOvertime).toBe(false);
 
 			intervalTimer.dispose();
 		});

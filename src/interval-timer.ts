@@ -141,6 +141,10 @@ export class IntervalTimer {
 		return this.pendingNextState !== null || this.currentState !== "focus";
 	}
 
+	public get isInOvertime(): boolean {
+		return this.pendingNextState !== null;
+	}
+
 	public get canPause(): boolean {
 		if (this.pendingNextState !== null) {
 			return false;
