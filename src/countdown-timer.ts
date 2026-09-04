@@ -1,12 +1,6 @@
 import { match } from "ts-pattern";
 import { err, ok, type Result } from "./result";
-import {
-	fromSeconds,
-	time,
-	type Time,
-	toMilliseconds,
-	toSeconds,
-} from "./time";
+import * as t from "./time";
 
 export const timerStates = [
 	"initialized",
@@ -27,16 +21,16 @@ export type PauseTimerResult = Result<void, "timer_not_running">;
 type StateData =
 	| {
 			type: (typeof timerStates)[0];
-			currentTime: Time;
+			currentTime: t.Time;
 	  }
 	| {
 			type: (typeof timerStates)[1];
-			currentTime: Time;
+			currentTime: t.Time;
 			timeoutId: number;
 	  }
 	| {
 			type: (typeof timerStates)[2];
-			currentTime: Time;
+			currentTime: t.Time;
 	  }
 	| {
 			type: (typeof timerStates)[3];
@@ -47,11 +41,11 @@ type CountdownTimerEventDetails =
 
 export type CountdownTimerEvent = CountdownTimerEventDetails & {
 	occurredAt: Date;
-	currentTime: Time;
+	currentTime: t.Time;
 };
 
 export type CountdownTimerOptions = {
-	initialTime: Time;
+	initialTime: t.Time;
 	continuePastZero?: boolean;
 };
 
@@ -61,17 +55,17 @@ export type MutableCountdownTimerOptions = Pick<
 >;
 
 const initialStateFor = (
-	initialTime: Time,
+	initialTime: t.Time,
 	continuePastZero: boolean,
 ): StateData =>
-	toSeconds(initialTime) === 0 && !continuePastZero
+	t.toSeconds(initialTime) === 0 && !continuePastZero
 		? { type: "completed" }
 		: { type: "initialized", currentTime: initialTime };
 
 export class CountdownTimer {
 	private currentState: StateData;
 
-	private readonly initialTime: Time;
+	private readonly initialTime: t.Time;
 
 	private readonly eventListeners = new Set<
 		(event: CountdownTimerEvent) => void
@@ -92,9 +86,9 @@ export class CountdownTimer {
 		return this.currentState.type;
 	}
 
-	public get currentTime(): Time {
+	public get currentTime(): t.Time {
 		return this.currentState.type === "completed"
-			? time(0, 0)
+			? t.time(0, 0)
 			: this.currentState.currentTime;
 	}
 
@@ -117,8 +111,8 @@ export class CountdownTimer {
 			.with({ type: "initialized" }, () => new Date())
 			.with({ type: "paused" }, (state) => {
 				const elapsedMs =
-					toMilliseconds(this.initialTime) -
-					toMilliseconds(state.currentTime);
+					t.toMilliseconds(this.initialTime) -
+					t.toMilliseconds(state.currentTime);
 				return new Date(Date.now() - elapsedMs);
 			})
 			.exhaustive();
@@ -153,7 +147,7 @@ export class CountdownTimer {
 		return ok();
 	}
 
-	public reset(): Time {
+	public reset(): t.Time {
 		if (this.currentState.type === "running") {
 			window.clearTimeout(this.currentState.timeoutId);
 		}
@@ -220,7 +214,7 @@ export class CountdownTimer {
 		}
 
 		const remainingSeconds = this.computeRemainingSeconds(startAt);
-		const previousRemainingSeconds = toSeconds(
+		const previousRemainingSeconds = t.toSeconds(
 			this.currentState.currentTime,
 		);
 		const alreadyCompleted = previousRemainingSeconds <= 0;
@@ -232,11 +226,11 @@ export class CountdownTimer {
 			return "unchanged";
 		}
 		if (remainingSeconds <= 0 && !alreadyCompleted) {
-			this.currentState.currentTime = time(0, 0);
+			this.currentState.currentTime = t.time(0, 0);
 			return "completed";
 		}
 
-		const nextTime = fromSeconds(remainingSeconds);
+		const nextTime = t.fromSeconds(remainingSeconds);
 		if (nextTime === null) {
 			return "unchanged";
 		}
@@ -249,7 +243,7 @@ export class CountdownTimer {
 			0,
 			Math.floor((Date.now() - startAt.getTime()) / 1000),
 		);
-		return toSeconds(this.initialTime) - elapsedSeconds;
+		return t.toSeconds(this.initialTime) - elapsedSeconds;
 	}
 
 	private emit(event: CountdownTimerEventDetails): void {

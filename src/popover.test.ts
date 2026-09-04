@@ -7,7 +7,7 @@ import {
 	type IntervalTimerSetting,
 } from "./interval-timer";
 import { Popover } from "./popover";
-import { neg, time } from "./time";
+import * as t from "./time";
 
 const settings: IntervalTimerSetting = {
 	focusIntervalDuration: 25,
@@ -99,7 +99,7 @@ describe("Popover", () => {
 		const popover = await createPopover(el);
 
 		// Act
-		popover.update(time(7, 5), "focus", "initialized");
+		popover.update(t.time(7, 5), "focus", "initialized");
 
 		// Assert
 		await waitFor(() =>
@@ -113,10 +113,10 @@ describe("Popover", () => {
 		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
-		popover.update(time(25, 0), "focus", "initialized");
+		popover.update(t.time(25, 0), "focus", "initialized");
 
 		// Act
-		popover.update(time(15, 0), "focus", "running");
+		popover.update(t.time(15, 0), "focus", "running");
 
 		// Assert
 		await waitFor(() =>
@@ -132,10 +132,10 @@ describe("Popover", () => {
 		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
-		popover.update(time(25, 0), "focus", "initialized");
+		popover.update(t.time(25, 0), "focus", "initialized");
 
 		// Act
-		popover.update(neg(time(0, 5)), "focus", "running");
+		popover.update(t.neg(t.time(0, 5)), "focus", "running");
 
 		// Assert
 		await waitFor(() =>
@@ -161,7 +161,7 @@ describe("Popover", () => {
 		popover.enableActions(intervalTimer);
 
 		// Act
-		popover.update(neg(time(0, 5)), "focus", "initialized");
+		popover.update(t.neg(t.time(0, 5)), "focus", "initialized");
 
 		// Assert
 		expect(
@@ -175,7 +175,7 @@ describe("Popover", () => {
 		const popover = await createPopover(el);
 
 		// Act
-		popover.update(time(5, 0), "shortBreak", "paused");
+		popover.update(t.time(5, 0), "shortBreak", "paused");
 
 		// Assert
 		await waitFor(() =>
@@ -192,7 +192,7 @@ describe("Popover", () => {
 		popover.updateTrackedTask("Write report");
 
 		// Act
-		popover.update(time(5, 0), "shortBreak", "initialized");
+		popover.update(t.time(5, 0), "shortBreak", "initialized");
 
 		// Assert
 		await waitFor(() =>
@@ -206,7 +206,7 @@ describe("Popover", () => {
 		const popover = await createPopover(el);
 
 		// Act
-		popover.update(time(25, 0), "focus", "initialized", 2, 4);
+		popover.update(t.time(25, 0), "focus", "initialized", 2, 4);
 
 		// Assert
 		await waitFor(() => {
@@ -228,7 +228,7 @@ describe("Popover", () => {
 		const popover = await createPopover(el);
 
 		// Act
-		popover.update(time(15, 0), "longBreak", "initialized", 0, 4);
+		popover.update(t.time(15, 0), "longBreak", "initialized", 0, 4);
 
 		// Assert
 		await waitFor(() => {
@@ -344,7 +344,7 @@ describe("Popover", () => {
 		const touchSpy = vi.spyOn(intervalTimer, "touch");
 		intervalTimer.start();
 		popover.enableActions(intervalTimer);
-		popover.update(time(24, 0), "focus", "running");
+		popover.update(t.time(24, 0), "focus", "running");
 
 		// Act
 		await user.click(
@@ -371,7 +371,7 @@ describe("Popover", () => {
 		popover.enableActions(intervalTimer);
 
 		// Act
-		popover.update(time(4, 0), "shortBreak", "running");
+		popover.update(t.time(4, 0), "shortBreak", "running");
 
 		// Assert
 		expect(
@@ -389,7 +389,7 @@ describe("Popover", () => {
 		popover.enableActions(intervalTimer);
 
 		// Act
-		popover.update(time(12, 0), "focus", "paused");
+		popover.update(t.time(12, 0), "focus", "paused");
 
 		// Assert
 		expect(
@@ -415,7 +415,7 @@ describe("Popover", () => {
 		const el = createDiv();
 		const popover = await createPopover(el);
 		const intervalTimer = createIntervalTimer();
-		popover.update(time(7, 5), "focus", "initialized");
+		popover.update(t.time(7, 5), "focus", "initialized");
 		popover.enableActions(intervalTimer);
 
 		// Act
@@ -431,7 +431,7 @@ describe("Popover", () => {
 		const el = createDiv();
 		const popover = await createPopover(el);
 		const intervalTimer = createIntervalTimer();
-		popover.update(time(7, 5), "focus", "initialized");
+		popover.update(t.time(7, 5), "focus", "initialized");
 		popover.enableActions(intervalTimer);
 
 		// Act
@@ -447,7 +447,7 @@ describe("Popover", () => {
 		const el = createDiv();
 		const popover = await createPopover(el);
 		const intervalTimer = createIntervalTimer();
-		popover.update(time(12, 5), "focus", "initialized");
+		popover.update(t.time(12, 5), "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "12" }));
 		const input = await getFocusedRetimeInput(el);
@@ -470,7 +470,7 @@ describe("Popover", () => {
 		const intervalTimer = createIntervalTimer();
 		popover.enableActions(intervalTimer);
 		// Act
-		popover.update(time(7, 0), "focus", "running");
+		popover.update(t.time(7, 0), "focus", "running");
 
 		// Assert
 		const minutes = await within(el).findByRole("button", {
@@ -487,7 +487,7 @@ describe("Popover", () => {
 		const intervalTimer = createIntervalTimer();
 		const events: IntervalTimerEvent[] = [];
 		intervalTimer.subscribe((event) => events.push(event));
-		popover.update(time(7, 5), "focus", "initialized");
+		popover.update(t.time(7, 5), "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
 		await getFocusedRetimeInput(el);
@@ -521,7 +521,7 @@ describe("Popover", () => {
 		const intervalTimer = createIntervalTimer();
 		const events: IntervalTimerEvent[] = [];
 		intervalTimer.subscribe((event) => events.push(event));
-		popover.update(time(7, 5), "focus", "initialized");
+		popover.update(t.time(7, 5), "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
 		await getFocusedRetimeInput(el);
@@ -554,7 +554,7 @@ describe("Popover", () => {
 		const notify = vi.fn();
 		const popover = await createPopover(el, { ...createOptions(), notify });
 		const intervalTimer = createIntervalTimer();
-		popover.update(time(7, 5), "focus", "initialized");
+		popover.update(t.time(7, 5), "focus", "initialized");
 		popover.enableActions(intervalTimer);
 		await user.click(await within(el).findByRole("button", { name: "07" }));
 		await getFocusedRetimeInput(el);

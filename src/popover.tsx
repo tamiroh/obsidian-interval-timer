@@ -18,13 +18,7 @@ import {
 import { ObservableStore, useObservableStore } from "./observable-store";
 import { type Position, usePopoverFloating } from "./popover-floating";
 import type { ResultFailureReason } from "./result";
-import {
-	isNegative,
-	minutesUpperBound,
-	time,
-	type Time,
-	toSeconds,
-} from "./time";
+import * as t from "./time";
 
 //
 // Constants and types
@@ -34,7 +28,7 @@ const setRingRadius = 35;
 const setRingStrokeWidth = 3.5;
 
 type PopoverSnapshot = {
-	time: Time;
+	time: t.Time;
 	intervalTimerState: IntervalTimerState;
 	timerState: TimerState;
 	intervalsSet: number;
@@ -72,7 +66,7 @@ const retimeValidationMessage = (
 		)
 		.with(
 			"out_of_range_minutes",
-			() => `Enter fewer than ${minutesUpperBound} minutes.`,
+			() => `Enter fewer than ${t.minutesUpperBound} minutes.`,
 		)
 		.with("non_positive_integer", () => "Enter a positive whole number.")
 		.with("non_integer", () => "Enter a whole number.")
@@ -104,7 +98,7 @@ export class Popover {
 		},
 	) {
 		this.store = new ObservableStore<PopoverSnapshot>({
-			time: time(0, 0),
+			time: t.time(0, 0),
 			intervalTimerState: "focus",
 			timerState: "initialized",
 			intervalsSet: 0,
@@ -151,13 +145,13 @@ export class Popover {
 	}
 
 	public update(
-		currentTime: Time,
+		currentTime: t.Time,
 		intervalTimerState: IntervalTimerState,
 		timerState: TimerState,
 		intervalsSet = 0,
 		longBreakAfter = defaultLongBreakAfter,
 	): void {
-		const remainingSeconds = toSeconds(currentTime);
+		const remainingSeconds = t.toSeconds(currentTime);
 		if (timerState === "initialized" || this.intervalTotalSeconds === 0) {
 			this.intervalTotalSeconds = remainingSeconds;
 		}
@@ -168,7 +162,7 @@ export class Popover {
 			timerState,
 			intervalsSet,
 			longBreakAfter,
-			remainingPercent: isNegative(currentTime)
+			remainingPercent: t.isNegative(currentTime)
 				? 0
 				: this.getRemainingPercent(remainingSeconds),
 			touchAction:
@@ -505,13 +499,13 @@ const PopoverView = ({
 					<div className="interval-timer-popover-clock-readout">
 						<div
 							className={`interval-timer-popover-clock-time${
-								isNegative(currentTime)
+								t.isNegative(currentTime)
 									? " interval-timer-popover-clock-time-negative"
 									: ""
 							}`}
 							data-testid="popover-clock-time"
 						>
-							{isNegative(currentTime) && (
+							{t.isNegative(currentTime) && (
 								<span className="interval-timer-popover-clock-sign">
 									-
 								</span>
@@ -530,7 +524,7 @@ const PopoverView = ({
 									disabled={
 										!intervalTimer ||
 										timerState === "running" ||
-										isNegative(currentTime) ||
+										t.isNegative(currentTime) ||
 										isEditingTime
 									}
 									onClick={handleMinutesClick}

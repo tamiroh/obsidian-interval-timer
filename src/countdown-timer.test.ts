@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CountdownTimer, type CountdownTimerEvent } from "./countdown-timer";
-import { neg, time, type Time } from "./time";
+import * as t from "./time";
 
 function subscribeTo(
 	countdownTimer: CountdownTimer,
@@ -27,7 +27,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleSubtract = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(1, 0),
+			initialTime: t.time(1, 0),
 		});
 		subscribeTo(countdownTimer, "tick", handleSubtract);
 
@@ -45,7 +45,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleSubtract = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(1, 0),
+			initialTime: t.time(1, 0),
 		});
 		subscribeTo(countdownTimer, "tick", handleSubtract);
 		countdownTimer.start();
@@ -57,7 +57,7 @@ describe("CountdownTimer", () => {
 		expect(handleSubtract).toHaveBeenCalledTimes(1);
 		expect(handleSubtract).toHaveBeenLastCalledWith(
 			expect.objectContaining({
-				currentTime: time(0, 59),
+				currentTime: t.time(0, 59),
 			}),
 		);
 	});
@@ -66,7 +66,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleSubtract = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(1, 0),
+			initialTime: t.time(1, 0),
 		});
 		subscribeTo(countdownTimer, "tick", handleSubtract);
 		countdownTimer.start();
@@ -78,7 +78,7 @@ describe("CountdownTimer", () => {
 		expect(handleSubtract).toHaveBeenCalledTimes(60);
 		expect(handleSubtract).toHaveBeenLastCalledWith(
 			expect.objectContaining({
-				currentTime: time(0, 0),
+				currentTime: t.time(0, 0),
 			}),
 		);
 	});
@@ -87,7 +87,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleComplete = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(1, 0),
+			initialTime: t.time(1, 0),
 		});
 		subscribeTo(countdownTimer, "completed", handleComplete);
 		countdownTimer.start();
@@ -103,7 +103,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleComplete = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 1),
+			initialTime: t.time(0, 1),
 		});
 		subscribeTo(countdownTimer, "completed", handleComplete);
 		countdownTimer.start();
@@ -118,7 +118,7 @@ describe("CountdownTimer", () => {
 	it("should report completed state immediately when constructed with a zero duration", () => {
 		// Arrange & Act
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 0),
+			initialTime: t.time(0, 0),
 		});
 
 		// Assert
@@ -128,7 +128,7 @@ describe("CountdownTimer", () => {
 	it("should refuse to start a timer constructed with a zero duration", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 0),
+			initialTime: t.time(0, 0),
 		});
 
 		// Act
@@ -141,7 +141,7 @@ describe("CountdownTimer", () => {
 	it("should report completed state after resetting a timer with a zero duration", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 0),
+			initialTime: t.time(0, 0),
 		});
 
 		// Act
@@ -155,7 +155,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleComplete = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 1),
+			initialTime: t.time(0, 1),
 		});
 		subscribeTo(countdownTimer, "completed", handleComplete);
 		countdownTimer.start();
@@ -174,7 +174,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleSubtract = vi.fn<(event: CountdownTimerEvent) => void>();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 1),
+			initialTime: t.time(0, 1),
 		});
 		subscribeTo(countdownTimer, "tick", handleSubtract);
 		countdownTimer.start();
@@ -195,7 +195,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleSubtract = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(1, 0),
+			initialTime: t.time(1, 0),
 		});
 		subscribeTo(countdownTimer, "tick", handleSubtract);
 
@@ -215,7 +215,7 @@ describe("CountdownTimer", () => {
 	it("should not start when timer is already running", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(1, 0),
+			initialTime: t.time(1, 0),
 		});
 
 		// Act
@@ -231,7 +231,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleComplete = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 1),
+			initialTime: t.time(0, 1),
 		});
 		subscribeTo(countdownTimer, "completed", handleComplete);
 
@@ -249,7 +249,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handlePause = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 10),
+			initialTime: t.time(0, 10),
 		});
 		subscribeTo(countdownTimer, "paused", handlePause);
 
@@ -267,7 +267,7 @@ describe("CountdownTimer", () => {
 	it("should fail to pause when completed", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 1),
+			initialTime: t.time(0, 1),
 		});
 		countdownTimer.start();
 		vi.advanceTimersByTime(2000);
@@ -285,7 +285,7 @@ describe("CountdownTimer", () => {
 	it("should report initialized timer type when created", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 2),
+			initialTime: t.time(0, 2),
 		});
 
 		// Act & Assert
@@ -295,7 +295,7 @@ describe("CountdownTimer", () => {
 	it("should report running timer type after start", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 2),
+			initialTime: t.time(0, 2),
 		});
 
 		// Act
@@ -308,7 +308,7 @@ describe("CountdownTimer", () => {
 	it("should report paused timer type after pause", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 2),
+			initialTime: t.time(0, 2),
 		});
 
 		// Act
@@ -323,7 +323,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleComplete = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 2),
+			initialTime: t.time(0, 2),
 		});
 		subscribeTo(countdownTimer, "completed", handleComplete);
 
@@ -339,7 +339,7 @@ describe("CountdownTimer", () => {
 	it("should reset to the initial time from running state", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 5),
+			initialTime: t.time(0, 5),
 		});
 
 		// Act
@@ -348,14 +348,14 @@ describe("CountdownTimer", () => {
 		const result = countdownTimer.reset();
 
 		// Assert
-		expect(result).toStrictEqual(time(0, 5));
+		expect(result).toStrictEqual(t.time(0, 5));
 		expect(countdownTimer.state).toBe("initialized");
 	});
 
 	it("should start again after reset from completed state", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 1),
+			initialTime: t.time(0, 1),
 		});
 		countdownTimer.start();
 		vi.advanceTimersByTime(2000);
@@ -373,7 +373,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleSubtract = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 3),
+			initialTime: t.time(0, 3),
 		});
 		subscribeTo(countdownTimer, "tick", handleSubtract);
 
@@ -392,7 +392,7 @@ describe("CountdownTimer", () => {
 		// Arrange
 		const handleSubtract = vi.fn<(event: CountdownTimerEvent) => void>();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 3),
+			initialTime: t.time(0, 3),
 		});
 		subscribeTo(countdownTimer, "tick", handleSubtract);
 
@@ -408,7 +408,7 @@ describe("CountdownTimer", () => {
 		expect(handleSubtract).toHaveBeenCalledTimes(countAfterPause + 1);
 		expect(handleSubtract).toHaveBeenLastCalledWith(
 			expect.objectContaining({
-				currentTime: time(0, 1),
+				currentTime: t.time(0, 1),
 			}),
 		);
 	});
@@ -416,7 +416,7 @@ describe("CountdownTimer", () => {
 	it("should stop timer when dispose is called while running", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 3),
+			initialTime: t.time(0, 3),
 		});
 
 		// Act
@@ -429,7 +429,7 @@ describe("CountdownTimer", () => {
 
 	it("should not extend the remaining time when the clock moves backward", () => {
 		// Arrange
-		const initialTime: Time = time(1, 0);
+		const initialTime: t.Time = t.time(1, 0);
 		const countdownTimer = new CountdownTimer({ initialTime });
 		countdownTimer.start();
 		vi.advanceTimersByTime(10000);
@@ -439,37 +439,37 @@ describe("CountdownTimer", () => {
 		vi.advanceTimersByTime(1000);
 
 		// Assert
-		expect(countdownTimer.currentTime).toEqual(time(1, 0));
+		expect(countdownTimer.currentTime).toEqual(t.time(1, 0));
 	});
 
 	it("should stay initialized and preserve the negative time when constructed already negative", () => {
 		// Arrange & Act
 		const countdownTimer = new CountdownTimer({
-			initialTime: neg(time(0, 5)),
+			initialTime: t.neg(t.time(0, 5)),
 		});
 
 		// Assert
 		expect(countdownTimer.state).toBe("initialized");
-		expect(countdownTimer.currentTime).toEqual(neg(time(0, 5)));
+		expect(countdownTimer.currentTime).toEqual(t.neg(t.time(0, 5)));
 	});
 
 	it("should stay initialized when constructed already negative with continuing past zero enabled", () => {
 		// Arrange & Act
 		const countdownTimer = new CountdownTimer({
-			initialTime: neg(time(0, 5)),
+			initialTime: t.neg(t.time(0, 5)),
 			continuePastZero: true,
 		});
 
 		// Assert
 		expect(countdownTimer.state).toBe("initialized");
-		expect(countdownTimer.currentTime).toEqual(neg(time(0, 5)));
+		expect(countdownTimer.currentTime).toEqual(t.neg(t.time(0, 5)));
 	});
 
 	it("should not fire completed again when resuming an already negative timer with continuing past zero enabled", () => {
 		// Arrange
 		const handleComplete = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: neg(time(0, 5)),
+			initialTime: t.neg(t.time(0, 5)),
 			continuePastZero: true,
 		});
 		subscribeTo(countdownTimer, "completed", handleComplete);
@@ -480,7 +480,7 @@ describe("CountdownTimer", () => {
 
 		// Assert
 		expect(handleComplete).not.toHaveBeenCalled();
-		expect(countdownTimer.currentTime).toEqual(neg(time(0, 6)));
+		expect(countdownTimer.currentTime).toEqual(t.neg(t.time(0, 6)));
 	});
 
 	it("should continue counting down past zero and resume when enabled", () => {
@@ -488,7 +488,7 @@ describe("CountdownTimer", () => {
 		const handleTick = vi.fn<(event: CountdownTimerEvent) => void>();
 		const handleComplete = vi.fn();
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 1),
+			initialTime: t.time(0, 1),
 			continuePastZero: true,
 		});
 		subscribeTo(countdownTimer, "tick", handleTick);
@@ -523,7 +523,7 @@ describe("CountdownTimer", () => {
 	it("should keep overtime within the duration limit", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: neg(time(599, 58)),
+			initialTime: t.neg(t.time(599, 58)),
 			continuePastZero: true,
 		});
 
@@ -542,7 +542,7 @@ describe("CountdownTimer", () => {
 	it("should not resume ticking when a completed listener disposes the timer", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({
-			initialTime: time(0, 1),
+			initialTime: t.time(0, 1),
 			continuePastZero: true,
 		});
 		countdownTimer.subscribe((event) => {
@@ -561,7 +561,9 @@ describe("CountdownTimer", () => {
 
 	it("should not override a listener's reset call on completion", () => {
 		// Arrange
-		const countdownTimer = new CountdownTimer({ initialTime: time(0, 1) });
+		const countdownTimer = new CountdownTimer({
+			initialTime: t.time(0, 1),
+		});
 		countdownTimer.subscribe((event) => {
 			if (event.type === "completed") {
 				countdownTimer.reset();
@@ -574,6 +576,6 @@ describe("CountdownTimer", () => {
 
 		// Assert
 		expect(countdownTimer.state).toBe("initialized");
-		expect(countdownTimer.currentTime).toEqual(time(0, 1));
+		expect(countdownTimer.currentTime).toEqual(t.time(0, 1));
 	});
 });

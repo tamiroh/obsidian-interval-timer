@@ -1,5 +1,5 @@
 import { type App, type EventRef } from "obsidian";
-import { type Time } from "./time";
+import type * as t from "./time";
 import {
 	defaultLongBreakAfter,
 	type IntervalTimer,
@@ -52,7 +52,7 @@ export class FloatingTimer implements TimerDisplay {
 
 	public update(
 		intervals: { total: number; set: number },
-		time: Time,
+		time: t.Time,
 		intervalTimerState: IntervalTimerState,
 		timerState: TimerState,
 		longBreakAfter = defaultLongBreakAfter,

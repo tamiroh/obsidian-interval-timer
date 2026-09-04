@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { KeyValueStore } from "./key-value-store";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
-import { neg, time } from "./time";
+import * as t from "./time";
 
 const validStored = {
 	state: "focus",
@@ -31,7 +31,7 @@ describe("IntervalTimerSnapshotStore", () => {
 		);
 
 		snapshotStore.save({
-			...time(3, 20),
+			...t.time(3, 20),
 			state: "shortBreak",
 			focusIntervals: { total: 7, set: 2 },
 		});
@@ -52,7 +52,7 @@ describe("IntervalTimerSnapshotStore", () => {
 		);
 
 		snapshotStore.save({
-			...neg(time(0, 3)),
+			...t.neg(t.time(0, 3)),
 			state: "focus",
 			nextState: "shortBreak",
 			focusIntervals: { total: 1, set: 1 },
@@ -90,7 +90,7 @@ describe("IntervalTimerSnapshotStore", () => {
 		);
 
 		snapshotStore.save({
-			...time(3, 20),
+			...t.time(3, 20),
 			state: "shortBreak",
 			focusIntervals: { total: 7, set: 2 },
 		});

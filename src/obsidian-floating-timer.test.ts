@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { App } from "obsidian";
 import { IntervalTimer, type IntervalTimerSetting } from "./interval-timer";
 import { FloatingTimer } from "./obsidian-floating-timer";
-import { time } from "./time";
+import * as t from "./time";
 
 const settings: IntervalTimerSetting = {
 	focusIntervalDuration: 25,
@@ -54,7 +54,7 @@ describe("FloatingTimer", () => {
 		// Act
 		floatingTimer.update(
 			{ total: 4, set: 2 },
-			time(7, 5),
+			t.time(7, 5),
 			"focus",
 			"running",
 		);

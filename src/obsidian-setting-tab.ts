@@ -13,7 +13,7 @@ import {
 	volumeRange,
 } from "./obsidian-plugin-setting";
 import { focusBgmTypes, type FocusBgmType } from "./focus-bgm";
-import { minutesUpperBound } from "./time";
+import * as t from "./time";
 
 const VALIDATION_TOOLTIP_CLASS =
 	"interval-timer-setting-tab-validation-tooltip";
@@ -280,7 +280,7 @@ const validationMessage = (reason: PluginSettingReason): string =>
 		.with("non_positive_integer", () => "Enter a positive whole number.")
 		.with(
 			"out_of_range_minutes",
-			() => `Enter fewer than ${minutesUpperBound} minutes.`,
+			() => `Enter fewer than ${t.minutesUpperBound} minutes.`,
 		)
 		.with(
 			"out_of_range_volume",

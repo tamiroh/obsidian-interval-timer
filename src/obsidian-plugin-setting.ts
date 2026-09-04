@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import * as v from "valibot";
-import { isMinutes } from "./time";
+import * as t from "./time";
 import { err, ok, type Result } from "./result";
 import {
 	defaultLongBreakAfter,
@@ -24,7 +24,10 @@ const integerSchema = v.pipe(
 
 const positiveIntegerSchema = v.pipe(integerSchema, v.minValue(1));
 
-const durationMinutesSchema = v.pipe(positiveIntegerSchema, v.guard(isMinutes));
+const durationMinutesSchema = v.pipe(
+	positiveIntegerSchema,
+	v.guard(t.isMinutes),
+);
 
 const volumeSchema = v.pipe(
 	integerSchema,

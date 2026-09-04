@@ -8,7 +8,7 @@ import {
 	isFocusRunning,
 } from "./interval-timer";
 import type { TimerState } from "./countdown-timer";
-import { minutesUpperBound, neg, time } from "./time";
+import * as t from "./time";
 import { clear, last } from "./array";
 
 const stateChangedEvents = (
@@ -704,13 +704,13 @@ describe("IntervalTimer", () => {
 			clear(events);
 
 			// Act & Assert
-			expect(intervalTimer.retime(minutesUpperBound)).toEqual({
+			expect(intervalTimer.retime(t.minutesUpperBound)).toEqual({
 				ok: false,
 				reason: "out_of_range_minutes",
 			});
 			expect(stateChangedEvents(events)).toHaveLength(0);
 
-			expect(intervalTimer.retime(minutesUpperBound - 1)).toEqual({
+			expect(intervalTimer.retime(t.minutesUpperBound - 1)).toEqual({
 				ok: true,
 				value: undefined,
 			});
@@ -1449,7 +1449,7 @@ describe("IntervalTimer", () => {
 
 			// Act
 			intervalTimer.applySnapshot({
-				...neg(time(2, 3)),
+				...t.neg(t.time(2, 3)),
 				state: "focus",
 				nextState: "shortBreak",
 				focusIntervals: { total: 1, set: 1 },
@@ -1473,7 +1473,7 @@ describe("IntervalTimer", () => {
 				resetTime: { hours: 0, minutes: 0 },
 			});
 			intervalTimer.applySnapshot({
-				...neg(time(2, 3)),
+				...t.neg(t.time(2, 3)),
 				state: "focus",
 				nextState: "shortBreak",
 				focusIntervals: { total: 1, set: 1 },
@@ -1508,7 +1508,7 @@ describe("IntervalTimer", () => {
 				resetTime: { hours: 0, minutes: 0 },
 			});
 			intervalTimer.applySnapshot({
-				...neg(time(2, 3)),
+				...t.neg(t.time(2, 3)),
 				state: "focus",
 				nextState: "shortBreak",
 				focusIntervals: { total: 1, set: 1 },
@@ -1603,7 +1603,7 @@ describe("IntervalTimer", () => {
 			// Arrange
 			const intervalTimer = new IntervalTimer(settings);
 			intervalTimer.applySnapshot({
-				...time(0, 1),
+				...t.time(0, 1),
 				state: "shortBreak",
 				focusIntervals: { total: 1, set: 1 },
 			});
@@ -1871,7 +1871,7 @@ describe("IntervalTimerStatus", () => {
 				...status("focus", "running"),
 				snapshot: {
 					...status("focus", "running").snapshot,
-					...neg(time(1, 0)),
+					...t.neg(t.time(1, 0)),
 					nextState: "shortBreak",
 				},
 			}),

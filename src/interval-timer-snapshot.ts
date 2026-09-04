@@ -1,7 +1,7 @@
 import { intervalTimerStates, type Snapshot } from "./interval-timer";
 import { type KeyValueStore } from "./key-value-store";
 import * as v from "valibot";
-import { fromSeconds, isMinutes, isSeconds } from "./time";
+import * as t from "./time";
 
 const snapshotKey = "snapshot";
 
@@ -10,8 +10,8 @@ const intervalCountSchema = v.pipe(v.number(), v.integer(), v.minValue(0));
 const snapshotSchema = v.pipe(
 	v.object({
 		state: v.picklist(intervalTimerStates),
-		minutes: v.pipe(v.number(), v.integer(), v.guard(isMinutes)),
-		seconds: v.pipe(v.number(), v.integer(), v.guard(isSeconds)),
+		minutes: v.pipe(v.number(), v.integer(), v.guard(t.isMinutes)),
+		seconds: v.pipe(v.number(), v.integer(), v.guard(t.isSeconds)),
 		sign: v.optional(v.picklist([1, -1] as const), 1),
 		nextState: v.optional(v.picklist(intervalTimerStates)),
 		focusIntervals: v.object({
@@ -45,7 +45,7 @@ export class IntervalTimerSnapshotStore {
 
 		const { state, minutes, seconds, sign, nextState, focusIntervals } =
 			result.output;
-		const currentTime = fromSeconds(sign * (minutes * 60 + seconds));
+		const currentTime = t.fromSeconds(sign * (minutes * 60 + seconds));
 		if (currentTime === null) {
 			return null;
 		}

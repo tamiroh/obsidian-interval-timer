@@ -1,13 +1,6 @@
 import { match } from "ts-pattern";
 import { CountdownTimer, type TimerState } from "./countdown-timer";
-import {
-	type DurationMinutesReason,
-	isNegative,
-	type Minutes,
-	parseDurationMinutes,
-	time,
-	type Time,
-} from "./time";
+import * as t from "./time";
 import { DailyScheduler } from "./daily-scheduler";
 import { err, ok, type Result } from "./result";
 
@@ -24,9 +17,9 @@ export type IntervalCompletionBehavior =
 	(typeof intervalCompletionBehaviors)[number];
 
 export type IntervalTimerSetting = {
-	focusIntervalDuration: Minutes;
-	shortBreakDuration: Minutes;
-	longBreakDuration: Minutes;
+	focusIntervalDuration: t.Minutes;
+	shortBreakDuration: t.Minutes;
+	longBreakDuration: t.Minutes;
 	longBreakAfter: number;
 	intervalCompletionBehavior?: IntervalCompletionBehavior;
 	resetTime: { hours: number; minutes: number };
@@ -51,7 +44,7 @@ export const intervalTimerStates = [
 
 export type IntervalTimerState = (typeof intervalTimerStates)[number];
 
-export type Snapshot = Time & {
+export type Snapshot = t.Time & {
 	state: IntervalTimerState;
 	nextState?: IntervalTimerState;
 	focusIntervals: { total: number; set: number };
@@ -68,7 +61,7 @@ export const isFocusRunning = ({
 }: IntervalTimerStatus): boolean =>
 	snapshot.state === "focus" &&
 	timerState === "running" &&
-	!isNegative(snapshot) &&
+	!t.isNegative(snapshot) &&
 	snapshot.nextState === undefined;
 
 //
@@ -107,7 +100,7 @@ export type IntervalTimerEvent = IntervalTimerEventDetails & {
 
 export type RetimeResult = Result<
 	void,
-	DurationMinutesReason | "timer_running"
+	t.DurationMinutesReason | "timer_running"
 >;
 
 export type TouchAction = "start" | "resume" | "reset" | "skip" | "next";
@@ -133,7 +126,7 @@ export class IntervalTimer {
 		this.focusIntervals = { total: 0, set: 0 };
 		this.settings = structuredClone(settings);
 		this.countdownTimer = this.createTimer(
-			time(this.settings.focusIntervalDuration, 0),
+			t.time(this.settings.focusIntervalDuration, 0),
 		);
 		this.currentState = "focus";
 		this.autoResetScheduler = new DailyScheduler(
@@ -249,7 +242,7 @@ export class IntervalTimer {
 
 	public reset(): void {
 		const resetTime = this.countdownTimer.reset();
-		if (isNegative(resetTime)) {
+		if (t.isNegative(resetTime)) {
 			this.enterInterval(
 				this.currentState,
 				this.getIntervalDuration(this.currentState),
@@ -265,7 +258,7 @@ export class IntervalTimer {
 		this.focusIntervals.set = 0;
 		this.enterInterval(
 			"longBreak",
-			time(this.settings.longBreakDuration, 0),
+			t.time(this.settings.longBreakDuration, 0),
 		);
 	}
 
@@ -273,7 +266,7 @@ export class IntervalTimer {
 		this.focusIntervals = { total: 0, set: 0 };
 		this.enterInterval(
 			"focus",
-			time(this.settings.focusIntervalDuration, 0),
+			t.time(this.settings.focusIntervalDuration, 0),
 		);
 	}
 
@@ -290,7 +283,7 @@ export class IntervalTimer {
 	}
 
 	public retime(minutes: number): RetimeResult {
-		return match(parseDurationMinutes(minutes))
+		return match(t.parseDurationMinutes(minutes))
 			.with({ ok: false }, ({ reason }) => err(reason))
 			.with({ ok: true }, ({ value }) => {
 				if (
@@ -301,7 +294,7 @@ export class IntervalTimer {
 				}
 				this.enterInterval(
 					this.currentState,
-					time(value, this.countdownTimer.currentTime.seconds),
+					t.time(value, this.countdownTimer.currentTime.seconds),
 				);
 				return ok();
 			})
@@ -391,7 +384,7 @@ export class IntervalTimer {
 		});
 	}
 
-	private createTimer(initialTime: Time): CountdownTimer {
+	private createTimer(initialTime: t.Time): CountdownTimer {
 		const timer = new CountdownTimer({
 			initialTime,
 			continuePastZero:
@@ -417,7 +410,7 @@ export class IntervalTimer {
 
 	private enterInterval(
 		state: IntervalTimerState,
-		nextTime: Time,
+		nextTime: t.Time,
 		pendingNextState?: IntervalTimerState,
 	): void {
 		this.countdownTimer.dispose();
@@ -453,8 +446,8 @@ export class IntervalTimer {
 		};
 	}
 
-	private getIntervalDuration(state: IntervalTimerState): Time {
-		return time(
+	private getIntervalDuration(state: IntervalTimerState): t.Time {
+		return t.time(
 			match(state)
 				.with("focus", () => this.settings.focusIntervalDuration)
 				.with("shortBreak", () => this.settings.shortBreakDuration)
