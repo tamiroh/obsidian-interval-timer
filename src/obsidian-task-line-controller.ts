@@ -108,6 +108,10 @@ export class TaskLineController {
 	}
 
 	private isFocusActive(): boolean {
-		return this.intervalTimer?.state === "focus";
+		return (
+			this.intervalTimer !== null &&
+			this.intervalTimer.state === "focus" &&
+			!this.intervalTimer.isInOvertime
+		);
 	}
 }

@@ -201,6 +201,14 @@ export default defineConfig(
 		},
 	},
 	{
+		name: "local/model-test-files",
+		files: ["**/*.model.test.{ts,tsx}"],
+		rules: {
+			"vitest/no-standalone-expect": "off",
+			"local/vitest-aaa-order": "off",
+		},
+	},
+	{
 		name: "local/obsidian-fakes",
 		files: ["src/obsidian-globals-fake.ts", "src/obsidian-fake.ts"],
 		rules: {
