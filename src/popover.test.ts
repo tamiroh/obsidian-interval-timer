@@ -508,6 +508,11 @@ describe("Popover", () => {
 					sign: 1,
 					minutes: 12,
 					seconds: 0,
+					intervalDuration: {
+						sign: 1,
+						minutes: 12,
+						seconds: 0,
+					},
 					focusIntervals: { set: 0, total: 0 },
 				},
 			}),
@@ -542,6 +547,11 @@ describe("Popover", () => {
 					sign: 1,
 					minutes: 18,
 					seconds: 0,
+					intervalDuration: {
+						sign: 1,
+						minutes: 18,
+						seconds: 0,
+					},
 					focusIntervals: { set: 0, total: 0 },
 				},
 			}),

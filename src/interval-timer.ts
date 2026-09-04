@@ -47,6 +47,7 @@ export type IntervalTimerState = (typeof intervalTimerStates)[number];
 export type Snapshot = t.Time & {
 	state: IntervalTimerState;
 	nextState?: IntervalTimerState;
+	intervalDuration?: t.Time;
 	focusIntervals: { total: number; set: number };
 };
 
@@ -184,14 +185,19 @@ export class IntervalTimer {
 	}
 
 	public applySnapshot(snapshot: Snapshot): void {
-		const { state, nextState, focusIntervals, ...currentTime } =
-			structuredClone(snapshot);
+		const {
+			state,
+			nextState,
+			intervalDuration,
+			focusIntervals,
+			...currentTime
+		} = structuredClone(snapshot);
 		this.focusIntervals = focusIntervals;
 		this.enterInterval(
 			state,
 			currentTime,
 			nextState,
-			this.getIntervalDuration(state),
+			intervalDuration ?? this.getIntervalDuration(state),
 		);
 	}
 
@@ -462,6 +468,10 @@ export class IntervalTimer {
 			state: this.currentState,
 			...(this.pendingNextState
 				? { nextState: this.pendingNextState }
+				: {}),
+			...(t.toSeconds(this.currentIntervalDuration) !==
+			t.toSeconds(this.getIntervalDuration(this.currentState))
+				? { intervalDuration: this.currentIntervalDuration }
 				: {}),
 			focusIntervals: structuredClone(this.focusIntervals),
 		};
