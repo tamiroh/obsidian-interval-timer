@@ -145,7 +145,11 @@ const assertInSync = (model: Model, timer: IntervalTimer): void => {
 // The adapter: applying an action to the real timer
 //
 
-const runAction = (action: Action, model: Model, timer: IntervalTimer): void => {
+const runAction = (
+	action: Action,
+	model: Model,
+	timer: IntervalTimer,
+): void => {
 	switch (action.type) {
 		case "start":
 			timer.start();
