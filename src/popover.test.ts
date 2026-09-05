@@ -113,6 +113,7 @@ describe("Popover", () => {
 		// Arrange
 		const el = createDiv();
 		const popover = await createPopover(el);
+		popover.enableActions(createIntervalTimer());
 		popover.update(t.time(25, 0), "focus", "initialized");
 
 		// Act
@@ -507,6 +508,11 @@ describe("Popover", () => {
 					sign: 1,
 					minutes: 12,
 					seconds: 0,
+					intervalDuration: {
+						sign: 1,
+						minutes: 12,
+						seconds: 0,
+					},
 					focusIntervals: { set: 0, total: 0 },
 				},
 			}),
@@ -541,6 +547,11 @@ describe("Popover", () => {
 					sign: 1,
 					minutes: 18,
 					seconds: 0,
+					intervalDuration: {
+						sign: 1,
+						minutes: 18,
+						seconds: 0,
+					},
 					focusIntervals: { set: 0, total: 0 },
 				},
 			}),

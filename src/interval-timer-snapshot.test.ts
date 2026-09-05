@@ -33,6 +33,7 @@ describe("IntervalTimerSnapshotStore", () => {
 		snapshotStore.save({
 			...t.time(3, 20),
 			state: "shortBreak",
+			intervalDuration: t.time(10, 0),
 			focusIntervals: { total: 7, set: 2 },
 		});
 		const snapshot = snapshotStore.load();
@@ -42,6 +43,11 @@ describe("IntervalTimerSnapshotStore", () => {
 			minutes: 3,
 			seconds: 20,
 			sign: 1,
+			intervalDuration: {
+				minutes: 10,
+				seconds: 0,
+				sign: 1,
+			},
 			focusIntervals: { total: 7, set: 2 },
 		});
 	});

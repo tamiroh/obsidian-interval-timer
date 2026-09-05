@@ -47,6 +47,7 @@ export type IntervalTimerState = (typeof intervalTimerStates)[number];
 export type Snapshot = t.Time & {
 	state: IntervalTimerState;
 	nextState?: IntervalTimerState;
+	intervalDuration?: t.Time;
 	focusIntervals: { total: number; set: number };
 };
 
@@ -110,6 +111,8 @@ export class IntervalTimer {
 
 	private currentState: IntervalTimerState;
 
+	private currentIntervalDuration: t.Time;
+
 	private focusIntervals: { total: number; set: number };
 
 	private readonly eventListeners = new Set<
@@ -129,6 +132,10 @@ export class IntervalTimer {
 			t.time(this.settings.focusIntervalDuration, 0),
 		);
 		this.currentState = "focus";
+		this.currentIntervalDuration = t.time(
+			this.settings.focusIntervalDuration,
+			0,
+		);
 		this.autoResetScheduler = new DailyScheduler(
 			this.settings.resetTime,
 			() => {
@@ -173,11 +180,25 @@ export class IntervalTimer {
 		return this.currentState;
 	}
 
+	public get intervalDuration(): t.Time {
+		return this.currentIntervalDuration;
+	}
+
 	public applySnapshot(snapshot: Snapshot): void {
-		const { state, nextState, focusIntervals, ...currentTime } =
-			structuredClone(snapshot);
+		const {
+			state,
+			nextState,
+			intervalDuration,
+			focusIntervals,
+			...currentTime
+		} = structuredClone(snapshot);
 		this.focusIntervals = focusIntervals;
-		this.enterInterval(state, currentTime, nextState);
+		this.enterInterval(
+			state,
+			currentTime,
+			nextState,
+			intervalDuration ?? this.getIntervalDuration(state),
+		);
 	}
 
 	public subscribe(
@@ -245,16 +266,7 @@ export class IntervalTimer {
 	}
 
 	public reset(): void {
-		const resetTime = this.countdownTimer.reset();
-		if (t.isNegative(resetTime)) {
-			this.enterInterval(
-				this.currentState,
-				this.getIntervalDuration(this.currentState),
-			);
-		} else {
-			this.pendingNextState = null;
-			this.emitStateChanged("initialized");
-		}
+		this.enterInterval(this.currentState, this.currentIntervalDuration);
 		this.emit({ type: "timer-reset" });
 	}
 
@@ -416,10 +428,12 @@ export class IntervalTimer {
 		state: IntervalTimerState,
 		nextTime: t.Time,
 		pendingNextState?: IntervalTimerState,
+		total: t.Time = nextTime,
 	): void {
 		this.countdownTimer.dispose();
 		this.countdownTimer = this.createTimer(nextTime);
 		this.currentState = state;
+		this.currentIntervalDuration = total;
 		this.pendingNextState = pendingNextState ?? null;
 		this.emitStateChanged("initialized");
 	}
@@ -445,6 +459,10 @@ export class IntervalTimer {
 			state: this.currentState,
 			...(this.pendingNextState
 				? { nextState: this.pendingNextState }
+				: {}),
+			...(t.toSeconds(this.currentIntervalDuration) !==
+			t.toSeconds(this.getIntervalDuration(this.currentState))
+				? { intervalDuration: this.currentIntervalDuration }
 				: {}),
 			focusIntervals: structuredClone(this.focusIntervals),
 		};

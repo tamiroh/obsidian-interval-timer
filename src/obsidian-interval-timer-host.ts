@@ -127,6 +127,7 @@ export class IntervalTimerHost {
 				],
 				(next) => {
 					this.intervalTimer.updateSettings(next);
+					this.snapshotStore.save(this.intervalTimer.status.snapshot);
 				},
 			),
 			on(["longBreakAfter"], (next) => {

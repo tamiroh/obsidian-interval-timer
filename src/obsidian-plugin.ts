@@ -67,12 +67,12 @@ export class Plugin extends BasePlugin {
 			taskLineController: this.taskLineController,
 		});
 		this.intervalTimerHost = intervalTimerHost;
+		this.timerDisplay.enableClick(intervalTimerHost.timer);
 		intervalTimerHost.initialize();
 
 		// Register timer integrations
 		this.taskLineController.setup(this, intervalTimerHost.timer);
 		registerCommands(this, intervalTimerHost.timer);
-		this.timerDisplay.enableClick(intervalTimerHost.timer);
 
 		// Persist settings changes
 		this.settingStore.subscribe((_previous, next) => {

@@ -603,6 +603,11 @@ describe("IntervalTimer", () => {
 						sign: 1,
 						minutes: 7,
 						seconds: 30,
+						intervalDuration: {
+							sign: 1,
+							minutes: 7,
+							seconds: 30,
+						},
 						focusIntervals: { set: 0, total: 0 },
 					},
 				}),
@@ -1396,6 +1401,93 @@ describe("IntervalTimer", () => {
 	});
 
 	describe("Snapshot", () => {
+		it("should preserve a retimed interval duration", () => {
+			// Arrange
+			const settings: IntervalTimerSetting = {
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			};
+			const intervalTimer = new IntervalTimer(settings);
+			intervalTimer.retime(10);
+			const restored = new IntervalTimer(settings);
+
+			// Act
+			restored.applySnapshot(intervalTimer.status.snapshot);
+
+			// Assert
+			expect(restored.intervalDuration).toEqual(t.time(10, 0));
+			expect(restored.status.snapshot).toEqual(
+				intervalTimer.status.snapshot,
+			);
+
+			intervalTimer.dispose();
+			restored.dispose();
+		});
+
+		it("should reset a restored timer to its full interval duration", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.applySnapshot({
+				...t.time(10, 0),
+				state: "focus",
+				intervalDuration: t.time(25, 0),
+				focusIntervals: { total: 0, set: 0 },
+			});
+
+			// Act
+			intervalTimer.reset();
+
+			// Assert
+			expect(intervalTimer.status.snapshot).toMatchObject({
+				...t.time(25, 0),
+				state: "focus",
+				focusIntervals: { total: 0, set: 0 },
+			});
+
+			intervalTimer.dispose();
+		});
+
+		it("should reset restored overtime to its retimed duration", () => {
+			// Arrange
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				intervalCompletionBehavior: "countDownPastZero",
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.applySnapshot({
+				...t.neg(t.time(1, 0)),
+				state: "focus",
+				nextState: "shortBreak",
+				intervalDuration: t.time(10, 0),
+				focusIntervals: { total: 1, set: 1 },
+			});
+
+			// Act
+			intervalTimer.reset();
+
+			// Assert
+			expect(intervalTimer.status.snapshot).toEqual({
+				...t.time(10, 0),
+				state: "focus",
+				intervalDuration: t.time(10, 0),
+				focusIntervals: { total: 1, set: 1 },
+			});
+
+			intervalTimer.dispose();
+		});
+
 		it("should apply snapshot values to state, time, and intervals", () => {
 			// Arrange
 			const events: IntervalTimerEvent[] = [];
@@ -1420,6 +1512,7 @@ describe("IntervalTimer", () => {
 			});
 
 			// Assert
+			expect(intervalTimer.intervalDuration).toEqual(t.time(5, 0));
 			expect(stateChangedEvents(events)).toContainEqual(
 				expect.objectContaining({
 					timerState: "initialized",
@@ -1823,6 +1916,11 @@ describe("IntervalTimer", () => {
 					minutes: 7,
 					seconds: 0,
 					state: "focus",
+					intervalDuration: {
+						sign: 1,
+						minutes: 7,
+						seconds: 0,
+					},
 					focusIntervals: { total: 1, set: 1 },
 				},
 			});

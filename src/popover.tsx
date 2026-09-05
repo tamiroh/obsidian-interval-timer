@@ -82,8 +82,6 @@ export class Popover {
 
 	private readonly store: ObservableStore<PopoverSnapshot>;
 
-	private intervalTotalSeconds = 0;
-
 	constructor(
 		private readonly container: HTMLElement,
 		options: {
@@ -151,10 +149,7 @@ export class Popover {
 		intervalsSet = 0,
 		longBreakAfter = defaultLongBreakAfter,
 	): void {
-		const remainingSeconds = t.toSeconds(currentTime);
-		if (timerState === "initialized" || this.intervalTotalSeconds === 0) {
-			this.intervalTotalSeconds = remainingSeconds;
-		}
+		const intervalTimer = this.store.state.intervalTimer;
 
 		this.store.update({
 			time: currentTime,
@@ -162,11 +157,11 @@ export class Popover {
 			timerState,
 			intervalsSet,
 			longBreakAfter,
-			remainingPercent: t.isNegative(currentTime)
-				? 0
-				: this.getRemainingPercent(remainingSeconds),
-			touchAction:
-				this.store.state.intervalTimer?.predictTouch() ?? "start",
+			remainingPercent: this.getRemainingPercent(
+				currentTime,
+				intervalTimer,
+			),
+			touchAction: intervalTimer?.predictTouch() ?? "start",
 		});
 	}
 
@@ -185,12 +180,20 @@ export class Popover {
 		});
 	}
 
-	private getRemainingPercent(remainingSeconds: number): number {
-		if (this.intervalTotalSeconds === 0) return 0;
+	private getRemainingPercent(
+		currentTime: t.Time,
+		intervalTimer: IntervalTimer | null,
+	): number {
+		if (t.isNegative(currentTime)) return 0;
+
+		const totalSeconds = t.toSeconds(
+			intervalTimer?.intervalDuration ?? currentTime,
+		);
+		if (totalSeconds <= 0) return 0;
 
 		return Math.min(
 			100,
-			Math.max(0, (remainingSeconds / this.intervalTotalSeconds) * 100),
+			Math.max(0, (t.toSeconds(currentTime) / totalSeconds) * 100),
 		);
 	}
 
