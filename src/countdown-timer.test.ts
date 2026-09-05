@@ -413,6 +413,27 @@ describe("CountdownTimer", () => {
 		);
 	});
 
+	it("should not drift when paused and resumed repeatedly within a second", () => {
+		// Arrange
+		const countdownTimer = new CountdownTimer({
+			initialTime: t.time(25, 0),
+		});
+
+		// Act
+		countdownTimer.start();
+		for (let i = 0; i < 10; i++) {
+			vi.advanceTimersByTime(1900);
+			countdownTimer.pause();
+			countdownTimer.start();
+		}
+		vi.advanceTimersByTime(100);
+
+		// Assert
+		// 10 * 1900ms = 19000ms of real time elapsed, so exactly 19s should
+		// have been consumed regardless of how many pause/resume cycles ran.
+		expect(countdownTimer.currentTime).toEqual(t.time(24, 41));
+	});
+
 	it("should stop timer when dispose is called while running", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({

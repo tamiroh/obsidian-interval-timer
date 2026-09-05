@@ -31,6 +31,7 @@ type StateData =
 	| {
 			type: (typeof timerStates)[2];
 			currentTime: t.Time;
+			elapsedMs: number;
 	  }
 	| {
 			type: (typeof timerStates)[3];
@@ -64,6 +65,8 @@ const initialStateFor = (
 
 export class CountdownTimer {
 	private currentState: StateData;
+
+	private startAt: Date | null = null;
 
 	private readonly initialTime: t.Time;
 
@@ -109,14 +112,13 @@ export class CountdownTimer {
 
 		const startAt = match(this.currentState)
 			.with({ type: "initialized" }, () => new Date())
-			.with({ type: "paused" }, (state) => {
-				const elapsedMs =
-					t.toMilliseconds(this.initialTime) -
-					t.toMilliseconds(state.currentTime);
-				return new Date(Date.now() - elapsedMs);
-			})
+			.with(
+				{ type: "paused" },
+				(state) => new Date(Date.now() - state.elapsedMs),
+			)
 			.exhaustive();
 
+		this.startAt = startAt;
 		this.currentState = {
 			type: "running",
 			timeoutId: this.scheduleNextTick(startAt),
@@ -141,6 +143,7 @@ export class CountdownTimer {
 		this.currentState = {
 			type: "paused",
 			currentTime: this.currentState.currentTime,
+			elapsedMs: this.captureElapsedMs(),
 		};
 		this.emit({ type: "paused" });
 
@@ -169,7 +172,12 @@ export class CountdownTimer {
 		this.currentState = {
 			type: "paused",
 			currentTime: this.currentState.currentTime,
+			elapsedMs: this.captureElapsedMs(),
 		};
+	}
+
+	private captureElapsedMs(): number {
+		return this.startAt ? Date.now() - this.startAt.getTime() : 0;
 	}
 
 	private scheduleNextTick(startAt: Date): number {
