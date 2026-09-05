@@ -7,7 +7,7 @@ import {
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { match } from "ts-pattern";
 import { type TimerState } from "./countdown-timer";
-import { isElement, isHtmlElement, windowFor } from "./dom";
+import { isElement, isHtmlElement } from "./dom";
 import {
 	defaultLongBreakAfter,
 	type IntervalTimer,
@@ -16,7 +16,7 @@ import {
 	type TouchAction,
 } from "./interval-timer";
 import { ObservableStore, useObservableStore } from "./observable-store";
-import { type Position, usePopoverFloating } from "./popover-floating";
+import { usePopoverFloating } from "./popover-floating";
 import type { ResultFailureReason } from "./result";
 import * as t from "./time";
 
@@ -45,16 +45,6 @@ type ExpandedTask = {
 	name: string;
 	hoverBounds: Pick<DOMRect, "bottom" | "left" | "right" | "top">;
 };
-
-type ClosingAnimationState =
-	| { current: "idle" }
-	| {
-			current: "animating";
-			offsetX: number;
-			offsetY: number;
-			restoreFocus: boolean;
-	  }
-	| { current: "completed" };
 
 const retimeValidationMessage = (
 	reason: ResultFailureReason<RetimeResult>,
@@ -85,7 +75,6 @@ export class Popover {
 	constructor(
 		private readonly container: HTMLElement,
 		options: {
-			getReturnTarget: () => Position;
 			onFloatingChange: (floating: boolean) => void;
 			onRestoreFocus: () => void;
 			notify: (message: string) => void;
@@ -117,7 +106,6 @@ export class Popover {
 		render(
 			<PopoverView
 				store={this.store}
-				getReturnTarget={options.getReturnTarget}
 				onFloatingChange={options.onFloatingChange}
 				onRestoreFocus={options.onRestoreFocus}
 				notify={options.notify}
@@ -219,7 +207,6 @@ export class Popover {
 
 const PopoverView = ({
 	store,
-	getReturnTarget,
 	onFloatingChange,
 	onRestoreFocus,
 	notify,
@@ -228,7 +215,6 @@ const PopoverView = ({
 	draggable = true,
 }: {
 	store: ObservableStore<PopoverSnapshot>;
-	getReturnTarget: () => Position;
 	onFloatingChange: (floating: boolean) => void;
 	onRestoreFocus: () => void;
 	notify: (message: string) => void;
@@ -253,14 +239,10 @@ const PopoverView = ({
 	const [retimeValue, setRetimeValue] = useState(String(currentTime.minutes));
 	const [shouldRestoreFocus, setShouldRestoreFocus] = useState(false);
 	const [expandedTask, setExpandedTask] = useState<ExpandedTask | null>(null);
-	const [closingAnimationState, setClosingAnimationState] =
-		useState<ClosingAnimationState>({ current: "idle" });
 	const floating = usePopoverFloating({
 		isFloating,
 		draggable,
-		getReturnTarget,
 		onEnterFloating: () => {
-			setClosingAnimationState({ current: "idle" });
 			store.update({ isFloating: true });
 			onFloatingChange(true);
 		},
@@ -338,7 +320,6 @@ const PopoverView = ({
 	};
 
 	const dismiss = (restoreFocus: boolean) => {
-		setClosingAnimationState({ current: "completed" });
 		floating.reset();
 		store.update({ isFloating: false, isDismissed: true });
 		onFloatingChange(false);
@@ -354,27 +335,7 @@ const PopoverView = ({
 		const restoreFocus = event.detail === 0;
 		if (!restoreFocus) event.currentTarget.blur();
 
-		const bounds =
-			event.currentTarget.parentElement?.getBoundingClientRect();
-		if (
-			!floating.returnTarget ||
-			!bounds ||
-			windowFor(event.currentTarget).matchMedia(
-				"(prefers-reduced-motion: reduce)",
-			).matches
-		) {
-			dismiss(restoreFocus);
-			return;
-		}
-
-		setClosingAnimationState({
-			current: "animating",
-			offsetX:
-				floating.returnTarget.left - (bounds.left + bounds.width / 2),
-			offsetY:
-				floating.returnTarget.top - (bounds.top + bounds.height / 2),
-			restoreFocus,
-		});
+		dismiss(restoreFocus);
 	};
 
 	const handleReturnToOrigin = (
@@ -392,8 +353,6 @@ const PopoverView = ({
 			: "interval-timer-popover-break",
 		isFloating && "interval-timer-popover-floating",
 		floating.hasMovedFromOrigin && "interval-timer-popover-moved",
-		closingAnimationState.current === "animating" &&
-			"interval-timer-popover-returning",
 		floating.isDragging && "interval-timer-popover-dragging",
 		isDismissed && "interval-timer-popover-dismissed",
 		!dismissible && "interval-timer-popover-no-close",
@@ -405,26 +364,10 @@ const PopoverView = ({
 	return (
 		<div
 			className={popoverClassName}
-			style={
-				closingAnimationState.current === "animating"
-					? {
-							...floating.position,
-							transform: `translate(${closingAnimationState.offsetX}px, ${closingAnimationState.offsetY}px) scale(0.15)`,
-						}
-					: (floating.position ?? undefined)
-			}
+			style={floating.position ?? undefined}
 			role="group"
 			tabIndex={0}
 			{...floating.handlers}
-			onTransitionEnd={(event) => {
-				if (
-					event.target === event.currentTarget &&
-					event.propertyName === "transform" &&
-					closingAnimationState.current === "animating"
-				) {
-					dismiss(closingAnimationState.restoreFocus);
-				}
-			}}
 			onContextMenu={(event) => {
 				blurFocusWithin(event.currentTarget);
 			}}

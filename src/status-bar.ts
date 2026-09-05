@@ -62,13 +62,6 @@ export class StatusBar implements TimerDisplay {
 		compactTime.append(this.compactSeconds);
 
 		this.popover = new Popover(this.statusBarItem, {
-			getReturnTarget: () => {
-				const bounds = this.statusBarItem.getBoundingClientRect();
-				return {
-					left: bounds.left + bounds.width / 2,
-					top: bounds.top + bounds.height / 2,
-				};
-			},
 			onFloatingChange: (floating) =>
 				this.statusBarItem.classList.toggle(
 					popoverFloatingClass,
