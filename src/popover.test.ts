@@ -20,8 +20,7 @@ const settings: IntervalTimerSetting = {
 const popovers = new Set<Popover>();
 const intervalTimers = new Set<IntervalTimer>();
 
-const createOptions = (returnTarget = { left: 0, top: 0 }) => ({
-	getReturnTarget: vi.fn(() => returnTarget),
+const createOptions = () => ({
 	onFloatingChange: vi.fn(),
 	onRestoreFocus: vi.fn(),
 	notify: vi.fn(),
@@ -955,48 +954,13 @@ describe("Popover", () => {
 		expect(popover).toHaveClass("interval-timer-popover-floating");
 	});
 
-	it("starts the closing animation when the close button is clicked", async () => {
+	it("dismisses the popover immediately when the close button is clicked", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
-		const options = createOptions({ left: 925, top: 710 });
+		const options = createOptions();
 		await createPopover(el, options);
 		const popover = within(el).getByRole("group");
-		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
-			left: 100,
-			top: 200,
-			width: 250,
-			height: 150,
-		} as DOMRect);
-		await user.click(popover);
-
-		// Act
-		await user.click(within(el).getByRole("button", { name: "Close" }));
-
-		// Assert
-		expect(popover).toHaveClass("interval-timer-popover-returning");
-		expect(popover).toHaveStyle({
-			transform: "translate(700px, 435px) scale(0.15)",
-		});
-		expect(options.onFloatingChange).toHaveBeenLastCalledWith(true);
-	});
-
-	it("dismisses immediately without animating when reduced motion is preferred", async () => {
-		// Arrange
-		const user = userEvent.setup();
-		const el = createDiv();
-		const options = createOptions({ left: 925, top: 710 });
-		await createPopover(el, options);
-		const popover = within(el).getByRole("group");
-		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
-			left: 100,
-			top: 200,
-			width: 250,
-			height: 150,
-		} as DOMRect);
-		vi.spyOn(window, "matchMedia").mockReturnValue({
-			matches: true,
-		} as MediaQueryList);
 		await user.click(popover);
 
 		// Act
@@ -1004,37 +968,10 @@ describe("Popover", () => {
 
 		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-dismissed");
-		expect(popover).not.toHaveClass("interval-timer-popover-returning");
 		expect(options.onFloatingChange).toHaveBeenLastCalledWith(false);
 	});
 
-	it("dismisses a floating popover once its closing animation finishes", async () => {
-		// Arrange
-		const user = userEvent.setup();
-		const el = createDiv();
-		const options = createOptions({ left: 925, top: 710 });
-		await createPopover(el, options);
-		const popover = within(el).getByRole("group");
-		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
-			left: 100,
-			top: 200,
-			width: 250,
-			height: 150,
-		} as DOMRect);
-		await user.click(popover);
-		await user.click(within(el).getByRole("button", { name: "Close" }));
-
-		// Act
-		fireEvent.transitionEnd(popover, { propertyName: "transform" });
-
-		// Assert
-		expect(popover).toHaveClass("interval-timer-popover-dismissed");
-		expect(options.onFloatingChange).toHaveBeenLastCalledWith(false);
-		// eslint-disable-next-line jest-dom/prefer-to-have-style -- toHaveStyle can't assert that inline styles were cleared
-		expect(popover).toHaveAttribute("style", "");
-	});
-
-	it("starts the closing animation when Enter is pressed on a focused close button", async () => {
+	it("dismisses the popover when Enter is pressed on a focused close button", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
@@ -1049,7 +986,7 @@ describe("Popover", () => {
 		await user.keyboard("{Enter}");
 
 		// Assert
-		expect(popover).toHaveClass("interval-timer-popover-returning");
+		expect(popover).toHaveClass("interval-timer-popover-dismissed");
 	});
 
 	it("restores compact focus after closing from the keyboard", async () => {
@@ -1062,10 +999,9 @@ describe("Popover", () => {
 		await user.click(popover);
 		const close = within(el).getByRole("button", { name: "Close" });
 		close.focus();
-		await user.keyboard("{Enter}");
 
 		// Act
-		fireEvent.transitionEnd(popover, { propertyName: "transform" });
+		await user.keyboard("{Enter}");
 
 		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-dismissed");

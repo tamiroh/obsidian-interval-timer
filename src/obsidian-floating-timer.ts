@@ -35,13 +35,6 @@ export class FloatingTimer implements TimerDisplay {
 		);
 
 		this.popover = new Popover(this.containerEl, {
-			getReturnTarget: () => {
-				const bounds = this.containerEl.getBoundingClientRect();
-				return {
-					left: bounds.left + bounds.width / 2,
-					top: bounds.top + bounds.height / 2,
-				};
-			},
 			onFloatingChange: () => {},
 			onRestoreFocus: () => {},
 			...callbacks,

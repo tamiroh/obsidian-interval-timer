@@ -18,13 +18,11 @@ type Drag = {
 type UsePopoverFloatingOptions = {
 	isFloating: boolean;
 	draggable: boolean;
-	getReturnTarget: () => Position;
 	onEnterFloating: () => void;
 };
 
 export type PopoverFloating = {
 	position: Position | null;
-	returnTarget: Position | null;
 	hasMovedFromOrigin: boolean;
 	isDragging: boolean;
 	enterFloating: (popover: HTMLDivElement) => void;
@@ -43,13 +41,11 @@ export type PopoverFloating = {
 export const usePopoverFloating = ({
 	isFloating,
 	draggable,
-	getReturnTarget,
 	onEnterFloating,
 }: UsePopoverFloatingOptions): PopoverFloating => {
 	const [drag, setDrag] = useState<Drag | null>(null);
 	const [position, setPosition] = useState<Position | null>(null);
 	const [origin, setOrigin] = useState<Position | null>(null);
-	const [returnTarget, setReturnTarget] = useState<Position | null>(null);
 
 	const enterFloating = (popover: HTMLDivElement) => {
 		if (isFloating) return;
@@ -57,7 +53,6 @@ export const usePopoverFloating = ({
 		const bounds = popover.getBoundingClientRect();
 		setPosition({ left: bounds.left, top: bounds.top });
 		setOrigin({ left: bounds.left, top: bounds.top });
-		setReturnTarget(getReturnTarget());
 		onEnterFloating();
 	};
 
@@ -68,7 +63,6 @@ export const usePopoverFloating = ({
 	const reset = () => {
 		setPosition(null);
 		setOrigin(null);
-		setReturnTarget(null);
 	};
 
 	const handlePointerDown = (event: TargetedPointerEvent<HTMLDivElement>) => {
@@ -125,7 +119,6 @@ export const usePopoverFloating = ({
 
 	return {
 		position,
-		returnTarget,
 		hasMovedFromOrigin:
 			isFloating &&
 			origin !== null &&

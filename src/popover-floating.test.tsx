@@ -2,19 +2,18 @@ import { fireEvent, within } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import { useState } from "preact/hooks";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { type Position, usePopoverFloating } from "./popover-floating";
+import { usePopoverFloating } from "./popover-floating";
 import { cleanup, render } from "./render-preact";
 
 afterEach(() => {
 	cleanup();
 });
 
-const Target = ({ getReturnTarget }: { getReturnTarget: () => Position }) => {
+const Target = () => {
 	const [isFloating, setIsFloating] = useState(false);
 	const floating = usePopoverFloating({
 		isFloating,
 		draggable: true,
-		getReturnTarget,
 		onEnterFloating: () => {
 			setIsFloating(true);
 		},
@@ -36,9 +35,7 @@ describe("usePopoverFloating", () => {
 	it("moves the position while dragging after entering floating mode", async () => {
 		// Arrange
 		const user = userEvent.setup();
-		const container = render(
-			<Target getReturnTarget={() => ({ left: 0, top: 0 })} />,
-		);
+		const container = render(<Target />);
 		const target = within(container).getByTestId("target");
 		vi.spyOn(target, "getBoundingClientRect").mockReturnValue({
 			left: 100,
@@ -67,9 +64,7 @@ describe("usePopoverFloating", () => {
 	it("captures the pointer when dragging starts after entering floating mode", async () => {
 		// Arrange
 		const user = userEvent.setup();
-		const container = render(
-			<Target getReturnTarget={() => ({ left: 0, top: 0 })} />,
-		);
+		const container = render(<Target />);
 		const target = within(container).getByTestId("target");
 		vi.spyOn(target, "getBoundingClientRect").mockReturnValue({
 			left: 100,
@@ -93,9 +88,7 @@ describe("usePopoverFloating", () => {
 
 	it("does not move when floating mode is off", () => {
 		// Arrange
-		const container = render(
-			<Target getReturnTarget={() => ({ left: 0, top: 0 })} />,
-		);
+		const container = render(<Target />);
 		const target = within(container).getByTestId("target");
 		fireEvent.pointerDown(target, {
 			pointerId: 1,
