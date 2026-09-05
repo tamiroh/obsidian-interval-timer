@@ -580,6 +580,52 @@ describe("CountdownTimer", () => {
 		expect(countdownTimer.state).toBe("paused");
 	});
 
+	it("should not resume ticking when a tick listener disposes the timer", () => {
+		// Arrange
+		const countdownTimer = new CountdownTimer({
+			initialTime: t.time(1, 0),
+		});
+		countdownTimer.subscribe((event) => {
+			if (event.type === "tick") {
+				countdownTimer.dispose();
+			}
+		});
+
+		// Act
+		countdownTimer.start();
+		vi.advanceTimersByTime(1000);
+		vi.advanceTimersByTime(5000);
+
+		// Assert
+		expect(countdownTimer.state).toBe("paused");
+	});
+
+	it("should keep ticking on the next second when a tick listener throws", () => {
+		// Arrange
+		const countdownTimer = new CountdownTimer({
+			initialTime: t.time(1, 0),
+		});
+		let tickCount = 0;
+		countdownTimer.subscribe((event) => {
+			if (event.type !== "tick") return;
+			tickCount++;
+			if (tickCount === 1) throw new Error("listener failure");
+		});
+
+		// Act
+		countdownTimer.start();
+		try {
+			vi.advanceTimersByTime(1000);
+		} catch {
+			// the first tick listener is expected to throw
+		}
+		vi.advanceTimersByTime(1000);
+
+		// Assert
+		expect(tickCount).toBe(2);
+		expect(countdownTimer.state).toBe("running");
+	});
+
 	it("should not override a listener's reset call on completion", () => {
 		// Arrange
 		const countdownTimer = new CountdownTimer({

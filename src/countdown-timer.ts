@@ -189,28 +189,22 @@ export class CountdownTimer {
 
 			const result = this.updateCurrentTime(startAt);
 
-			if (result === "subtracted") {
-				this.emit({ type: "tick" });
-			}
-			if (result === "completed") {
-				if (!this.continuePastZero) {
-					this.currentState = { type: "completed" };
-				}
-				this.emit({ type: "tick" });
-				this.emit({ type: "completed" });
-				if (
-					!this.continuePastZero ||
-					this.currentState.type !== "running"
-				) {
-					return;
-				}
+			if (result === "completed" && !this.continuePastZero) {
+				this.currentState = { type: "completed" };
+			} else {
+				this.currentState = {
+					type: "running",
+					currentTime: this.currentState.currentTime,
+					timeoutId: this.scheduleNextTick(startAt),
+				};
 			}
 
-			this.currentState = {
-				type: "running",
-				currentTime: this.currentState.currentTime,
-				timeoutId: this.scheduleNextTick(startAt),
-			};
+			if (result === "subtracted") {
+				this.emit({ type: "tick" });
+			} else if (result === "completed") {
+				this.emit({ type: "tick" });
+				this.emit({ type: "completed" });
+			}
 		}, delayMs);
 	}
 
