@@ -139,7 +139,7 @@ export class IntervalTimer {
 		this.autoResetScheduler = new DailyScheduler(
 			this.settings.resetTime,
 			() => {
-				this.resetTotalIntervals();
+				this.handleAutoReset();
 			},
 		);
 	}
@@ -349,6 +349,15 @@ export class IntervalTimer {
 		this.countdownTimer.dispose();
 		this.disableAutoReset();
 		this.eventListeners.clear();
+	}
+
+	private handleAutoReset(): void {
+		if (this.countdownTimer.state === "running" || this.isInOvertime) {
+			this.focusIntervals = { total: 0, set: 0 };
+			this.emitStateChanged(this.countdownTimer.state);
+			return;
+		}
+		this.resetTotalIntervals();
 	}
 
 	private enterNextInterval({

@@ -139,6 +139,81 @@ describe("IntervalTimer", () => {
 			intervalTimer.dispose();
 		});
 
+		it("should not interrupt a running focus interval when reset time is crossed", () => {
+			// Arrange
+			vi.setSystemTime(new Date(2024, 0, 1, 23, 59, 30, 0)); // 23:59:30
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+			});
+			intervalTimer.subscribe((event) => events.push(event));
+			intervalTimer.enableAutoReset();
+			intervalTimer.start();
+			vi.advanceTimersByTime(10_000); // Advance to 23:59:40, 10s into the interval
+			clear(events);
+
+			// Act
+			vi.advanceTimersByTime(30_000); // Advance to 00:00:10 (crosses reset time)
+
+			// Assert
+			expect(intervalTimer.status).toMatchObject({
+				timerState: "running",
+				snapshot: {
+					state: "focus",
+					minutes: 24,
+					seconds: 20,
+					focusIntervals: { set: 0, total: 0 },
+				},
+			});
+
+			intervalTimer.dispose();
+		});
+
+		it("should not interrupt a focus interval running in overtime when reset time is crossed", () => {
+			// Arrange
+			vi.setSystemTime(new Date(2024, 0, 1, 23, 59, 30, 0)); // 23:59:30
+			const events: IntervalTimerEvent[] = [];
+			const intervalTimer = new IntervalTimer({
+				focusIntervalDuration: 25,
+				shortBreakDuration: 5,
+				longBreakDuration: 15,
+				longBreakAfter: 4,
+				resetTime: { hours: 0, minutes: 0 },
+				intervalCompletionBehavior: "countDownPastZero",
+			});
+			intervalTimer.subscribe((event) => events.push(event));
+			intervalTimer.enableAutoReset();
+			intervalTimer.applySnapshot({
+				...t.time(0, 5),
+				state: "focus",
+				focusIntervals: { total: 3, set: 1 },
+			});
+			intervalTimer.start();
+			vi.advanceTimersByTime(10_000); // Advance to 23:59:40, past completion into overtime
+			clear(events);
+
+			// Act
+			vi.advanceTimersByTime(30_000); // Advance to 00:00:10 (crosses reset time)
+
+			// Assert
+			expect(intervalTimer.isInOvertime).toBe(true);
+			expect(intervalTimer.status).toMatchObject({
+				timerState: "running",
+				snapshot: {
+					state: "focus",
+					nextState: "shortBreak",
+					sign: -1,
+					focusIntervals: { set: 0, total: 0 },
+				},
+			});
+
+			intervalTimer.dispose();
+		});
+
 		it("should not reset intervals after disableAutoReset", () => {
 			// Arrange
 			vi.setSystemTime(new Date(2024, 0, 1, 23, 59, 0, 0)); // 23:59:00
