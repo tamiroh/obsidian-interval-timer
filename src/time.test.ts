@@ -1,3 +1,4 @@
+import fc from "fast-check";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import * as t from "./time";
 
@@ -32,21 +33,49 @@ describe("toSeconds", () => {
 	});
 });
 
+const totalSecondsUpperBound = t.minutesUpperBound * t.secondsUpperBound;
+
 describe("fromSeconds", () => {
-	it("should return a positive Time", () => {
-		expect(t.fromSeconds(425)).toEqual(t.time(7, 5));
+	it("should break a non-negative second count into minutes and seconds", () => {
+		fc.assert(
+			fc.property(
+				fc.integer({ min: 0, max: totalSecondsUpperBound - 1 }),
+				(seconds) => {
+					expect(t.fromSeconds(seconds)).toEqual({
+						minutes: Math.floor(seconds / 60),
+						seconds: seconds % 60,
+						sign: 1,
+					});
+				},
+			),
+		);
 	});
 
-	it("should return a negative Time for overtime", () => {
-		expect(t.fromSeconds(-425)).toEqual(t.neg(t.time(7, 5)));
+	it("should break a negative second count into minutes and seconds", () => {
+		fc.assert(
+			fc.property(
+				fc.integer({ min: 1, max: totalSecondsUpperBound - 1 }),
+				(seconds) => {
+					expect(t.fromSeconds(-seconds)).toEqual({
+						minutes: Math.floor(seconds / 60),
+						seconds: seconds % 60,
+						sign: -1,
+					});
+				},
+			),
+		);
 	});
 
-	it("should return null when minutes overflow", () => {
-		expect(t.fromSeconds(600 * 60)).toBeNull();
-	});
-
-	it("should return null when negative minutes overflow", () => {
-		expect(t.fromSeconds(-600 * 60)).toBeNull();
+	it("should return null once minutes overflow, in either direction", () => {
+		fc.assert(
+			fc.property(
+				fc.integer({ min: totalSecondsUpperBound, max: 10_000_000 }),
+				fc.constantFrom(1, -1),
+				(magnitude, sign) => {
+					expect(t.fromSeconds(magnitude * sign)).toBeNull();
+				},
+			),
+		);
 	});
 });
 
@@ -58,43 +87,92 @@ describe("isNegative", () => {
 });
 
 describe("parseMinutes", () => {
-	it.each([
-		{ input: 0, expected: 0 },
-		{ input: "25", expected: 25 },
-	])("should parse minutes: $input", ({ input, expected }) => {
-		expect(t.parseMinutes(input)).toBe(expected);
+	it("should parse every in-range integer, as a number or a numeric string", () => {
+		fc.assert(
+			fc.property(
+				fc.integer({ min: 0, max: t.minutesUpperBound - 1 }),
+				(minutes) => {
+					expect(t.parseMinutes(minutes)).toBe(minutes);
+					expect(t.parseMinutes(String(minutes))).toBe(minutes);
+				},
+			),
+		);
 	});
 
-	it.each([{ input: 600 }, { input: -1 }, { input: 1.5 }, { input: "abc" }])(
-		"should reject minutes: $input",
-		({ input }) => {
-			expect(t.parseMinutes(input)).toBeNull();
-		},
-	);
+	it("should reject out-of-range or non-integer numbers", () => {
+		fc.assert(
+			fc.property(
+				fc.oneof(
+					fc.integer({ max: -1 }),
+					fc.integer({ min: t.minutesUpperBound }),
+					fc
+						.double({ noNaN: true })
+						.filter((value) => !Number.isInteger(value)),
+				),
+				(value) => {
+					expect(t.parseMinutes(value)).toBeNull();
+				},
+			),
+		);
+	});
+
+	it("should reject non-numeric strings", () => {
+		expect(t.parseMinutes("abc")).toBeNull();
+	});
 });
 
 describe("parseSeconds", () => {
-	it.each([
-		{ input: 0, expected: 0 },
-		{ input: "59", expected: 59 },
-	])("should parse seconds: $input", ({ input, expected }) => {
-		expect(t.parseSeconds(input)).toBe(expected);
+	it("should parse every in-range integer, as a number or a numeric string", () => {
+		fc.assert(
+			fc.property(
+				fc.integer({ min: 0, max: t.secondsUpperBound - 1 }),
+				(seconds) => {
+					expect(t.parseSeconds(seconds)).toBe(seconds);
+					expect(t.parseSeconds(String(seconds))).toBe(seconds);
+				},
+			),
+		);
 	});
 
-	it.each([{ input: 60 }, { input: "60" }, { input: -1 }, { input: 1.5 }])(
-		"should reject seconds: $input",
-		({ input }) => {
-			expect(t.parseSeconds(input)).toBeNull();
-		},
-	);
+	it("should reject out-of-range or non-integer numbers", () => {
+		fc.assert(
+			fc.property(
+				fc.oneof(
+					fc.integer({ max: -1 }),
+					fc.integer({ min: t.secondsUpperBound }),
+					fc
+						.double({ noNaN: true })
+						.filter((value) => !Number.isInteger(value)),
+				),
+				(value) => {
+					expect(t.parseSeconds(value)).toBeNull();
+				},
+			),
+		);
+	});
+
+	it("should reject non-numeric strings", () => {
+		expect(t.parseSeconds("abc")).toBeNull();
+	});
 });
 
 describe("parseDurationMinutes", () => {
-	it("should parse a positive duration", () => {
-		expect(t.parseDurationMinutes("25")).toEqual({
-			ok: true,
-			value: 25,
-		});
+	it("should parse every in-range positive integer, as a number or a numeric string", () => {
+		fc.assert(
+			fc.property(
+				fc.integer({ min: 1, max: t.minutesUpperBound - 1 }),
+				(minutes) => {
+					expect(t.parseDurationMinutes(minutes)).toEqual({
+						ok: true,
+						value: minutes,
+					});
+					expect(t.parseDurationMinutes(String(minutes))).toEqual({
+						ok: true,
+						value: minutes,
+					});
+				},
+			),
+		);
 	});
 
 	it.each([
