@@ -28,7 +28,7 @@ const startTaskButtonDecoration = Decoration.widget({
 			link.href = "#";
 			link.className =
 				"interval-timer-task-line-highlight-start-task-button";
-			link.textContent = "Start task";
+			link.textContent = "Start";
 			link.addEventListener("mousedown", (event) => {
 				event.preventDefault();
 			});
