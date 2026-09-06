@@ -3,7 +3,7 @@ import {
 	ESLintUtils,
 	TSESTree,
 } from "@typescript-eslint/utils";
-import type * as ts from "typescript";
+import * as ts from "typescript";
 
 const createRule = ESLintUtils.RuleCreator((name) => `local/${name}`);
 
@@ -34,7 +34,30 @@ const isAssertStatement = (statement: TSESTree.Statement): boolean =>
 	getChainRootName(statement.expression) === "expect";
 
 //
-// Rule
+// Module helpers
+//
+
+const NODE_MODULES = "/node_modules/";
+
+// `/path/to/node_modules/@types/node/globals.d.ts` -> `@types/node`
+const packageNameOf = (fileName: string): string | null => {
+	const index = fileName.lastIndexOf(NODE_MODULES);
+	if (index === -1) return null;
+
+	const [scopeOrName, nameInScope] = fileName
+		.slice(index + NODE_MODULES.length)
+		.split("/");
+	if (scopeOrName === undefined) return null;
+
+	return scopeOrName.startsWith("@")
+		? nameInScope === undefined
+			? null
+			: `${scopeOrName}/${nameInScope}`
+		: scopeOrName;
+};
+
+//
+// Rules
 //
 
 const vitestAaaOrder = createRule({
@@ -247,6 +270,105 @@ const requireDispose = createRule({
 	},
 });
 
+type NoDeclarationsFromModuleOptions = [
+	{ modules: string[]; message?: string },
+];
+
+const noDeclarationsFromModule = createRule<
+	NoDeclarationsFromModuleOptions,
+	"declaredByModule" | "declaredByModuleWithMessage"
+>({
+	name: "no-declarations-from-module",
+	meta: {
+		type: "problem",
+		docs: {
+			description:
+				"Disallow names that come from a module's type definitions without an import: globals it declares, members it adds to built-in types and types it declares globally. No import statement exists for `no-restricted-imports` to restrict, so the dependency on the module is invisible.",
+		},
+		messages: {
+			declaredByModule:
+				"`{{name}}` is declared by the type definitions of `{{module}}`. Using it makes this file depend on `{{module}}`.",
+			declaredByModuleWithMessage:
+				"`{{name}}` is declared by the type definitions of `{{module}}`. {{message}}",
+		},
+		schema: [
+			{
+				type: "object",
+				properties: {
+					modules: {
+						type: "array",
+						items: { type: "string" },
+						minItems: 1,
+						uniqueItems: true,
+					},
+					message: { type: "string" },
+				},
+				required: ["modules"],
+				additionalProperties: false,
+			},
+		],
+	},
+	defaultOptions: [{ modules: [] }],
+	create(context, [{ modules, message }]) {
+		const services = ESLintUtils.getParserServices(context);
+
+		// Augmenting an existing declaration is not the same as owning the name:
+		// a module may add methods to `interface String`, but `String` itself
+		// comes from `lib.es5.d.ts`, so `String(value)` must stay allowed while
+		// the added methods must not. Requiring every declaration of the name to
+		// come from the module draws exactly that line.
+		const declaringModuleOf = (
+			node: TSESTree.Identifier | TSESTree.JSXIdentifier,
+		): string | null => {
+			const tsNode = services.esTreeNodeToTSNodeMap.get(node);
+			const symbol = ts.isShorthandPropertyAssignment(tsNode.parent)
+				? services.program
+						.getTypeChecker()
+						.getShorthandAssignmentValueSymbol(tsNode.parent)
+				: services.getSymbolAtLocation(node);
+			const declaringModules = (symbol?.declarations ?? []).map(
+				(declaration) =>
+					packageNameOf(declaration.getSourceFile().fileName),
+			);
+
+			const [module] = declaringModules;
+			return module != null &&
+				declaringModules.every((other) => other === module)
+				? module
+				: null;
+		};
+
+		const reportIfDeclaredByModule = (
+			node: TSESTree.Identifier | TSESTree.JSXIdentifier,
+		): void => {
+			// Shorthand keys and values are visited separately; check only the value.
+			if (
+				node.parent.type === AST_NODE_TYPES.Property &&
+				node.parent.shorthand &&
+				node.parent.key === node
+			)
+				return;
+
+			const module = declaringModuleOf(node);
+			if (module === null || !modules.includes(module)) return;
+
+			context.report({
+				node,
+				messageId:
+					message === undefined
+						? "declaredByModule"
+						: "declaredByModuleWithMessage",
+				data: { name: node.name, module, message },
+			});
+		};
+
+		return {
+			Identifier: reportIfDeclaredByModule,
+			JSXIdentifier: reportIfDeclaredByModule,
+		};
+	},
+});
+
 //
 // Plugin
 //
@@ -259,5 +381,6 @@ export default {
 	rules: {
 		"vitest-aaa-order": vitestAaaOrder,
 		"require-dispose": requireDispose,
+		"no-declarations-from-module": noDeclarationsFromModule,
 	},
 };

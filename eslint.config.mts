@@ -167,9 +167,12 @@ export default defineConfig(
 		},
 	},
 	{
-		name: "local/restrict-obsidian-imports",
+		name: "local/restrict-obsidian-dependencies",
 		files: ["**/*.{ts,tsx}"],
 		ignores: ["**/obsidian*.{ts,tsx}", "index.ts"],
+		plugins: {
+			local,
+		},
 		rules: {
 			"no-restricted-imports": [
 				"error",
@@ -181,6 +184,14 @@ export default defineConfig(
 								"Only modules with an `obsidian` prefix are allowed to depend on obsidian.",
 						},
 					],
+				},
+			],
+			"local/no-declarations-from-module": [
+				"error",
+				{
+					modules: ["obsidian"],
+					message:
+						"Only modules with an `obsidian` prefix are allowed to depend on obsidian.",
 				},
 			],
 		},
