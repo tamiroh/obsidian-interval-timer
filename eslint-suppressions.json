@@ -1,32 +1,32 @@
 {
-  "src/flash-overlay.ts": {
-    "local/no-declarations-from-module": {
-      "count": 2
-    }
-  },
-  "src/popover.test.ts": {
-    "local/no-declarations-from-module": {
-      "count": 44
-    }
-  },
-  "src/popover.tsx": {
-    "local/no-declarations-from-module": {
-      "count": 1
-    }
-  },
-  "src/render-preact.ts": {
-    "local/no-declarations-from-module": {
-      "count": 1
-    }
-  },
-  "src/status-bar.test.ts": {
-    "local/no-declarations-from-module": {
-      "count": 13
-    }
-  },
-  "src/status-bar.ts": {
-    "local/no-declarations-from-module": {
-      "count": 4
-    }
-  }
+	"src/flash-overlay.ts": {
+		"local/no-declarations-from-module": {
+			"count": 2
+		}
+	},
+	"src/popover.test.ts": {
+		"local/no-declarations-from-module": {
+			"count": 44
+		}
+	},
+	"src/popover.tsx": {
+		"local/no-declarations-from-module": {
+			"count": 1
+		}
+	},
+	"src/render-preact.ts": {
+		"local/no-declarations-from-module": {
+			"count": 1
+		}
+	},
+	"src/status-bar.test.ts": {
+		"local/no-declarations-from-module": {
+			"count": 13
+		}
+	},
+	"src/status-bar.ts": {
+		"local/no-declarations-from-module": {
+			"count": 4
+		}
+	}
 }
