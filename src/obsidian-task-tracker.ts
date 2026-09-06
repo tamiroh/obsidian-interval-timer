@@ -79,18 +79,18 @@ export class TaskTracker {
 			return err("tracked_file_not_found");
 		}
 
-		const incrementedTaskManagementFile = new TaskManagementFile(
-			await this.app.vault.read(file),
-		).toIncremented(name);
-		if (!incrementedTaskManagementFile) {
-			return err("task_not_found");
-		}
+		let result: IncrementTrackedTaskResult = err("task_not_found");
+		await this.app.vault.process(file, (content) => {
+			const incremented = new TaskManagementFile(content).toIncremented(
+				name,
+			);
+			if (!incremented) return content;
 
-		await this.app.vault.modify(
-			file,
-			incrementedTaskManagementFile.toContent(),
-		);
-		return ok();
+			result = ok();
+			return incremented.toContent();
+		});
+
+		return result;
 	}
 
 	public untrack(): void {
