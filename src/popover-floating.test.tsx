@@ -5,10 +5,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { usePopoverFloating } from "./popover-floating";
 import { cleanup, render } from "./render-preact";
 
-afterEach(() => {
-	cleanup();
-});
-
 const Target = () => {
 	const [isFloating, setIsFloating] = useState(false);
 	const floating = usePopoverFloating({
@@ -32,6 +28,10 @@ const Target = () => {
 };
 
 describe("usePopoverFloating", () => {
+	afterEach(() => {
+		cleanup();
+	});
+
 	it("moves the position while dragging after entering floating mode", async () => {
 		// Arrange
 		const user = userEvent.setup();

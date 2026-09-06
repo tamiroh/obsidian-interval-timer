@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { assert, beforeEach, describe, expect, it } from "vitest";
 import type { App } from "obsidian";
 import { KeyValueStore } from "./key-value-store";
 import { TaskTracker } from "./obsidian-task-tracker";
@@ -59,7 +59,7 @@ describe("TaskTracker", () => {
 			keyValueStore,
 		);
 		const task = taskTracker.getTaskReferenceFromActiveLine();
-		if (!task) throw new Error("Expected a task reference.");
+		assert(task, "Expected a task reference.");
 
 		// Act
 		taskTracker.trackTask(task);
