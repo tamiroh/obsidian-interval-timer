@@ -13,6 +13,12 @@ Run focus and break cycles using methods like the <a href="https://www.pomodorot
 <img src="screenshot.png" alt="Interval Timer in a daily note" width="600">
 </p>
 
+## Concept
+
+- **Compact by design** — A small timer with controls that appear when needed. No dedicated pane, leaving more room for your notes.
+- **Start where you plan** — Start a focus session directly from a Markdown task line.
+- **Keep effort visible** — Record completed intervals alongside your estimate, even before a task is done.
+
 ## Quick Start
 
 ### Start from the status bar
