@@ -1,4 +1,4 @@
-import { fireEvent, within } from "@testing-library/dom";
+import { within } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import { useState } from "preact/hooks";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -44,18 +44,14 @@ describe("usePopoverFloating", () => {
 			height: 150,
 		} as DOMRect);
 		await user.click(target);
-		fireEvent.pointerDown(target, {
-			pointerId: 1,
-			clientX: 120,
-			clientY: 230,
+		await user.pointer({
+			keys: "[MouseLeft>]",
+			target,
+			coords: { clientX: 120, clientY: 230 },
 		});
 
 		// Act
-		fireEvent.pointerMove(target, {
-			pointerId: 1,
-			clientX: 320,
-			clientY: 330,
-		});
+		await user.pointer({ target, coords: { clientX: 320, clientY: 330 } });
 
 		// Assert
 		expect(target).toHaveStyle({ left: "300px", top: "300px" });
@@ -76,32 +72,32 @@ describe("usePopoverFloating", () => {
 		await user.click(target);
 
 		// Act
-		fireEvent.pointerDown(target, {
-			pointerId: 7,
-			clientX: 120,
-			clientY: 230,
+		await user.pointer({
+			keys: "[MouseLeft>]",
+			target,
+			coords: { clientX: 120, clientY: 230 },
 		});
 
-		// Assert
-		expect(setPointerCaptureSpy).toHaveBeenCalledExactlyOnceWith(7);
+		// Assert: the drag captures the pointer that started it (the synthetic
+		// mouse pointer has id 1).
+		expect(setPointerCaptureSpy).toHaveBeenCalledExactlyOnceWith(1);
 	});
 
-	it("does not move when floating mode is off", () => {
+	it("does not move when floating mode is off", async () => {
 		// Arrange
+		const user = userEvent.setup();
 		const container = render(<Target />);
 		const target = within(container).getByTestId("target");
-		fireEvent.pointerDown(target, {
-			pointerId: 1,
-			clientX: 120,
-			clientY: 230,
-		});
 
 		// Act
-		fireEvent.pointerMove(target, {
-			pointerId: 1,
-			clientX: 320,
-			clientY: 330,
-		});
+		await user.pointer([
+			{
+				keys: "[MouseLeft>]",
+				target,
+				coords: { clientX: 120, clientY: 230 },
+			},
+			{ target, coords: { clientX: 320, clientY: 330 } },
+		]);
 
 		// Assert
 		expect(target).not.toHaveAttribute("style");

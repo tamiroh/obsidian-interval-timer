@@ -66,15 +66,14 @@ const mockComputedStyleFor = (
 	target: HTMLElement,
 	style: Partial<CSSStyleDeclaration>,
 ): MockInstance<typeof window.getComputedStyle> => {
-	const realGetComputedStyle = (element: Element): CSSStyleDeclaration =>
-		window.getComputedStyle(element);
+	const realGetComputedStyle = window.getComputedStyle.bind(window);
 
 	return vi
 		.spyOn(window, "getComputedStyle")
-		.mockImplementation((element) =>
+		.mockImplementation((element, pseudoElement) =>
 			element === target
 				? (style as CSSStyleDeclaration)
-				: realGetComputedStyle(element),
+				: realGetComputedStyle(element, pseudoElement),
 		);
 };
 
@@ -688,10 +687,10 @@ describe("Popover", () => {
 		await user.click(popover);
 
 		// Act
-		fireEvent.pointerDown(popover, {
-			pointerId: 1,
-			clientX: 120,
-			clientY: 230,
+		await user.pointer({
+			keys: "[MouseLeft>]",
+			target: popover,
+			coords: { clientX: 120, clientY: 230 },
 		});
 
 		// Assert
@@ -711,19 +710,17 @@ describe("Popover", () => {
 			height: 150,
 		} as DOMRect);
 		await user.click(popover);
-		fireEvent.pointerDown(popover, {
-			pointerId: 1,
-			clientX: 120,
-			clientY: 230,
+		await user.pointer({
+			keys: "[MouseLeft>]",
+			target: popover,
+			coords: { clientX: 120, clientY: 230 },
 		});
 
 		// Act
-		fireEvent.pointerMove(popover, {
-			pointerId: 1,
-			clientX: 320,
-			clientY: 330,
-		});
-		fireEvent.pointerUp(popover, { pointerId: 1 });
+		await user.pointer([
+			{ target: popover, coords: { clientX: 320, clientY: 330 } },
+			{ keys: "[/MouseLeft]", target: popover },
+		]);
 
 		// Assert
 		expect(popover).toHaveStyle({
@@ -736,6 +733,7 @@ describe("Popover", () => {
 
 	it("accounts for a fixed-position origin offset when dragging", async () => {
 		// Arrange
+		const user = userEvent.setup();
 		const el = createDiv();
 		const options = { ...createOptions(), floatOnMount: true };
 		await createPopover(el, options);
@@ -752,18 +750,16 @@ describe("Popover", () => {
 		} as DOMRect);
 
 		// Act
-		fireEvent.pointerDown(popover, {
-			pointerId: 1,
-			clientX: 110,
-			clientY: 140,
+		await user.pointer({
+			keys: "[MouseLeft>]",
+			target: popover,
+			coords: { clientX: 110, clientY: 140 },
 		});
 		computedStyleSpy.mockRestore();
-		fireEvent.pointerMove(popover, {
-			pointerId: 1,
-			clientX: 210,
-			clientY: 240,
-		});
-		fireEvent.pointerUp(popover, { pointerId: 1 });
+		await user.pointer([
+			{ target: popover, coords: { clientX: 210, clientY: 240 } },
+			{ keys: "[/MouseLeft]", target: popover },
+		]);
 
 		// Assert
 		expect(popover).toHaveStyle({
@@ -809,17 +805,15 @@ describe("Popover", () => {
 			height: 150,
 		} as DOMRect);
 		await user.click(popover);
-		fireEvent.pointerDown(popover, {
-			pointerId: 1,
-			clientX: 120,
-			clientY: 230,
-		});
-		fireEvent.pointerMove(popover, {
-			pointerId: 1,
-			clientX: 320,
-			clientY: 330,
-		});
-		fireEvent.pointerUp(popover, { pointerId: 1 });
+		await user.pointer([
+			{
+				keys: "[MouseLeft>]",
+				target: popover,
+				coords: { clientX: 120, clientY: 230 },
+			},
+			{ target: popover, coords: { clientX: 320, clientY: 330 } },
+			{ keys: "[/MouseLeft]", target: popover },
+		]);
 
 		// Act
 		await user.click(
@@ -850,18 +844,16 @@ describe("Popover", () => {
 			width: 250,
 			height: 150,
 		} as DOMRect);
-		fireEvent.pointerDown(popover, {
-			pointerId: 1,
-			clientX: 110,
-			clientY: 140,
+		await user.pointer({
+			keys: "[MouseLeft>]",
+			target: popover,
+			coords: { clientX: 110, clientY: 140 },
 		});
 		computedStyleSpy.mockRestore();
-		fireEvent.pointerMove(popover, {
-			pointerId: 1,
-			clientX: 210,
-			clientY: 240,
-		});
-		fireEvent.pointerUp(popover, { pointerId: 1 });
+		await user.pointer([
+			{ target: popover, coords: { clientX: 210, clientY: 240 } },
+			{ keys: "[/MouseLeft]", target: popover },
+		]);
 
 		// Act
 		await user.click(
@@ -890,19 +882,14 @@ describe("Popover", () => {
 		await user.click(popover);
 
 		// Act
-		fireEvent.pointerDown(
-			within(el).getByRole("button", { name: "Close" }),
+		await user.pointer([
 			{
-				pointerId: 1,
-				clientX: 120,
-				clientY: 230,
+				keys: "[MouseLeft>]",
+				target: within(el).getByRole("button", { name: "Close" }),
+				coords: { clientX: 120, clientY: 230 },
 			},
-		);
-		fireEvent.pointerMove(popover, {
-			pointerId: 1,
-			clientX: 320,
-			clientY: 330,
-		});
+			{ target: popover, coords: { clientX: 320, clientY: 330 } },
+		]);
 
 		// Assert
 		expect(popover).not.toHaveClass("interval-timer-popover-dragging");
@@ -948,7 +935,7 @@ describe("Popover", () => {
 		await user.click(popover);
 
 		// Act
-		fireEvent.mouseLeave(el);
+		await user.unhover(el);
 
 		// Assert
 		expect(popover).toHaveClass("interval-timer-popover-floating");

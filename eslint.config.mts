@@ -213,6 +213,8 @@ export default defineConfig(
 			"vitest/prefer-hooks-on-top": "error",
 			"vitest/require-hook": "error",
 			"vitest/require-top-level-describe": "error",
+			"testing-library/prefer-user-event": "error",
+			"testing-library/prefer-user-event-setup": "error",
 		},
 	},
 	{
