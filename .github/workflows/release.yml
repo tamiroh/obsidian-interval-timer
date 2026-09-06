@@ -31,13 +31,6 @@ jobs:
             - uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7.2.0
               with:
                   commit_message: "Update version to ${{ steps.release-drafter-prepare.outputs.tag_name }}"
-            - name: Publish release
-              id: release-drafter-publish
-              uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v7.7.0
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  publish: true
             - name: Build
               id: build
               run: |
@@ -56,7 +49,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  upload_url: ${{ steps.release-drafter-publish.outputs.upload_url }}
+                  upload_url: ${{ steps.release-drafter-prepare.outputs.upload_url }}
                   asset_path: ./main.js
                   asset_name: main.js
                   asset_content_type: text/javascript
@@ -66,7 +59,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  upload_url: ${{ steps.release-drafter-publish.outputs.upload_url }}
+                  upload_url: ${{ steps.release-drafter-prepare.outputs.upload_url }}
                   asset_path: ./manifest.json
                   asset_name: manifest.json
                   asset_content_type: application/json
@@ -76,7 +69,14 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  upload_url: ${{ steps.release-drafter-publish.outputs.upload_url }}
+                  upload_url: ${{ steps.release-drafter-prepare.outputs.upload_url }}
                   asset_path: ./styles.css
                   asset_name: styles.css
                   asset_content_type: text/css
+            - name: Publish release
+              id: release-drafter-publish
+              uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v7.7.0
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  publish: true
