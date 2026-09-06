@@ -90,7 +90,7 @@ export class TaskLineController {
 	public async completeFocusInterval(): Promise<void> {
 		try {
 			const result = await this.taskTracker.incrementTrackedTask();
-			if (!result.ok) {
+			if (!result.ok && result.reason !== "tracked_task_not_found") {
 				TaskLineController.reportCompletionFailure(result.reason);
 			}
 		} catch (error) {
