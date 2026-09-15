@@ -1,18 +1,27 @@
-import { type TargetedKeyboardEvent, type TargetedPointerEvent } from "preact";
+import {
+	type CSSProperties,
+	type TargetedKeyboardEvent,
+	type TargetedPointerEvent,
+} from "preact";
 import { useState } from "preact/hooks";
 import { isElement, windowFor } from "./dom";
 
-export type Position = {
-	left: number;
-	top: number;
+type OriginFromWindowBottomRight = {
+	right: number;
+	bottom: number;
+};
+
+type OffsetFromOrigin = {
+	x: number;
+	y: number;
 };
 
 type Drag = {
 	pointerId: number;
-	offsetX: number;
-	offsetY: number;
-	originX: number;
-	originY: number;
+	grabX: number;
+	grabY: number;
+	originLeft: number;
+	originTop: number;
 };
 
 type UsePopoverFloatingOptions = {
@@ -22,7 +31,7 @@ type UsePopoverFloatingOptions = {
 };
 
 export type PopoverFloating = {
-	position: Position | null;
+	style: CSSProperties | undefined;
 	hasMovedFromOrigin: boolean;
 	isDragging: boolean;
 	enterFloating: (popover: HTMLDivElement) => void;
@@ -44,25 +53,30 @@ export const usePopoverFloating = ({
 	onEnterFloating,
 }: UsePopoverFloatingOptions): PopoverFloating => {
 	const [drag, setDrag] = useState<Drag | null>(null);
-	const [position, setPosition] = useState<Position | null>(null);
-	const [origin, setOrigin] = useState<Position | null>(null);
+	const [origin, setOrigin] = useState<OriginFromWindowBottomRight | null>(
+		null,
+	);
+	const [offset, setOffset] = useState<OffsetFromOrigin | null>(null);
 
 	const enterFloating = (popover: HTMLDivElement) => {
 		if (isFloating) return;
 
 		const bounds = popover.getBoundingClientRect();
-		setPosition({ left: bounds.left, top: bounds.top });
-		setOrigin({ left: bounds.left, top: bounds.top });
+		const currentWindow = windowFor(popover);
+		setOrigin({
+			right: currentWindow.innerWidth - bounds.right,
+			bottom: currentWindow.innerHeight - bounds.bottom,
+		});
 		onEnterFloating();
 	};
 
 	const returnToOrigin = () => {
-		if (origin) setPosition(origin);
+		setOffset(null);
 	};
 
 	const reset = () => {
-		setPosition(null);
 		setOrigin(null);
+		setOffset(null);
 	};
 
 	const handlePointerDown = (event: TargetedPointerEvent<HTMLDivElement>) => {
@@ -71,20 +85,15 @@ export const usePopoverFloating = ({
 
 		const popover = event.currentTarget;
 		const bounds = popover.getBoundingClientRect();
-		const computedStyle = windowFor(popover).getComputedStyle(popover);
-		const computedLeft = parseFloat(computedStyle.left);
-		const computedTop = parseFloat(computedStyle.top);
-		const cssPosition = {
-			left: Number.isFinite(computedLeft) ? computedLeft : bounds.left,
-			top: Number.isFinite(computedTop) ? computedTop : bounds.top,
-		};
-		if (!origin) setOrigin(cssPosition);
+		// Read the rendered offset rather than the state so that grabbing the
+		// popover mid-animation keeps its origin intact.
+		const rendered = renderedOffsetFromOrigin(popover);
 		setDrag({
 			pointerId: event.pointerId,
-			offsetX: event.clientX - bounds.left,
-			offsetY: event.clientY - bounds.top,
-			originX: bounds.left - cssPosition.left,
-			originY: bounds.top - cssPosition.top,
+			grabX: event.clientX - bounds.left,
+			grabY: event.clientY - bounds.top,
+			originLeft: bounds.left - rendered.x,
+			originTop: bounds.top - rendered.y,
 		});
 		popover.setPointerCapture(event.pointerId);
 	};
@@ -95,14 +104,14 @@ export const usePopoverFloating = ({
 		const bounds = event.currentTarget.getBoundingClientRect();
 		const currentWindow = windowFor(event.currentTarget);
 		const left = clamp(
-			event.clientX - drag.offsetX,
+			event.clientX - drag.grabX,
 			currentWindow.innerWidth - bounds.width,
 		);
 		const top = clamp(
-			event.clientY - drag.offsetY,
+			event.clientY - drag.grabY,
 			currentWindow.innerHeight - bounds.height,
 		);
-		setPosition({ left: left - drag.originX, top: top - drag.originY });
+		setOffset({ x: left - drag.originLeft, y: top - drag.originTop });
 	};
 
 	const handlePointerEnd = () => {
@@ -118,12 +127,9 @@ export const usePopoverFloating = ({
 	};
 
 	return {
-		position,
+		style: floatingStyle(origin, offset),
 		hasMovedFromOrigin:
-			isFloating &&
-			origin !== null &&
-			position !== null &&
-			(position.left !== origin.left || position.top !== origin.top),
+			isFloating && offset !== null && (offset.x !== 0 || offset.y !== 0),
 		isDragging: drag !== null,
 		enterFloating,
 		returnToOrigin,
@@ -137,6 +143,28 @@ export const usePopoverFloating = ({
 			onKeyDown: handleKeyDown,
 		},
 	};
+};
+
+const floatingStyle = (
+	origin: OriginFromWindowBottomRight | null,
+	offset: OffsetFromOrigin | null,
+): CSSProperties | undefined => {
+	if (!origin && !offset) return undefined;
+
+	return {
+		...origin,
+		...(offset && { translate: `${offset.x}px ${offset.y}px` }),
+	};
+};
+
+const renderedOffsetFromOrigin = (
+	popover: HTMLDivElement,
+): OffsetFromOrigin => {
+	const [x = 0, y = 0] = windowFor(popover)
+		.getComputedStyle(popover)
+		.translate.split(" ")
+		.map((length) => parseFloat(length) || 0);
+	return { x, y };
 };
 
 const clamp = (position: number, maximum: number): number =>
