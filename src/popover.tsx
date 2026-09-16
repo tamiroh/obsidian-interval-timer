@@ -364,7 +364,7 @@ const PopoverView = ({
 	return (
 		<div
 			className={popoverClassName}
-			style={floating.position ?? undefined}
+			style={floating.style}
 			role="group"
 			tabIndex={0}
 			{...floating.handlers}

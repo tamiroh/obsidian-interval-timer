@@ -18,7 +18,7 @@ const Target = () => {
 	return (
 		<div
 			data-testid="target"
-			style={floating.position ?? undefined}
+			style={floating.style}
 			onClick={(event) => {
 				floating.enterFloating(event.currentTarget);
 			}}
@@ -40,6 +40,8 @@ describe("usePopoverFloating", () => {
 		vi.spyOn(target, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
+			right: 350,
+			bottom: 350,
 			width: 250,
 			height: 150,
 		} as DOMRect);
@@ -53,8 +55,13 @@ describe("usePopoverFloating", () => {
 		// Act
 		await user.pointer({ target, coords: { clientX: 320, clientY: 330 } });
 
-		// Assert
-		expect(target).toHaveStyle({ left: "300px", top: "300px" });
+		// Assert: the origin stays anchored to the bottom-right corner and the
+		// drag is applied as a translate from it.
+		expect(target).toHaveStyle({
+			right: `${window.innerWidth - 350}px`,
+			bottom: `${window.innerHeight - 350}px`,
+			translate: "200px 100px",
+		});
 	});
 
 	it("captures the pointer when dragging starts after entering floating mode", async () => {
@@ -65,6 +72,8 @@ describe("usePopoverFloating", () => {
 		vi.spyOn(target, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
+			right: 350,
+			bottom: 350,
 			width: 250,
 			height: 150,
 		} as DOMRect);

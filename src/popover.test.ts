@@ -607,19 +607,20 @@ describe("Popover", () => {
 		await createPopover(el, options);
 		const popover = within(el).getByRole("group");
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
-			left: 24,
-			top: 36,
+			right: 300,
+			bottom: 700,
 		} as DOMRect);
 
 		// Act
 		await user.click(popover);
 
-		// Assert
+		// Assert: the origin is anchored to the window's bottom-right corner
+		// so it survives window resizes.
 		expect(popover).toHaveClass("interval-timer-popover-floating");
 		expect(options.onFloatingChange).toHaveBeenLastCalledWith(true);
 		expect(popover).toHaveStyle({
-			left: "24px",
-			top: "36px",
+			right: `${window.innerWidth - 300}px`,
+			bottom: `${window.innerHeight - 700}px`,
 		});
 		expect(within(el).getByTestId("popover-root")).toContainElement(
 			popover,
@@ -681,6 +682,8 @@ describe("Popover", () => {
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
+			right: 350,
+			bottom: 350,
 			width: 250,
 			height: 150,
 		} as DOMRect);
@@ -706,6 +709,8 @@ describe("Popover", () => {
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
+			right: 350,
+			bottom: 350,
 			width: 250,
 			height: 150,
 		} as DOMRect);
@@ -723,24 +728,21 @@ describe("Popover", () => {
 		]);
 
 		// Assert
-		expect(popover).toHaveStyle({
-			left: "300px",
-			top: "300px",
-		});
+		expect(popover).toHaveStyle({ translate: "200px 100px" });
 		expect(popover).not.toHaveClass("interval-timer-popover-dragging");
 		expect(popover).toHaveClass("interval-timer-popover-moved");
 	});
 
-	it("accounts for a fixed-position origin offset when dragging", async () => {
-		// Arrange
+	it("keeps the origin when a drag starts on an already translated popover", async () => {
+		// Arrange: the popover is rendered 40px away from its origin (for
+		// example mid-way through a return animation).
 		const user = userEvent.setup();
 		const el = createDiv();
 		const options = { ...createOptions(), floatOnMount: true };
 		await createPopover(el, options);
 		const popover = within(el).getByRole("group");
 		const computedStyleSpy = mockComputedStyleFor(popover, {
-			left: "50px",
-			top: "60px",
+			translate: "40px 40px",
 		});
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 90,
@@ -761,11 +763,9 @@ describe("Popover", () => {
 			{ keys: "[/MouseLeft]", target: popover },
 		]);
 
-		// Assert
-		expect(popover).toHaveStyle({
-			left: "150px",
-			top: "160px",
-		});
+		// Assert: the translate is measured from the origin (50, 60), not
+		// from where the popover happened to be rendered.
+		expect(popover).toHaveStyle({ translate: "140px 140px" });
 	});
 
 	it("hides the return button until the popover is moved", async () => {
@@ -777,6 +777,8 @@ describe("Popover", () => {
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
+			right: 350,
+			bottom: 350,
 			width: 250,
 			height: 150,
 		} as DOMRect);
@@ -801,6 +803,8 @@ describe("Popover", () => {
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
+			right: 350,
+			bottom: 350,
 			width: 250,
 			height: 150,
 		} as DOMRect);
@@ -822,35 +826,34 @@ describe("Popover", () => {
 			}),
 		);
 
-		// Assert
-		expect(popover).toHaveStyle({ left: "100px", top: "200px" });
+		// Assert: the origin anchor is untouched and the translate is dropped.
+		expect(popover).toHaveStyle({
+			right: `${window.innerWidth - 350}px`,
+			bottom: `${window.innerHeight - 350}px`,
+		});
+		expect(popover).toHaveStyle({ translate: "none" });
 		expect(popover).not.toHaveClass("interval-timer-popover-moved");
 	});
 
-	it("records the resting position as the return target when floating from mount", async () => {
+	it("drops the translate when returning after floating from mount", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
 		const options = { ...createOptions(), floatOnMount: true };
 		await createPopover(el, options);
 		const popover = within(el).getByRole("group");
-		const computedStyleSpy = mockComputedStyleFor(popover, {
-			left: "50px",
-			top: "60px",
-		});
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 90,
 			top: 100,
 			width: 250,
 			height: 150,
 		} as DOMRect);
-		await user.pointer({
-			keys: "[MouseLeft>]",
-			target: popover,
-			coords: { clientX: 110, clientY: 140 },
-		});
-		computedStyleSpy.mockRestore();
 		await user.pointer([
+			{
+				keys: "[MouseLeft>]",
+				target: popover,
+				coords: { clientX: 110, clientY: 140 },
+			},
 			{ target: popover, coords: { clientX: 210, clientY: 240 } },
 			{ keys: "[/MouseLeft]", target: popover },
 		]);
@@ -862,8 +865,8 @@ describe("Popover", () => {
 			}),
 		);
 
-		// Assert
-		expect(popover).toHaveStyle({ left: "50px", top: "60px" });
+		// Assert: nothing but the stylesheet decides where the popover rests.
+		expect(popover).toHaveStyle({ translate: "none" });
 		expect(popover).not.toHaveClass("interval-timer-popover-moved");
 	});
 
@@ -876,6 +879,8 @@ describe("Popover", () => {
 		vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({
 			left: 100,
 			top: 200,
+			right: 350,
+			bottom: 350,
 			width: 250,
 			height: 150,
 		} as DOMRect);
@@ -893,10 +898,7 @@ describe("Popover", () => {
 
 		// Assert
 		expect(popover).not.toHaveClass("interval-timer-popover-dragging");
-		expect(popover).toHaveStyle({
-			left: "100px",
-			top: "200px",
-		});
+		expect(popover).toHaveStyle({ translate: "none" });
 	});
 
 	it("keeps the hidden close button out of the tab order", async () => {
