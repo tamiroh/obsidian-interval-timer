@@ -3,7 +3,7 @@ import {
 	displayTooltip,
 	type Plugin as BasePlugin,
 	PluginSettingTab,
-	Setting,
+	type SettingDefinitionItem,
 } from "obsidian";
 import { match } from "ts-pattern";
 import {
@@ -32,213 +32,299 @@ export class SettingTab extends PluginSettingTab {
 		super(app, plugin);
 	}
 
-	public override display(): void {
-		const { containerEl } = this;
-
-		containerEl.empty();
-
-		new Setting(containerEl).setHeading().setName("Duration");
-
-		new Setting(containerEl)
-			.setName("Focus interval duration (minutes)")
-			.addText((text) =>
-				text
-					.setPlaceholder("Example: 25")
-					.setValue(
-						String(this.settingStore.state.focusIntervalDuration),
-					)
-					.onChange((value) => {
-						this.updateSettingOrShowValidationError(
-							"focusIntervalDuration",
-							value,
-							text.inputEl,
-							"Focus interval duration",
-						);
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Short break duration (minutes)")
-			.addText((text) =>
-				text
-					.setPlaceholder("Example: 5")
-					.setValue(
-						String(this.settingStore.state.shortBreakDuration),
-					)
-					.onChange((value) => {
-						this.updateSettingOrShowValidationError(
-							"shortBreakDuration",
-							value,
-							text.inputEl,
-							"Short break duration",
-						);
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Long break duration (minutes)")
-			.addText((text) =>
-				text
-					.setPlaceholder("Example: 15")
-					.setValue(String(this.settingStore.state.longBreakDuration))
-					.onChange((value) => {
-						this.updateSettingOrShowValidationError(
-							"longBreakDuration",
-							value,
-							text.inputEl,
-							"Long break duration",
-						);
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Start long break after (intervals)")
-			.addText((text) =>
-				text
-					.setPlaceholder("Example: 4")
-					.setValue(String(this.settingStore.state.longBreakAfter))
-					.onChange((value) => {
-						this.updateSettingOrShowValidationError(
-							"longBreakAfter",
-							value,
-							text.inputEl,
-							"Start long break after",
-						);
-					}),
-			);
-
-		new Setting(containerEl).setHeading().setName("Behavior");
-
-		new Setting(containerEl)
-			.setName("When an interval ends")
-			.addDropdown((dropdown) => {
-				dropdown
-					.addOption("advanceToNextInterval", "Go to next interval")
-					.addOption(
-						"countDownPastZero",
-						"Continue counting past zero",
-					)
-					.setValue(
-						this.settingStore.state.intervalCompletionBehavior,
-					)
-					.onChange((value) => {
-						this.updateSettingOrShowValidationError(
-							"intervalCompletionBehavior",
-							value,
-							dropdown.selectEl,
-							"When an interval ends",
-						);
-					});
-			});
-
-		new Setting(containerEl).setHeading().setName("Notification");
-
-		new Setting(containerEl).setName("Style").addDropdown((dropdown) => {
-			dropdown
-				.addOption("system", "System")
-				.addOption("simple", "Simple")
-				.setValue(this.settingStore.state.notificationStyle)
-				.onChange((value) => {
-					this.updateSettingOrShowValidationError(
-						"notificationStyle",
-						value,
-						dropdown.selectEl,
-						"Notification style",
-					);
-				});
-		});
-
-		new Setting(containerEl)
-			.setName("Flash overlay")
-			.setDesc("Flash the screen with a color when an interval ends.")
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.settingStore.state.flashOverlayEnabled)
-					.onChange((value) => {
-						this.updateSettingOrShowValidationError(
-							"flashOverlayEnabled",
-							value,
-							toggle.toggleEl,
-							"Flash overlay",
-						);
-					});
-			});
-
-		new Setting(containerEl).setHeading().setName("Sound");
-
-		new Setting(containerEl)
-			.setName("Clock tick volume")
-			.setDesc("Volume during focus intervals (0–100). Set to 0 to mute.")
-			.addSlider((slider) => {
-				slider
-					.setLimits(volumeRange.min, volumeRange.max, 5)
-					.setValue(this.settingStore.state.focusTickSoundVolume);
-				slider.onChange((value) => {
-					this.updateSettingOrShowValidationError(
-						"focusTickSoundVolume",
-						value,
-						slider.sliderEl,
-						"Clock tick volume",
-					);
-				});
-			});
-
-		new Setting(containerEl)
-			.setName("Time's up sound")
-			.setDesc(
-				"Beep when the timer reaches zero (0–100). Set to 0 to mute.",
-			)
-			.addSlider((slider) => {
-				slider
-					.setLimits(volumeRange.min, volumeRange.max, 5)
-					.setValue(this.settingStore.state.timeUpSoundVolume);
-				slider.onChange((value) => {
-					this.updateSettingOrShowValidationError(
-						"timeUpSoundVolume",
-						value,
-						slider.sliderEl,
-						"Time's up sound",
-					);
-				});
-			});
-
-		new Setting(containerEl)
-			.setName("Background sound")
-			.setDesc("Sound played continuously during focus intervals.")
-			.addDropdown((dropdown) => {
-				focusBgmTypes.forEach((type) => {
-					dropdown.addOption(type, focusBgmTypeLabels[type]);
-				});
-				dropdown
-					.setValue(this.settingStore.state.focusBgmType)
-					.onChange((value) => {
-						this.updateSettingOrShowValidationError(
-							"focusBgmType",
-							value,
-							dropdown.selectEl,
-							"Background sound",
-						);
-					});
-			});
-
-		new Setting(containerEl)
-			.setName("Background sound volume")
-			.setDesc(
-				"Volume of the background sound (0–100). Set to 0 to mute.",
-			)
-			.addSlider((slider) => {
-				slider
-					.setLimits(volumeRange.min, volumeRange.max, 5)
-					.setValue(this.settingStore.state.focusBgmVolume);
-				slider.onChange((value) => {
-					this.updateSettingOrShowValidationError(
-						"focusBgmVolume",
-						value,
-						slider.sliderEl,
-						"Background sound volume",
-					);
-				});
-			});
+	public override getSettingDefinitions(): SettingDefinitionItem[] {
+		return [
+			{
+				type: "group",
+				heading: "Duration",
+				items: [
+					{
+						name: "Focus interval duration (minutes)",
+						render: (setting) => {
+							setting.addText((text) =>
+								text
+									.setPlaceholder("Example: 25")
+									.setValue(
+										String(
+											this.settingStore.state
+												.focusIntervalDuration,
+										),
+									)
+									.onChange((value) => {
+										this.updateSettingOrShowValidationError(
+											"focusIntervalDuration",
+											value,
+											text.inputEl,
+											"Focus interval duration",
+										);
+									}),
+							);
+						},
+					},
+					{
+						name: "Short break duration (minutes)",
+						render: (setting) => {
+							setting.addText((text) =>
+								text
+									.setPlaceholder("Example: 5")
+									.setValue(
+										String(
+											this.settingStore.state
+												.shortBreakDuration,
+										),
+									)
+									.onChange((value) => {
+										this.updateSettingOrShowValidationError(
+											"shortBreakDuration",
+											value,
+											text.inputEl,
+											"Short break duration",
+										);
+									}),
+							);
+						},
+					},
+					{
+						name: "Long break duration (minutes)",
+						render: (setting) => {
+							setting.addText((text) =>
+								text
+									.setPlaceholder("Example: 15")
+									.setValue(
+										String(
+											this.settingStore.state
+												.longBreakDuration,
+										),
+									)
+									.onChange((value) => {
+										this.updateSettingOrShowValidationError(
+											"longBreakDuration",
+											value,
+											text.inputEl,
+											"Long break duration",
+										);
+									}),
+							);
+						},
+					},
+					{
+						name: "Start long break after (intervals)",
+						render: (setting) => {
+							setting.addText((text) =>
+								text
+									.setPlaceholder("Example: 4")
+									.setValue(
+										String(
+											this.settingStore.state
+												.longBreakAfter,
+										),
+									)
+									.onChange((value) => {
+										this.updateSettingOrShowValidationError(
+											"longBreakAfter",
+											value,
+											text.inputEl,
+											"Start long break after",
+										);
+									}),
+							);
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Behavior",
+				items: [
+					{
+						name: "When an interval ends",
+						render: (setting) => {
+							setting.addDropdown((dropdown) => {
+								dropdown
+									.addOption(
+										"advanceToNextInterval",
+										"Go to next interval",
+									)
+									.addOption(
+										"countDownPastZero",
+										"Continue counting past zero",
+									)
+									.setValue(
+										this.settingStore.state
+											.intervalCompletionBehavior,
+									)
+									.onChange((value) => {
+										this.updateSettingOrShowValidationError(
+											"intervalCompletionBehavior",
+											value,
+											dropdown.selectEl,
+											"When an interval ends",
+										);
+									});
+							});
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Notification",
+				items: [
+					{
+						name: "Style",
+						render: (setting) => {
+							setting.addDropdown((dropdown) => {
+								dropdown
+									.addOption("system", "System")
+									.addOption("simple", "Simple")
+									.setValue(
+										this.settingStore.state
+											.notificationStyle,
+									)
+									.onChange((value) => {
+										this.updateSettingOrShowValidationError(
+											"notificationStyle",
+											value,
+											dropdown.selectEl,
+											"Notification style",
+										);
+									});
+							});
+						},
+					},
+					{
+						name: "Flash overlay",
+						desc: "Flash the screen with a color when an interval ends.",
+						render: (setting) => {
+							setting.addToggle((toggle) => {
+								toggle
+									.setValue(
+										this.settingStore.state
+											.flashOverlayEnabled,
+									)
+									.onChange((value) => {
+										this.updateSettingOrShowValidationError(
+											"flashOverlayEnabled",
+											value,
+											toggle.toggleEl,
+											"Flash overlay",
+										);
+									});
+							});
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Sound",
+				items: [
+					{
+						name: "Clock tick volume",
+						desc: "Volume during focus intervals (0–100). Set to 0 to mute.",
+						render: (setting) => {
+							setting.addSlider((slider) => {
+								slider
+									.setLimits(
+										volumeRange.min,
+										volumeRange.max,
+										5,
+									)
+									.setValue(
+										this.settingStore.state
+											.focusTickSoundVolume,
+									);
+								slider.onChange((value) => {
+									this.updateSettingOrShowValidationError(
+										"focusTickSoundVolume",
+										value,
+										slider.sliderEl,
+										"Clock tick volume",
+									);
+								});
+							});
+						},
+					},
+					{
+						name: "Time's up sound",
+						desc: "Beep when the timer reaches zero (0–100). Set to 0 to mute.",
+						render: (setting) => {
+							setting.addSlider((slider) => {
+								slider
+									.setLimits(
+										volumeRange.min,
+										volumeRange.max,
+										5,
+									)
+									.setValue(
+										this.settingStore.state
+											.timeUpSoundVolume,
+									);
+								slider.onChange((value) => {
+									this.updateSettingOrShowValidationError(
+										"timeUpSoundVolume",
+										value,
+										slider.sliderEl,
+										"Time's up sound",
+									);
+								});
+							});
+						},
+					},
+					{
+						name: "Background sound",
+						desc: "Sound played continuously during focus intervals.",
+						render: (setting) => {
+							setting.addDropdown((dropdown) => {
+								focusBgmTypes.forEach((type) => {
+									dropdown.addOption(
+										type,
+										focusBgmTypeLabels[type],
+									);
+								});
+								dropdown
+									.setValue(
+										this.settingStore.state.focusBgmType,
+									)
+									.onChange((value) => {
+										this.updateSettingOrShowValidationError(
+											"focusBgmType",
+											value,
+											dropdown.selectEl,
+											"Background sound",
+										);
+									});
+							});
+						},
+					},
+					{
+						name: "Background sound volume",
+						desc: "Volume of the background sound (0–100). Set to 0 to mute.",
+						render: (setting) => {
+							setting.addSlider((slider) => {
+								slider
+									.setLimits(
+										volumeRange.min,
+										volumeRange.max,
+										5,
+									)
+									.setValue(
+										this.settingStore.state.focusBgmVolume,
+									);
+								slider.onChange((value) => {
+									this.updateSettingOrShowValidationError(
+										"focusBgmVolume",
+										value,
+										slider.sliderEl,
+										"Background sound volume",
+									);
+								});
+							});
+						},
+					},
+				],
+			},
+		];
 	}
 
 	private updateSettingOrShowValidationError(
