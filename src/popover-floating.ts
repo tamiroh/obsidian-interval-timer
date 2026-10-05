@@ -152,7 +152,10 @@ const floatingStyle = (
 	if (!origin && !offset) return undefined;
 
 	return {
-		...origin,
+		...(origin && {
+			right: `${origin.right}px`,
+			bottom: `${origin.bottom}px`,
+		}),
 		...(offset && { translate: `${offset.x}px ${offset.y}px` }),
 	};
 };
