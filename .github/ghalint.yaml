@@ -1,0 +1,5 @@
+excludes:
+    # git-auto-commit-action pushes the version bump with the PAT persisted by checkout.
+    - policy_name: checkout_persist_credentials_should_be_false
+      workflow_file_path: .github/workflows/release.yml
+      job_name: release
