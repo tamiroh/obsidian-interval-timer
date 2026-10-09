@@ -1,0 +1,19 @@
+name: Require one label
+description: Fail unless the pull request has exactly one of the given labels
+inputs:
+    one-of:
+        description: Comma-separated list of labels
+        required: true
+runs:
+    using: composite
+    steps:
+        - shell: bash
+          env:
+              LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+              ONE_OF: ${{ inputs.one-of }}
+          run: |
+              count=$(jq -n --argjson labels "$LABELS" --arg one_of "$ONE_OF" '[$labels[] | select(IN($one_of / "," | .[]))] | length')
+              if [ "$count" -ne 1 ]; then
+                  echo "::error::Expected exactly one of: $ONE_OF"
+                  exit 1
+              fi
