@@ -1,0 +1,23 @@
+name: ghalint
+description: Lint workflows and actions with ghalint
+runs:
+    using: composite
+    steps:
+        - name: Install ghalint
+          shell: bash
+          env:
+              VERSION: 1.5.6
+              SHA256: 98ee0e3330de7286f470d1e89c03ff7ce70d7a5998ba0f15969c400447be579c
+          run: |
+              cd "$RUNNER_TEMP"
+              curl -fsSL -o ghalint.tar.gz "https://github.com/suzuki-shunsuke/ghalint/releases/download/v${VERSION}/ghalint_${VERSION}_linux_amd64.tar.gz"
+              echo "$SHA256  ghalint.tar.gz" | sha256sum --check
+              tar -xzf ghalint.tar.gz ghalint
+        - name: Lint workflows
+          shell: bash
+          run: |
+              "$RUNNER_TEMP/ghalint" run
+        - name: Lint actions
+          shell: bash
+          run: |
+              "$RUNNER_TEMP/ghalint" run-action
