@@ -2,11 +2,19 @@ name: Auto Assign
 on:
     pull_request:
         types: [opened, reopened]
-permissions:
-    pull-requests: write
+permissions: {}
 jobs:
     assign:
+        if: github.event.pull_request.user.type != 'Bot'
         runs-on: ubuntu-latest
         timeout-minutes: 5
+        permissions:
+            pull-requests: write
         steps:
-            - uses: toshimaru/auto-author-assign@a78a94b219445cece8ccf0d45fec60af449f212a # v3.1.0
+            - name: Assign the author
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  GH_REPO: ${{ github.repository }}
+                  PR_NUMBER: ${{ github.event.pull_request.number }}
+                  AUTHOR: ${{ github.event.pull_request.user.login }}
+              run: gh api --silent --method POST "repos/$GH_REPO/issues/$PR_NUMBER/assignees" -f "assignees[]=$AUTHOR"
