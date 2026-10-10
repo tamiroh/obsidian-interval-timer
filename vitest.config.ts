@@ -14,7 +14,7 @@ export default defineConfig({
 		setupFiles: ["./vitest.setup.ts"],
 		coverage: {
 			reporter: ["json"],
-			include: ["src/**/*.ts"],
+			include: ["src/**/*.{ts,tsx}"],
 			exclude: [
 				"src/obsidian-fake.ts",
 				"src/obsidian-globals-fake.ts",
