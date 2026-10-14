@@ -52,7 +52,13 @@ export class IntervalTimerHost {
 
 	private readonly timeUpSound = new TimeUpSound(this.audioOutput);
 
-	private readonly flashOverlay = new FlashOverlay();
+	private readonly flashOverlay = new FlashOverlay({
+		onClick: () => {
+			if (this.intervalTimer.predictTouch() === "next") {
+				this.intervalTimer.touch();
+			}
+		},
+	});
 
 	private readonly unsubscribeSettings;
 
