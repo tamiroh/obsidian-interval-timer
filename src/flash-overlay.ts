@@ -1,11 +1,21 @@
 export type Color = { r: number; g: number; b: number };
 
+type FlashOverlayOptions = {
+	readonly onClick?: () => void;
+};
+
 export class FlashOverlay {
 	private overlay: HTMLDivElement | undefined;
 
 	private styleElement: HTMLStyleElement | undefined;
 
 	private readonly animationName = `flash-${crypto.randomUUID()}`;
+
+	private readonly onClick;
+
+	constructor({ onClick }: FlashOverlayOptions = {}) {
+		this.onClick = onClick;
+	}
 
 	public dispose(): void {
 		this.hide();
@@ -28,6 +38,7 @@ export class FlashOverlay {
 		this.overlay.style.backgroundColor = `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`;
 		this.overlay.addEventListener("click", () => {
 			this.hide();
+			this.onClick?.();
 		});
 
 		document.body.appendChild(this.overlay);
