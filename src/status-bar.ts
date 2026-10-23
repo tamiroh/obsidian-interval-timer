@@ -35,6 +35,11 @@ export class StatusBar implements TimerDisplay {
 		callbacks: {
 			notify: (message: string) => void;
 			renderIcon: (element: HTMLElement, iconId: string) => void;
+			showOptionsMenu?: (
+				element: HTMLElement,
+				reset: () => void,
+				totalIntervals: number,
+			) => void;
 		},
 	) {
 		this.statusBarItem = statusBarElement;
@@ -92,6 +97,7 @@ export class StatusBar implements TimerDisplay {
 			timerState,
 			intervals.set,
 			longBreakAfter,
+			intervals.total,
 		);
 		this.compactSeparator.classList.toggle(
 			"interval-timer-status-bar-time-separator-running",

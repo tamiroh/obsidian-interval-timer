@@ -266,14 +266,14 @@ describe("StatusBar", () => {
 		// Act
 		statusBar.enableClick(intervalTimer);
 		const compact = within(el).getByTestId("status-bar-compact");
-		const reset = within(el).getByRole("button", { name: "Reset set" });
+		const more = within(el).getByRole("button", { name: "More options" });
 
 		// Assert
 		expect(el).toHaveAttribute("role", "timer");
 		expect(el).toHaveClass("mod-clickable");
 		expect(compact).toHaveAttribute("role", "button");
 		expect(compact).not.toHaveClass("mod-clickable");
-		expect(compact).not.toContainElement(reset);
+		expect(compact).not.toContainElement(more);
 		intervalTimer.dispose();
 	});
 

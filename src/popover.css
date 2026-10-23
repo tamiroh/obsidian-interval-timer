@@ -386,7 +386,7 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 	display: -webkit-box;
 	padding-right: var(--interval-timer-popover-control-margin);
 	overflow: hidden;
-	-webkit-line-clamp: 2;
+	-webkit-line-clamp: 3;
 	font-size: 13px;
 	font-weight: 600;
 	line-height: 1.4;
@@ -410,14 +410,14 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 
 .interval-timer-popover-task-actions {
 	display: flex;
-	flex-direction: column;
 	gap: 3px;
-	align-items: flex-start;
+	align-items: center;
+	justify-content: space-between;
 	margin-top: auto;
 }
 
 .interval-timer-popover button.interval-timer-popover-touch-action,
-.interval-timer-popover button.interval-timer-popover-reset-set {
+.interval-timer-popover button.interval-timer-popover-more {
 	display: inline-flex;
 	gap: 4px;
 	align-items: center;
@@ -439,8 +439,8 @@ input[type="text"].interval-timer-popover-inline-retime-input:focus {
 
 button.interval-timer-popover-touch-action:hover,
 button.interval-timer-popover-touch-action:focus-visible,
-button.interval-timer-popover-reset-set:hover,
-button.interval-timer-popover-reset-set:focus-visible {
+button.interval-timer-popover-more:hover,
+button.interval-timer-popover-more:focus-visible {
 	color: var(--interval-timer-accent);
 	background: transparent;
 	border: 0;
@@ -448,12 +448,13 @@ button.interval-timer-popover-reset-set:focus-visible {
 }
 
 button.interval-timer-popover-touch-action:focus-visible,
-button.interval-timer-popover-reset-set:focus-visible {
+button.interval-timer-popover-more:focus-visible {
 	outline: 1px solid var(--interval-timer-accent);
 	outline-offset: 3px;
 }
 
-button.interval-timer-popover-touch-action:disabled {
+button.interval-timer-popover-touch-action:disabled,
+button.interval-timer-popover-more:disabled {
 	color: var(--text-faint);
 	cursor: default;
 	background: transparent;
