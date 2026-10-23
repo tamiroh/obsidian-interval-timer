@@ -25,7 +25,17 @@ jobs:
             - name: Install git-footprint
               run: go install github.com/tamiroh/git-footprint@latest
             - name: Check repository footprint
-              run: git footprint --no-color --no-pager --fail-on info
+              run: |
+                  git footprint --no-color --no-pager --fail-on info \
+                    --allow-identity 'tamiroh <tamiroh71@gmail.com>' \
+                    --allow-identity 'tamiroh <79360511+tamiroh@users.noreply.github.com>' \
+                    --allow-identity 'tamiroh <tamiroh@users.noreply.github.com>' \
+                    --allow-identity 'GitHub <noreply@github.com>' \
+                    --allow-identity 'dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>' \
+                    --allow-identity 'dependabot[bot] <support@github.com>' \
+                    --allow-identity 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>' \
+                    --allow-identity 'Copilot <175728472+copilot@users.noreply.github.com>' \
+                    --allow-identity 'copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>'
     lint:
         runs-on: ubuntu-latest
         timeout-minutes: 10
