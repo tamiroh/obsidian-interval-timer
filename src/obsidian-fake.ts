@@ -138,6 +138,10 @@ export class MenuItem {
 
 	private clickHandler: (() => void) | undefined;
 
+	public setDisabled(_disabled: boolean): this {
+		return this;
+	}
+
 	public setTitle(title: string): this {
 		this.title = title;
 		return this;
@@ -166,6 +170,13 @@ export class Menu {
 		const item = new MenuItem();
 		callback(item);
 		this.items.push(item);
+		return this;
+	}
+
+	public showAtPosition(
+		_position: { x: number; y: number },
+		_doc?: Document,
+	): this {
 		return this;
 	}
 

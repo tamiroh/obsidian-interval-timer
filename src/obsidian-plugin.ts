@@ -1,6 +1,7 @@
 import {
 	type App,
 	Notice,
+	Menu,
 	Platform,
 	Plugin as BasePlugin,
 	type PluginManifest,
@@ -44,6 +45,26 @@ export class Plugin extends BasePlugin {
 		const callbacks = {
 			notify: (message: string) => new Notice(message),
 			renderIcon: setIcon,
+			showOptionsMenu: (
+				element: HTMLElement,
+				reset: () => void,
+				totalIntervals: number,
+			) => {
+				const bounds = element.getBoundingClientRect();
+				new Menu()
+					.addItem((item) =>
+						item
+							.setTitle(`Total intervals: ${totalIntervals}`)
+							.setDisabled(true),
+					)
+					.addItem((item) =>
+						item.setTitle("Reset set").onClick(reset),
+					)
+					.showAtPosition(
+						{ x: bounds.left, y: bounds.bottom },
+						element.ownerDocument,
+					);
+			},
 		};
 		this.timerDisplay = Platform.isMobile
 			? new FloatingTimer(this.app, callbacks)

@@ -21,6 +21,11 @@ export class FloatingTimer implements TimerDisplay {
 		callbacks: {
 			notify: (message: string) => void;
 			renderIcon: (element: HTMLElement, iconId: string) => void;
+			showOptionsMenu?: (
+				element: HTMLElement,
+				reset: () => void,
+				totalIntervals: number,
+			) => void;
 		},
 	) {
 		this.containerEl = createDiv({ cls: "interval-timer-floating-timer" });
@@ -56,6 +61,7 @@ export class FloatingTimer implements TimerDisplay {
 			timerState,
 			intervals.set,
 			longBreakAfter,
+			intervals.total,
 		);
 	}
 

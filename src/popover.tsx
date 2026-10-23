@@ -32,6 +32,7 @@ type PopoverSnapshot = {
 	intervalTimerState: IntervalTimerState;
 	timerState: TimerState;
 	intervalsSet: number;
+	totalIntervals: number;
 	longBreakAfter: number;
 	remainingPercent: number;
 	currentTaskName: string | null;
@@ -79,6 +80,11 @@ export class Popover {
 			onRestoreFocus: () => void;
 			notify: (message: string) => void;
 			renderIcon: (element: HTMLElement, iconId: string) => void;
+			showOptionsMenu?: (
+				element: HTMLElement,
+				reset: () => void,
+				totalIntervals: number,
+			) => void;
 			floatOnMount?: boolean;
 			dismissible?: boolean;
 			draggable?: boolean;
@@ -89,6 +95,7 @@ export class Popover {
 			intervalTimerState: "focus",
 			timerState: "initialized",
 			intervalsSet: 0,
+			totalIntervals: 0,
 			longBreakAfter: defaultLongBreakAfter,
 			remainingPercent: 0,
 			currentTaskName: null,
@@ -110,6 +117,7 @@ export class Popover {
 				onRestoreFocus={options.onRestoreFocus}
 				notify={options.notify}
 				renderIcon={options.renderIcon}
+				showOptionsMenu={options.showOptionsMenu ?? (() => {})}
 				dismissible={options.dismissible ?? true}
 				draggable={options.draggable ?? true}
 			/>,
@@ -136,6 +144,7 @@ export class Popover {
 		timerState: TimerState,
 		intervalsSet = 0,
 		longBreakAfter = defaultLongBreakAfter,
+		totalIntervals = 0,
 	): void {
 		const intervalTimer = this.store.state.intervalTimer;
 
@@ -143,6 +152,7 @@ export class Popover {
 			time: currentTime,
 			intervalTimerState,
 			timerState,
+			totalIntervals,
 			intervalsSet,
 			longBreakAfter,
 			remainingPercent: this.getRemainingPercent(
@@ -211,6 +221,7 @@ const PopoverView = ({
 	onRestoreFocus,
 	notify,
 	renderIcon,
+	showOptionsMenu,
 	dismissible = true,
 	draggable = true,
 }: {
@@ -219,6 +230,11 @@ const PopoverView = ({
 	onRestoreFocus: () => void;
 	notify: (message: string) => void;
 	renderIcon: (element: HTMLElement, iconId: string) => void;
+	showOptionsMenu?: (
+		element: HTMLElement,
+		reset: () => void,
+		totalIntervals: number,
+	) => void;
 	dismissible?: boolean;
 	draggable?: boolean;
 }) => {
@@ -227,6 +243,7 @@ const PopoverView = ({
 		time: currentTime,
 		intervalTimerState,
 		timerState,
+		totalIntervals,
 		intervalsSet,
 		longBreakAfter,
 		remainingPercent,
@@ -590,16 +607,28 @@ const PopoverView = ({
 							>
 								{touchActionPresentation.label}
 							</Action>
-							<Action
-								className="interval-timer-popover-reset-set"
-								icon="rotate-ccw"
-								renderIcon={renderIcon}
-								onClick={() =>
-									intervalTimer?.resetIntervalsSet()
-								}
+							<button
+								type="button"
+								className="interval-timer-popover-more"
+								aria-label="More options"
+								aria-haspopup="menu"
+								disabled={!intervalTimer}
+								onClick={(event) => {
+									event.stopPropagation();
+									showOptionsMenu?.(
+										event.currentTarget,
+										() =>
+											intervalTimer?.resetIntervalsSet(),
+										totalIntervals,
+									);
+								}}
 							>
-								Reset set
-							</Action>
+								<Icon
+									name="ellipsis-vertical"
+									className="interval-timer-popover-task-action-icon"
+									renderIcon={renderIcon}
+								/>
+							</button>
 						</div>
 					)}
 				</div>

@@ -25,6 +25,14 @@ const createOptions = () => ({
 	onRestoreFocus: vi.fn(),
 	notify: vi.fn(),
 	renderIcon: vi.fn(),
+	showOptionsMenu:
+		vi.fn<
+			(
+				element: HTMLElement,
+				reset: () => void,
+				totalIntervals: number,
+			) => void
+		>(),
 });
 
 const createPopover = async (
@@ -255,11 +263,12 @@ describe("Popover", () => {
 		expect(await within(el).findByText("Write report")).toBeInTheDocument();
 	});
 
-	it("resets the interval set when Reset set is clicked", async () => {
+	it("resets the interval set through the More options menu", async () => {
 		// Arrange
 		const user = userEvent.setup();
 		const el = createDiv();
-		const popover = await createPopover(el);
+		const options = createOptions();
+		const popover = await createPopover(el, options);
 		const intervalTimer = createIntervalTimer();
 		const resetSpy = vi.spyOn(intervalTimer, "resetIntervalsSet");
 		popover.enableActions(intervalTimer);
@@ -268,14 +277,19 @@ describe("Popover", () => {
 				within(el).getByRole("button", { name: "Start" }),
 			).toBeEnabled(),
 		);
-		const resetSet = await within(el).findByRole("button", {
+		const resetButton = within(el).queryByRole("button", {
 			name: "Reset set",
 		});
 
 		// Act
-		await user.click(resetSet);
+		await user.click(
+			within(el).getByRole("button", { name: "More options" }),
+		);
+		options.showOptionsMenu.mock.calls[0]?.[1]();
 
 		// Assert
+		expect(resetButton).not.toBeInTheDocument();
+		expect(options.showOptionsMenu).toHaveBeenCalledOnce();
 		expect(resetSpy).toHaveBeenCalledOnce();
 	});
 
