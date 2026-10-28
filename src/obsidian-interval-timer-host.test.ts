@@ -5,6 +5,8 @@ import {
 	PluginSettingStore,
 } from "./obsidian-plugin-setting";
 import type { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
+import type { EventStore } from "./event-store";
+import type { IntervalTimerEventRecord } from "./interval-timer-event-record";
 import type { TaskLineController } from "./obsidian-task-line-controller";
 import type { TimerDisplay } from "./timer-display";
 import * as t from "./time";
@@ -27,6 +29,9 @@ describe("IntervalTimerHost", () => {
 				load: () => null,
 				save,
 			} as unknown as IntervalTimerSnapshotStore,
+			eventStore: {
+				record: vi.fn(),
+			} as unknown as EventStore<IntervalTimerEventRecord>,
 			taskLineController: {
 				untrackCurrentTask: vi.fn(),
 			} as unknown as TaskLineController,

@@ -104,6 +104,12 @@ export class TaskTracker {
 		);
 	}
 
+	public getTrackedTask(): TaskReference | null {
+		const name = this.keyValueStore.get("current-task-name")?.as("string");
+		const path = this.keyValueStore.get("current-task-path")?.as("string");
+		return isBlank(name) || isBlank(path) ? null : { name, path };
+	}
+
 	private readTaskFromActiveLine(): Result<
 		TaskReference,
 		"active_file_not_found" | "task_not_found"
