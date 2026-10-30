@@ -12,6 +12,8 @@ import {
 	type IntervalTimerStatus,
 } from "./interval-timer";
 import type { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
+import type { EventStore } from "./event-store";
+import { IntervalTimerEventRecord } from "./interval-timer-event-record";
 import { createNotifier } from "./obsidian-notification";
 import type { PluginSettingStore } from "./obsidian-plugin-setting";
 import type { TaskLineController } from "./obsidian-task-line-controller";
@@ -21,6 +23,7 @@ type IntervalTimerHostOptions = {
 	readonly settingStore: PluginSettingStore;
 	readonly timerDisplay: TimerDisplay;
 	readonly snapshotStore: IntervalTimerSnapshotStore;
+	readonly eventStore: EventStore<IntervalTimerEventRecord>;
 	readonly taskLineController: TaskLineController;
 };
 
@@ -37,6 +40,8 @@ export class IntervalTimerHost {
 	private readonly timerDisplay;
 
 	private readonly snapshotStore;
+
+	private readonly eventStore;
 
 	private readonly taskLineController;
 
@@ -66,11 +71,13 @@ export class IntervalTimerHost {
 		settingStore,
 		timerDisplay,
 		snapshotStore,
+		eventStore,
 		taskLineController,
 	}: IntervalTimerHostOptions) {
 		this.settingStore = settingStore;
 		this.timerDisplay = timerDisplay;
 		this.snapshotStore = snapshotStore;
+		this.eventStore = eventStore;
 		this.taskLineController = taskLineController;
 		const settings = settingStore.state;
 		this.notifier = createNotifier(settings.notificationStyle);
@@ -96,6 +103,7 @@ export class IntervalTimerHost {
 			this.onTimerEvent(event);
 		});
 		this.updateTimerState(this.intervalTimer.status);
+		this.taskLineController.untrackCurrentTask();
 		if (snapshot !== null) {
 			this.intervalTimer.applySnapshot(snapshot);
 		}
@@ -208,12 +216,32 @@ export class IntervalTimerHost {
 			.with(
 				{ type: "timer-paused" },
 				{ type: "timer-reset" },
+				{ type: "intervals-reset" },
+				{ type: "timer-retimed" },
 				{ type: "interval-skipped" },
 				() => {
 					// no-op
 				},
 			)
 			.exhaustive();
+
+		const record = IntervalTimerEventRecord.from(
+			event,
+			this.taskLineController.trackedTask,
+		);
+		if (record !== null) {
+			this.eventStore.record(record);
+		}
+
+		if (
+			event.type === "timer-reset" ||
+			event.type === "intervals-reset" ||
+			event.type === "timer-retimed" ||
+			event.type === "interval-completed" ||
+			event.type === "interval-skipped"
+		) {
+			this.taskLineController.untrackCurrentTask();
+		}
 	}
 
 	private updateTimerState({
@@ -228,8 +256,5 @@ export class IntervalTimerHost {
 			timerState,
 			this.settingStore.state.longBreakAfter,
 		);
-		if (timerState === "initialized") {
-			this.taskLineController.untrackCurrentTask();
-		}
 	}
 }

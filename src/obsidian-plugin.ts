@@ -12,6 +12,8 @@ import { StatusBar } from "./status-bar";
 import { FloatingTimer } from "./obsidian-floating-timer";
 import { KeyValueStore } from "./key-value-store";
 import { IntervalTimerSnapshotStore } from "./interval-timer-snapshot";
+import { IntervalTimerEventRecord } from "./interval-timer-event-record";
+import { EventStore } from "./event-store";
 import { TaskTracker } from "./obsidian-task-tracker";
 import { TaskLineController } from "./obsidian-task-line-controller";
 import {
@@ -32,6 +34,10 @@ export class Plugin extends BasePlugin {
 
 	private readonly intervalTimerSnapshotStore;
 
+	private readonly intervalTimerEventStore;
+
+	private readonly taskTracker;
+
 	private readonly taskLineController;
 
 	constructor(app: App, manifest: PluginManifest) {
@@ -42,6 +48,19 @@ export class Plugin extends BasePlugin {
 		this.intervalTimerSnapshotStore = new IntervalTimerSnapshotStore(
 			this.keyValueStore,
 		);
+		this.intervalTimerEventStore = new EventStore({
+			fileSystem: this.app.vault.adapter,
+			directory: `${manifest.dir ?? `${this.app.vault.configDir}/plugins/${manifest.id}`}/events`,
+			parse: (value) => IntervalTimerEventRecord.parse(value),
+			onError: (error) => {
+				console.error(
+					"Interval Timer: failed to access timer events.",
+					error,
+				);
+				new Notice("Failed to access timer events.");
+			},
+		});
+		this.taskTracker = new TaskTracker(this.app, this.keyValueStore);
 		const callbacks = {
 			notify: (message: string) => new Notice(message),
 			renderIcon: setIcon,
@@ -71,7 +90,7 @@ export class Plugin extends BasePlugin {
 			: new StatusBar(this.addStatusBarItem(), callbacks);
 		this.taskLineController = new TaskLineController(
 			this.app.workspace,
-			new TaskTracker(this.app, this.keyValueStore),
+			this.taskTracker,
 			this.timerDisplay,
 		);
 	}
@@ -85,6 +104,7 @@ export class Plugin extends BasePlugin {
 			settingStore: this.settingStore,
 			timerDisplay: this.timerDisplay,
 			snapshotStore: this.intervalTimerSnapshotStore,
+			eventStore: this.intervalTimerEventStore,
 			taskLineController: this.taskLineController,
 		});
 		this.intervalTimerHost = intervalTimerHost;
@@ -93,7 +113,12 @@ export class Plugin extends BasePlugin {
 
 		// Register timer integrations
 		this.taskLineController.setup(this, intervalTimerHost.timer);
-		registerCommands(this, intervalTimerHost.timer);
+		registerCommands(
+			this,
+			intervalTimerHost.timer,
+			this.taskTracker,
+			this.intervalTimerEventStore,
+		);
 
 		// Persist settings changes
 		this.settingStore.subscribe((_previous, next) => {
