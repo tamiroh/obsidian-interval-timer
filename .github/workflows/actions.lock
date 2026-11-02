@@ -18,7 +18,7 @@ workflows:
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-node@v7.0.0'
         - 'release-drafter/release-drafter@v7.10.0'
-        - 'stefanzweifel/git-auto-commit-action@v7.2.0'
+        - 'stefanzweifel/git-auto-commit-action@v7.2.1'
 dependencies:
     'actions/attest@v4.2.2':
         ref: 'v4.2.2'
@@ -57,8 +57,8 @@ dependencies:
         commit: 'sha1-978bb0b30c5ee8cdd332ced253758157150d43f0'
         owner_id: 58292376
         repo_id: 139022359
-    'stefanzweifel/git-auto-commit-action@v7.2.0':
-        ref: 'v7.2.0'
-        commit: 'sha1-4a55954c782fc1ea30b9056cd3e7a2b40ca8887d'
+    'stefanzweifel/git-auto-commit-action@v7.2.1':
+        ref: 'v7.2.1'
+        commit: 'sha1-d0b01107b5db882071f96de5dd4b54961ea93f4c'
         owner_id: 1080923
         repo_id: 191163758
