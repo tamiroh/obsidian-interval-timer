@@ -23,7 +23,7 @@ jobs:
                   node-version-file: ".tool-versions"
             - name: Update draft
               id: release-drafter-prepare
-              uses: release-drafter/release-drafter@v7.7.0
+              uses: release-drafter/release-drafter@v7.10.0
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             - name: Update version
@@ -51,7 +51,7 @@ jobs:
               run: gh release upload "$TAG_NAME" main.js manifest.json styles.css
             - name: Publish release
               id: release-drafter-publish
-              uses: release-drafter/release-drafter@v7.7.0
+              uses: release-drafter/release-drafter@v7.10.0
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
