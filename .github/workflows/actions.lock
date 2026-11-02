@@ -12,12 +12,12 @@ workflows:
         - 'actions/checkout@v7.0.1'
     '.github/workflows/pr-auto-assign.yml': []
     '.github/workflows/release-drafter.yml':
-        - 'release-drafter/release-drafter@v7.7.0'
+        - 'release-drafter/release-drafter@v7.10.0'
     '.github/workflows/release.yml':
         - 'actions/attest@v4.2.2'
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-node@v7.0.0'
-        - 'release-drafter/release-drafter@v7.7.0'
+        - 'release-drafter/release-drafter@v7.10.0'
         - 'stefanzweifel/git-auto-commit-action@v7.2.0'
 dependencies:
     'actions/attest@v4.2.2':
@@ -52,9 +52,9 @@ dependencies:
         repo_id: 200299178
         uses:
             - 'actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd'
-    'release-drafter/release-drafter@v7.7.0':
-        ref: 'v7.7.0'
-        commit: 'sha1-34d80673e067bdc0c24568d3af899c216adcfaa9'
+    'release-drafter/release-drafter@v7.10.0':
+        ref: 'v7.10.0'
+        commit: 'sha1-978bb0b30c5ee8cdd332ced253758157150d43f0'
         owner_id: 58292376
         repo_id: 139022359
     'stefanzweifel/git-auto-commit-action@v7.2.0':
