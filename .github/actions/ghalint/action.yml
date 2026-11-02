@@ -6,8 +6,8 @@ runs:
         - name: Install ghalint
           shell: bash
           env:
-              VERSION: 1.5.6
-              SHA256: 98ee0e3330de7286f470d1e89c03ff7ce70d7a5998ba0f15969c400447be579c
+              VERSION: 1.6.0
+              SHA256: eda1af79c1a4a31c2de5831cd1333ad582fa6fa72015f8e9c1c4525d550c1d35
           run: |
               cd "$RUNNER_TEMP"
               curl -fsSL -o ghalint.tar.gz "https://github.com/suzuki-shunsuke/ghalint/releases/download/v${VERSION}/ghalint_${VERSION}_linux_amd64.tar.gz"
