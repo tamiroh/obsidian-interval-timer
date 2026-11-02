@@ -14,11 +14,11 @@ jobs:
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - uses: actions/checkout@v7.0.1
               with:
                   fetch-depth: 0
                   persist-credentials: false
-            - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+            - uses: actions/setup-go@v7.0.0
               with:
                   go-version: "1.26.x"
                   cache: false
@@ -42,10 +42,10 @@ jobs:
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - uses: actions/checkout@v7.0.1
               with:
                   persist-credentials: false
-            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+            - uses: actions/setup-node@v7.0.0
               with:
                   node-version-file: ".tool-versions"
             - name: Install modules
@@ -58,10 +58,10 @@ jobs:
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - uses: actions/checkout@v7.0.1
               with:
                   persist-credentials: false
-            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+            - uses: actions/setup-node@v7.0.0
               with:
                   node-version-file: ".tool-versions"
             - name: Install modules
@@ -74,10 +74,10 @@ jobs:
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - uses: actions/checkout@v7.0.1
               with:
                   persist-credentials: false
-            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+            - uses: actions/setup-node@v7.0.0
               with:
                   node-version-file: ".tool-versions"
             - name: Install modules
@@ -90,10 +90,10 @@ jobs:
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - uses: actions/checkout@v7.0.1
               with:
                   persist-credentials: false
-            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+            - uses: actions/setup-node@v7.0.0
               with:
                   node-version-file: ".tool-versions"
             - name: Install modules
@@ -101,7 +101,7 @@ jobs:
             - name: Run unit tests
               run: npm run coverage
             - name: Upload coverage reports to Codecov
-              uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+              uses: codecov/codecov-action@v7.1.1
               with:
                   token: ${{ secrets.CODECOV_TOKEN }}
     workflow-lint:
@@ -110,11 +110,11 @@ jobs:
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - uses: actions/checkout@v7.0.1
               with:
                   persist-credentials: false
             - name: Check that actions are pinned
-              uses: suzuki-shunsuke/pinact-action@896d595f299e71d65b9d28349d6956abe144390a # v3.0.0
+              uses: suzuki-shunsuke/pinact-action@v3.0.0
               with:
                   fix: "false"
             - name: Run ghalint
