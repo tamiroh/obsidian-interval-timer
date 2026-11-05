@@ -1,0 +1,23 @@
+name: Dependabot Label Cleanup
+on:
+    pull_request_target:
+        types: [labeled]
+permissions: {}
+jobs:
+    remove-version-label:
+        if: >-
+            github.event.pull_request.user.login == 'dependabot[bot]' &&
+            github.actor == 'dependabot[bot]' &&
+            contains(fromJSON('["major", "minor", "patch"]'), github.event.label.name)
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            pull-requests: write
+        steps:
+            - name: Remove the version label added by Dependabot
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  GH_REPO: ${{ github.repository }}
+                  PR_NUMBER: ${{ github.event.pull_request.number }}
+                  LABEL: ${{ github.event.label.name }}
+              run: gh api --silent --method DELETE "repos/$GH_REPO/issues/$PR_NUMBER/labels/$LABEL"
