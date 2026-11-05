@@ -6,7 +6,7 @@ import vitest from "@vitest/eslint-plugin";
 import testingLibrary from "eslint-plugin-testing-library";
 import jestDom from "eslint-plugin-jest-dom";
 import tseslint from "typescript-eslint";
-import local from "./eslint-plugin-local.mts";
+import local from "./lint/eslint-plugin-local.mts";
 
 const noObjectAssign = {
 	object: "Object",
@@ -41,7 +41,7 @@ export default defineConfig(
 				projectService: {
 					allowDefaultProject: [
 						"eslint.config.mts",
-						"eslint-plugin-local.mts",
+						"lint/eslint-plugin-local.mts",
 						"stylelint.config.mjs",
 						"manifest.json",
 					],
@@ -65,7 +65,7 @@ export default defineConfig(
 		"node_modules",
 		"dist",
 		"esbuild.config.mjs",
-		"stylelint-plugin-local.mjs",
+		"lint/stylelint-plugin-local.mjs",
 		"bin/version-bump.mjs",
 		"versions.json",
 		"main.js",

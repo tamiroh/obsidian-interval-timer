@@ -1,7 +1,7 @@
 /** @type {import("stylelint").Config} */
 export default {
 	extends: ["stylelint-config-standard", "stylelint-config-recess-order"],
-	plugins: ["./stylelint-plugin-local.mjs", "stylelint-order"],
+	plugins: ["./lint/stylelint-plugin-local.mjs", "stylelint-order"],
 	reportNeedlessDisables: true,
 	reportInvalidScopeDisables: true,
 	reportDescriptionlessDisables: true,
