@@ -26,3 +26,6 @@ coverage/
 
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
+
+# Timer events recorded by the plugin at runtime.
+events/

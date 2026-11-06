@@ -1,5 +1,6 @@
 import { Notice, type Plugin as BasePlugin, type Workspace } from "obsidian";
 import {
+	type TaskReference,
 	type TaskTracker,
 	type TrackTaskResult,
 } from "./obsidian-task-tracker";
@@ -33,6 +34,10 @@ export class TaskLineController {
 				this.syncCurrentTask();
 			},
 		);
+	}
+
+	public get trackedTask(): TaskReference | null {
+		return this.taskTracker.getTrackedTask();
 	}
 
 	private static reportCompletionFailure(cause: unknown): void {
@@ -95,8 +100,6 @@ export class TaskLineController {
 			}
 		} catch (error) {
 			TaskLineController.reportCompletionFailure(error);
-		} finally {
-			this.untrackCurrentTask();
 		}
 	}
 
