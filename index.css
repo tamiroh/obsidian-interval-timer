@@ -2,6 +2,7 @@
 @import url("./src/status-bar.css");
 @import url("./src/popover.css");
 @import url("./src/obsidian-floating-timer.css");
+@import url("./src/obsidian-flash-overlay.css");
 
 body {
 	--interval-timer-focus-color: #ee6152;

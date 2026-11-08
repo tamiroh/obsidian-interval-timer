@@ -1,10 +1,14 @@
 import { describe, expect, it, afterEach } from "vitest";
-import { FlashOverlay } from "./flash-overlay";
+import { FlashOverlay } from "./obsidian-flash-overlay";
+
+const flashColor = (element: Element | null): string | undefined =>
+	(element as HTMLElement | null)?.style.getPropertyValue(
+		"--interval-timer-flash-color",
+	);
 
 describe("FlashOverlay", () => {
 	afterEach(() => {
 		document.body.innerHTML = "";
-		document.head.innerHTML = "";
 	});
 
 	it("should create overlay element when show is called", () => {
@@ -17,27 +21,7 @@ describe("FlashOverlay", () => {
 		// Assert
 		const overlay = document.querySelector(".interval-timer-flash-overlay");
 		expect(overlay).not.toBeNull();
-		expect(overlay?.getAttribute("style")).toContain(
-			"background-color: rgba(255, 100, 100, 0.9)",
-		);
-	});
-
-	it("should inject the overlay styles and keyframes on first show", () => {
-		// Arrange
-		const flashOverlay = new FlashOverlay();
-
-		// Act
-		flashOverlay.show({ r: 100, g: 255, b: 100 });
-
-		// Assert
-		const styleElement = document.head.querySelector("style");
-		expect(styleElement).not.toBeNull();
-		expect(styleElement?.textContent).toContain(
-			".interval-timer-flash-overlay",
-		);
-		expect(styleElement?.textContent).toMatch(
-			/animation: (flash-[\w-]+) 1s linear infinite;[\s\S]*@keyframes \1 \{/,
-		);
+		expect(flashColor(overlay)).toBe("rgba(255, 100, 100, 0.9)");
 	});
 
 	it("should not create multiple overlays when show is called twice", () => {
@@ -71,9 +55,7 @@ describe("FlashOverlay", () => {
 			".interval-timer-flash-overlay",
 		);
 		expect(overlay).not.toBeNull();
-		expect(overlay).toHaveStyle({
-			backgroundColor: "rgba(100, 255, 100, 0.9)",
-		});
+		expect(flashColor(overlay)).toBe("rgba(100, 255, 100, 0.9)");
 		expect(overlays.length).toBe(1);
 	});
 
@@ -90,7 +72,7 @@ describe("FlashOverlay", () => {
 		expect(overlay).toBeNull();
 	});
 
-	it("should remove overlay and style element when dispose is called", () => {
+	it("should remove overlay when dispose is called", () => {
 		// Arrange
 		const flashOverlay = new FlashOverlay();
 		flashOverlay.show({ r: 100, g: 255, b: 100 });
@@ -99,9 +81,7 @@ describe("FlashOverlay", () => {
 		flashOverlay.dispose();
 
 		// Assert
-		const styleElement = document.head.querySelector("style");
 		const overlay = document.querySelector(".interval-timer-flash-overlay");
-		expect(styleElement).toBeNull();
 		expect(overlay).toBeNull();
 	});
 

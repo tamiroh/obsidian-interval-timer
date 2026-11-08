@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import { AudioOutput } from "./audio-output";
-import { FlashOverlay } from "./flash-overlay";
+import { FlashOverlay } from "./obsidian-flash-overlay";
 import { FocusBgm } from "./focus-bgm";
 import { FocusTickSound } from "./focus-tick-sound";
 import { TimeUpSound } from "./time-up-sound";
