@@ -1,9 +1,4 @@
 {
-	"src/flash-overlay.ts": {
-		"local/no-declarations-from-module": {
-			"count": 2
-		}
-	},
 	"src/popover.test.ts": {
 		"local/no-declarations-from-module": {
 			"count": 44

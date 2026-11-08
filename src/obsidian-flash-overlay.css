@@ -1,0 +1,24 @@
+.interval-timer-flash-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	cursor: pointer;
+	background-color: var(--interval-timer-flash-color);
+	animation: interval-timer-flash 1s linear infinite;
+}
+
+@keyframes interval-timer-flash {
+	from {
+		opacity: 0.9;
+	}
+
+	to {
+		opacity: 0.3;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.interval-timer-flash-overlay {
+		animation: none;
+	}
+}

@@ -1,5 +1,6 @@
 export type ObsidianTestWindow = Window & {
 	Node: typeof Node;
+	HTMLElement: typeof HTMLElement;
 	createDiv: typeof createDiv;
 	createEl: typeof createEl;
 	createSvg: typeof createSvg;
@@ -106,5 +107,14 @@ export function setupObsidianGlobals(
 			{ ...options, parent: this },
 			callback,
 		);
+	};
+
+	targetWindow.HTMLElement.prototype.setCssProps = function (
+		this: HTMLElement,
+		props: Record<string, string>,
+	): void {
+		for (const [property, value] of Object.entries(props)) {
+			this.style.setProperty(property, value);
+		}
 	};
 }
