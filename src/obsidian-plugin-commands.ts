@@ -1,9 +1,15 @@
 import type { Plugin as BasePlugin } from "obsidian";
 import type { IntervalTimer } from "./interval-timer";
+import type { EventStore } from "./event-store";
+import type { IntervalTimerEventRecord } from "./interval-timer-event-record";
+import { TaskEventModal } from "./obsidian-task-event-modal";
+import type { TaskTracker } from "./obsidian-task-tracker";
 
 export const registerCommands = (
 	plugin: BasePlugin,
 	intervalTimer: IntervalTimer,
+	taskTracker: TaskTracker,
+	eventStore: EventStore<IntervalTimerEventRecord>,
 ): void => {
 	plugin.addCommand({
 		id: "start-timer",
@@ -51,6 +57,18 @@ export const registerCommands = (
 			const { canSkip } = intervalTimer;
 			if (!checking && canSkip) intervalTimer.skipInterval();
 			return canSkip;
+		},
+	});
+	plugin.addCommand({
+		id: "view-task-events",
+		name: "View task events",
+		checkCallback: (checking) => {
+			const task = taskTracker.getTaskReferenceFromActiveLine();
+			if (task === null) return false;
+			if (!checking) {
+				new TaskEventModal(plugin.app, task, eventStore).open();
+			}
+			return true;
 		},
 	});
 };

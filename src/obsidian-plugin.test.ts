@@ -26,6 +26,7 @@ describe("Plugin", () => {
 const createPlugin = (): Plugin => {
 	const app = {
 		workspace: { updateOptions: () => {} },
+		vault: { adapter: {}, configDir: "test-config" },
 	} as unknown as App;
 	const manifest = { id: "interval-timer-test" } as unknown as PluginManifest;
 	return new Plugin(app, manifest);
