@@ -12,6 +12,9 @@ updates:
           interval: "monthly"
       reviewers:
           - "tamiroh"
+      ignore:
+          - dependency-name: "typescript"
+            versions: ["7.x"]
       groups:
           dev-dependencies:
               dependency-type: "development"
